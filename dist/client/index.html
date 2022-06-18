@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>
+    <link rel="stylesheet" href="https://unpkg.com/modern-normalize@0.5.0/modern-normalize.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        :root {
+          --tp-base-background-color: hsla(0, 0%, 10%, 0.3);
+          --tp-base-shadow-color: hsla(0, 0%, 0%, 0.2);
+          --tp-button-background-color: hsla(0, 0%, 80%, 1);
+          --tp-button-background-color-active: hsla(123, 50%, 58%, 1);
+          --tp-button-background-color-focus: hsla(0, 0%, 95%, 1);
+          --tp-button-background-color-hover: hsla(0, 0%, 85%, 1);
+          --tp-button-foreground-color: hsla(0, 0%, 0%, 0.8);
+          --tp-container-background-color: hsla(0, 0%, 0%, 0.3);
+          --tp-container-background-color-active: hsla(0, 0%, 0%, 0.6);
+          --tp-container-background-color-focus: hsla(0, 0%, 0%, 0.5);
+          --tp-container-background-color-hover: hsla(0, 0%, 0%, 0.4);
+          --tp-container-foreground-color: hsla(0, 0%, 100%, 0.5);
+          --tp-groove-foreground-color: hsla(0, 0%, 0%, 0.2);
+          --tp-input-background-color: hsla(0, 0%, 0%, 0.3);
+          --tp-input-background-color-active: hsla(0, 0%, 0%, 0.6);
+          --tp-input-background-color-focus: hsla(0, 0%, 0%, 0.5);
+          --tp-input-background-color-hover: hsla(0, 0%, 0%, 0.4);
+          --tp-input-foreground-color: hsla(0, 0%, 100%, 0.8);
+          --tp-label-foreground-color: hsla(0, 0%, 100%, 0.8);
+          --tp-monitor-background-color: hsla(0, 0%, 0%, 0.6);
+          --tp-monitor-foreground-color: hsla(0, 0%, 100%, 0.8);
+        }
+        html { 
+            height: 100%; 
+            width: 100%;
+            margin: 0; 
+            padding: 0; 
+            background-color: #e3f6ff;
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+          height: 100%;
+          width: 100%;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin: 0px;
+          padding: 0px;
+          font-family: "Pirulen";
+          font-size: 100%;
+          line-height: 1.2;
+        }
+
+        canvas.webgl {
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: -1;
+          width: 100vw;
+          height: 100vh;
+        }
+
+        #logo {
+          position: fixed;
+          z-index: 1000;
+          bottom: 2%; right: 2%;
+          width: 18%;
+          padding: min(8px, 14px);
+          margin: min(8px, 14px);
+          pointer-events: none;
+          background-color: black;
+        }
+
+        #debug1 {
+          font-family: monospace;
+          font-size: larger;
+          position: absolute;
+          padding: 8px;
+          left: 10px;
+          bottom: 10px;
+          overflow: hidden;
+          border: 1px solid black;
+          width: 200px;
+          height: 200px;
+          color: black;
+          pointer-events: none;
+}  
+
+    </style>
+</head>
+
+<body>
+    <img src="../assets/logo.png" id="logo">
+
+    <canvas class="webgl"></canvas> 
+
+    <div id="debug1"></div> 
+
+    <button class="button" id="screenshot"></button>
+
+    <script type="module" src="bundle.js"></script> 
+
+</body>
+
+</html>
