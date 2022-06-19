@@ -86,43 +86,38 @@ camera:
 },
 material: 
 {
-	color: "#F5F5F5",
-	metal: 0.1,
-	rough: 0.01,
+	color: "#2F4F4F",
+	metal: 0.66,
+	rough: 0.3,
 	alpha: 1.0,
-	glass: 1.15,
-	thick: 0.58,
-	reflex: 0.5,
-	clearcoat: 0.0,
+	glass: 1.0,
+	thick: 2.8,
+	reflex: 1.0,
+	clearcoat: 0.4,
 	coatrough: 0.08,
 	normal: 1.43,
-	envInt: 10,
-	ior: 1.0,
+	envInt: 5,
+	ior: 1.4,
 	disc: 0.04,
-	ao: 1.0,
-	emiss: 0xF5F5F5,
-	emissIntensity: 0.5,
-	specIntensity: 0.3,
-	sheen: 1.0,
-	dispScale: new THREE.Vector2(1, 2),
-	dispBias: 0.3, 
-	aoMapIntensity: 2.4,
-	normalScale: new THREE.Vector2(1, 2),
+	ao: 0.3,
+	specIntensity: 0.01,
+	sheen: 0.5,
+	dispScale: new THREE.Vector2(2, 2),
+	normalScale: new THREE.Vector2(1, 1),
 	dither: true,
 },
-	background: "#e3f6ff",
-	lines: "#202030",
+	background: "#000000",
 }
 
 //--
 
 const sphereData = {
     radius: 1,
-    widthSegments: 180,
-    heightSegments: 180,
+    widthSegments: 280,
+    heightSegments: 280,
     phiStart: 0,
     phiLength: Math.PI * 4,
-    thetaStart: 6.83,
+    thetaStart: 100,
     thetaLength: Math.PI * 4, 
 }
 
@@ -159,7 +154,6 @@ const canvas = document.querySelector("canvas");
 ///////////////
 
 const scene = new THREE.Scene()
-// scene.add(new THREE.AxesHelper(5))
 scene.background = new THREE.Color(0xFFFFF0);
 
 ////////////////////////////////////////////////////////////////////
@@ -193,7 +187,7 @@ window.addEventListener('resize', () => {
 
 const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.1, 1000)
 
-camera.position.z = -1 
+camera.position.z = -4 
 camera.lookAt(new THREE.Vector3(0, 0, 0)) 
 
 ////////////////////////////////////////////////////////////////////
@@ -203,7 +197,7 @@ camera.lookAt(new THREE.Vector3(0, 0, 0))
 let background = 0x6B8E23
 let backgroundAlpha = 1
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false } )
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true} )
 
 renderer.setSize(sizes.width, sizes.height)
 renderer.setClearColor(background, backgroundAlpha)
@@ -257,6 +251,9 @@ controls.maxPolarAngle = Math.PI / 2.1
 
 const sphereGeometry = new THREE.SphereGeometry()
 
+const c_tor = new THREE.TorusGeometry(1.5, 0.2, 32, 100);
+
+
 //==================
 
 ////////////////////////////////////////////////////////////////////
@@ -290,8 +287,7 @@ const glassMaterial = new THREE.MeshPhysicalMaterial({
 	metalnessMap: g_texture("New York", 4),
 	roughnessMap: g_texture("New York", 4),
 	clearcoatMap: g_texture("New York", 4),
-	// clearcoatNormalMap: g_texture("New York", 4),
-	clearcoatNormalScale: new THREE.Vector2(3, 2),
+	clearcoatNormalScale: new THREE.Vector2(3, 3),
 	displacementMap: g_texture("New York", 4),
 });
 
@@ -302,19 +298,17 @@ glassMaterial.sheenColorMap= g_texture("New York", 4)
 // ✧ MESHES
 ///////////////
 
-// const cube = new THREE.Mesh(geometry, material)
-// scene.add(cube)
-
 const sphere = new THREE.Mesh(sphereGeometry, glassMaterial)
 scene.add(sphere)
 
-// const cube = new THREE.Mesh(boxGeometry, glassMaterial)
-// cube.scale.set(2, 2, 2)
-// scene.add(cube)
+const c_mesh = new THREE.Mesh(c_tor, wallMaterial);
+c_mesh.rotation.z = (90 * Math.PI) / 180;
+c_mesh.name = "object3D";
 
+scene.add(c_mesh)
 
 ////////////////////////////////////////////////////////////////////
-// ✧ ANIMATIONS
+// ✧ STATS
 ///////////////
 
 const stats = Stats()  
@@ -324,28 +318,13 @@ document.body.appendChild(stats.dom)
 // ✧ GUI - TWEAKPANE
 ///////////////
 
-const pane = new Pane({
-	title: "Configuration"
-})
+const pane = new Pane({title: "Configuration"})
 
-const c_folder = pane.addFolder({
-	title: "Camera" ,expanded: false
-});
+const c_folder = pane.addFolder({title: "Camera" ,expanded: true });
+c_folder.addInput(PARAMS.camera, "speed", {min: 0.05,max: 3,label: "Speed"});
 
-c_folder.addInput(PARAMS.camera, "speed", {
-	min: 0.05,
-	max: 3,
-	label: "Speed"
-});
-
-const s_folder = pane.addFolder({ 
-	title: "Scene", 
-	expanded: false 
-});
-
-s_folder.addInput(PARAMS, "background", { 
-	label: "BG" 
-});
+const s_folder = pane.addFolder({ title: "Scene", expanded: true });
+s_folder.addInput(PARAMS, "background", { label: "BG" });
 
 const fl = pane.addFolder({ title: "Object" });
 
@@ -358,18 +337,14 @@ fl.addButton({ title: "Reset" }).on("click", () => {
 	PARAMS.material.reflex = 0.5
 	PARAMS.material.coatrough = 0.0
 	PARAMS.material.clearcoat = 0.0
-	PARAMS.material.ior = 1.
-	PARAMS.material.ao = 1.
-	// PARAMS.material.aoMapIntensity = 2
+	PARAMS.material.ior = 1
+	PARAMS.material.ao = 0.5
 	PARAMS.material.normal = 1.4
 	PARAMS.material.dither = false
-	PARAMS.material.disc = 0.0
+	PARAMS.material.disc = 0.1
 	PARAMS.material.envInt = 2.0
-	// PARAMS.material.emiss = 0
-	// PARAMS.material.emissIntensity = 0
 	PARAMS.material.specIntensity = 0.3
 	PARAMS.material.sheen = 1.0
-	// PARAMS.material.dispBias = 0.3
 });
 
 fl.addButton({ title: "Random" }).on("click", () => {
@@ -400,7 +375,7 @@ fl.addInput(PARAMS.material, "coatrough", {min: 0.01, max: 2.0, label: "CCoatRou
 //===========================
 fl.addSeparator();
 //===========================
-const ft = fl.addFolder({ title: 'Advanced', expanded: false})
+const ft = pane.addFolder({ title: 'Advanced', expanded: true})
 
 ft.addInput(PARAMS.material, "dither", { label: "Dithering" })
 ft.addInput(PARAMS.material, "ior", { min: 0.01, max: 2.0, label: "Ior" })
@@ -410,14 +385,6 @@ ft.addInput(PARAMS.material, "normal", { min: 0.01, max: 4.0, label: "Normal" })
 ft.addInput(PARAMS.material, "envInt", { label: "Intensity", step: 10 })
 
 //===========================
-
-	const c_tor = new THREE.TorusGeometry(2, 0.2, 32, 100);
-
-	const c_mesh = new THREE.Mesh(c_tor, wallMaterial);
-	c_mesh.rotation.z = (90 * Math.PI) / 180;
-	c_mesh.name = "object3D";
-
-	scene.add(c_mesh)
 
 //--
 
@@ -433,6 +400,11 @@ ft.addInput(PARAMS.material, "envInt", { label: "Intensity", step: 10 })
 	scene.add(lights)
 
 //--
+
+////////////////////////////////////////////////////////////////////
+// ✧ HELPERS
+///////////////
+
 
 	// const gridHelper = new THREE.GridHelper(40, 40, PARAMS.lines, PARAMS.lines);
 	// gridHelper.position.y = -1; 
@@ -510,6 +482,7 @@ function animate() {
 
 function render() {
 	pane.refresh()
+	scene.background = new THREE.Color(PARAMS.background);
 	renderMaterial()
 	regenerateSphereGeometry()
 
