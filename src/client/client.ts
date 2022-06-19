@@ -82,13 +82,13 @@ const PARAMS = {
 camera: 
 {
 	speed: 0.1,
-	wiggle: 5
+	
 },
 material: 
 {
-	color: "#CCCCDD",
-	metal: 0.0,
-	rough: 0.4,
+	color: "#F5F5F5",
+	metal: 0.1,
+	rough: 0.01,
 	alpha: 1.0,
 	glass: 1.15,
 	thick: 0.58,
@@ -98,9 +98,17 @@ material:
 	normal: 1.43,
 	envInt: 10,
 	ior: 1.0,
-	disc: 0.0,
+	disc: 0.04,
 	ao: 1.0,
-	dither: true
+	emiss: 0xF5F5F5,
+	emissIntensity: 0.5,
+	specIntensity: 0.3,
+	sheen: 1.0,
+	dispScale: new THREE.Vector2(1, 2),
+	dispBias: 0.3, 
+	aoMapIntensity: 2.4,
+	normalScale: new THREE.Vector2(1, 2),
+	dither: true,
 },
 	background: "#e3f6ff",
 	lines: "#202030",
@@ -114,20 +122,9 @@ const sphereData = {
     heightSegments: 180,
     phiStart: 0,
     phiLength: Math.PI * 4,
-    thetaStart: 0,
+    thetaStart: 6.83,
     thetaLength: Math.PI * 4, 
 }
-
-//--
-
-// const cubeData = {
-//     width: 2,
-//     height: 2,
-//     depth: 2,
-//     widthSegments:  2,
-//     heightSegments:  2,
-//     depthSegments:  2
-// }
 
 //--
 
@@ -163,7 +160,7 @@ const canvas = document.querySelector("canvas");
 
 const scene = new THREE.Scene()
 // scene.add(new THREE.AxesHelper(5))
-scene.background = new THREE.Color(0xe3f6ff);
+scene.background = new THREE.Color(0xFFFFF0);
 
 ////////////////////////////////////////////////////////////////////
 // ✧ RESPONSIVENESS 
@@ -194,18 +191,17 @@ window.addEventListener('resize', () => {
 // ✧ CAMERA
 ///////////////
 
-const camera = new THREE.PerspectiveCamera(120, sizes.width / sizes.height, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.1, 1000)
 
-camera.position.z = -3 
+camera.position.z = -1 
 camera.lookAt(new THREE.Vector3(0, 0, 0)) 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ RENDERER
 ///////////////
 
-let background = 0xe3f6ff
+let background = 0x6B8E23
 let backgroundAlpha = 1
-
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false } )
 
@@ -259,40 +255,17 @@ controls.maxPolarAngle = Math.PI / 2.1
 // ✧ GEOMETRIES > THREE.BUFFERGEOMETRY after r125
 /////////////////
 
-const boxGeometry = new THREE.BoxGeometry()
 const sphereGeometry = new THREE.SphereGeometry()
-const icosahedronGeometry = new THREE.IcosahedronGeometry()
-const circleGeometry = new THREE.CircleGeometry( 5, 32 );
 
 //==================
-
-//-- EDGES GEOMETRY
-const geometry = new THREE.BoxGeometry( 100, 100, 100 );
-const edges = new THREE.EdgesGeometry( geometry );
-const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
-
-//==================
-
-//-- THREE.BufferGeometry -- Create a line with points.
-
-const points = []
-
-points.push(new THREE.Vector3(-5, 0, 0))
-points.push(new THREE.Vector3(5, 0, 0))
-points.push(new THREE.Vector3(0, 3, 2))
-points.push(new THREE.Vector3(-5, 13, 0))
-
-let bufferGeometry = new THREE.BufferGeometry().setFromPoints( points )
-let lineBG = new THREE.Line(bufferGeometry, new THREE.LineBasicMaterial({ color: 0x888888 }))
-// scene.add(lineBG)
 
 ////////////////////////////////////////////////////////////////////
 // ✧ MATERIALS > THREE.MATERIAL 
 ///////////////
 
 const wallMaterial = new THREE.MeshPhysicalMaterial({
+	side: THREE.DoubleSide,
 	map: g_texture("neon", 4),
-	alphaMap: g_texture("neon", 4),
 	normalMap: g_texture("neon", 4),
 	normalScale: new THREE.Vector2(3, 3),
 	transmissionMap: g_texture("neon", 4),
@@ -301,52 +274,30 @@ const wallMaterial = new THREE.MeshPhysicalMaterial({
 	clearcoatMap: g_texture("neon", 4),
 	displacementMap: g_texture("neon", 4),
 	displacementScale: 0.16,
-	displacementBias: 0.16,
 	precision: "highp",
 });
 
 const glassMaterial = new THREE.MeshPhysicalMaterial({
-	map: g_texture("waves", 4),
+	//---"Reset" > RANDOM > needsUpdate = true;
 	side: THREE.DoubleSide,
-	alphaMap: g_texture("waves", 4),
-	normalMap: g_texture("waves", 4),
-	normalScale: new THREE.Vector2(1, 2),
-	aoMap: g_texture("waves", 4),
-	aoMapIntensity: 2.4,
-	ior: 0.5,
-	reflectivity: 0.05,
-	transmission: 1, 
-	transmissionMap: g_texture("waves", 4), 
-	envMap: g_texture("waves", 4),
-	envMapIntensity: 4.5,
-	metalnessMap: g_texture("waves", 4),
-	roughness: 0.01,
-	roughnessMap: g_texture("waves", 4),
-	clearcoat: 0.5,
-	clearcoatMap: g_texture("waves", 4),
-	clearcoatNormalMap: g_texture("waves", 4),
-	clearcoatNormalScale: new THREE.Vector2(3, 2),
-	displacementMap: g_texture("waves", 4),
-	displacementScale: 0.04,
-	displacementBias: 0.3,
 	precision: "highp",
-	color: 0x000000,
-	emissive: 0xF5F5F5,
-	emissiveMap: g_texture("waves", 4),
-	emissiveIntensity: 0.5,
-	dithering: true,
-	sheen: 1.0,
-	sheenRoughness: 0.1,
-	specularIntensity: 0.3,
-	specularIntensityMap: g_texture("waves", 4),
-	// flatShading: false,
-	// combine: THREE.AddOperation,
+	map: g_texture("New York", 4),
+	alphaMap: g_texture("New York", 4),
+	normalMap: g_texture("New York", 4),
+	normalScale: new THREE.Vector2(3, 3),
+	transmissionMap: g_texture("New York", 4), 
+	envMap: g_texture("New York", 4),
+	metalnessMap: g_texture("New York", 4),
+	roughnessMap: g_texture("New York", 4),
+	clearcoatMap: g_texture("New York", 4),
+	// clearcoatNormalMap: g_texture("New York", 4),
+	clearcoatNormalScale: new THREE.Vector2(3, 2),
+	displacementMap: g_texture("New York", 4),
 });
 
-glassMaterial.sheenRoughnessMap= g_texture("waves", 4)
-glassMaterial.sheenColorMap= g_texture("waves", 4)
-glassMaterial.thicknessMap= g_texture("waves", 4)
-glassMaterial.thickness= 1.2
+glassMaterial.sheenRoughnessMap= g_texture("New York", 4)
+glassMaterial.sheenColorMap= g_texture("New York", 4)
+
 ////////////////////////////////////////////////////////////////////
 // ✧ MESHES
 ///////////////
@@ -354,9 +305,7 @@ glassMaterial.thickness= 1.2
 // const cube = new THREE.Mesh(geometry, material)
 // scene.add(cube)
 
-const sphere = new THREE.Mesh(sphereGeometry, wallMaterial)
-sphere.rotation.x = Math.PI * -0.5
-sphere.rotation.z = Math.PI * -0.5
+const sphere = new THREE.Mesh(sphereGeometry, glassMaterial)
 scene.add(sphere)
 
 // const cube = new THREE.Mesh(boxGeometry, glassMaterial)
@@ -389,12 +338,6 @@ c_folder.addInput(PARAMS.camera, "speed", {
 	label: "Speed"
 });
 
-c_folder.addInput(PARAMS.camera, "wiggle", {
-	min: 0,
-	max: 5,
-	label: "Wiggle"
-});
-
 const s_folder = pane.addFolder({ 
 	title: "Scene", 
 	expanded: false 
@@ -408,20 +351,25 @@ const fl = pane.addFolder({ title: "Object" });
 
 fl.addInput(PARAMS.material, "color", { label: "Color" });
 fl.addButton({ title: "Reset" }).on("click", () => {
-	PARAMS.material.metal = 0.0;
-	PARAMS.material.rough = 0.4;
-	PARAMS.material.glass = 1.15;
-	PARAMS.material.thick = 0.18;
-	PARAMS.material.reflex = 0.5;
-	PARAMS.material.coatrough = 0.08;
-	PARAMS.material.clearcoat = 0.01;
-	PARAMS.material.ior = 1.0;
-	PARAMS.material.ao = 1.0;
-	PARAMS.material.normal = 1.43;
-	PARAMS.material.dither = false;
-	PARAMS.material.disc = 0.0;
-	PARAMS.material.envInt = 2.0;
-	pane.refresh();
+	PARAMS.material.metal = 0.0
+	PARAMS.material.rough = 0.4
+	PARAMS.material.glass = 1.0
+	PARAMS.material.thick = 0.18
+	PARAMS.material.reflex = 0.5
+	PARAMS.material.coatrough = 0.0
+	PARAMS.material.clearcoat = 0.0
+	PARAMS.material.ior = 1.
+	PARAMS.material.ao = 1.
+	// PARAMS.material.aoMapIntensity = 2
+	PARAMS.material.normal = 1.4
+	PARAMS.material.dither = false
+	PARAMS.material.disc = 0.0
+	PARAMS.material.envInt = 2.0
+	// PARAMS.material.emiss = 0
+	// PARAMS.material.emissIntensity = 0
+	PARAMS.material.specIntensity = 0.3
+	PARAMS.material.sheen = 1.0
+	// PARAMS.material.dispBias = 0.3
 });
 
 fl.addButton({ title: "Random" }).on("click", () => {
@@ -436,229 +384,116 @@ fl.addButton({ title: "Random" }).on("click", () => {
 	PARAMS.material.ao = Math.random();
 	PARAMS.material.normal = Math.random();
 	PARAMS.material.envInt = 2.0;
-	pane.refresh();
 });
 
-fl.addInput(PARAMS.material, "metal", {
-	min: 0.01,
-	max: 1.0,
-	label: "Metalness"
-});
-
-fl.addInput(PARAMS.material, "rough", {
-	min: 0.01,
-	max: 1.0,
-	label: "Roughness"
-});
-
-fl.addInput(PARAMS.material, "alpha", {
-	min: 0.01,
-	max: 5.0,
-	label: "Opacity"
-});
-
-fl.addInput(PARAMS.material, "glass", {
-	min: 0.01,
-	max: 2.0,
-	label: "Glass"
-});
-
-fl.addInput(PARAMS.material, "thick", {
-	min: 0.01,
-	max: 1.0,
-	label: "Thickness"
-});
-
-fl.addInput(PARAMS.material, "reflex", {
-	min: 0.01,
-	max: 2.0,
-	label: "Reflectivity"
-});
-
+fl.addInput(PARAMS.material, "metal", {min: 0.01,max: 1.0,label: "Metalness"});
+fl.addInput(PARAMS.material, "rough", {min: 0.01,max: 1.0,label: "Roughness"});
+fl.addInput(PARAMS.material, "alpha", {min: 0.01,max: 5.0,label: "Opacity"});
+fl.addInput(PARAMS.material, "glass", {min: 0.01,max: 2.0,label: "Glass"});
+fl.addInput(PARAMS.material, "thick", {min: 0.01,max: 1.0,label: "Thickness"});
+fl.addInput(PARAMS.material, "reflex", {min: 0.01,max: 2.0,label: "Reflectivity"});
 //===========================
 fl.addSeparator();
 //===========================
-
-fl.addInput(PARAMS.material, "clearcoat", {
-	min: 0.01,
-	max: 2.0,
-	label: "Clearcoat"
-});
-
-fl.addInput(PARAMS.material, "coatrough", {
-	min: 0.01,
-	max: 2.0,
-	label: "CCoatRoughness"
-});
-
+fl.addInput(PARAMS.material, "clearcoat", {min: 0.01, max: 2.0, label: "Clearcoat"});
+fl.addInput(PARAMS.material, "coatrough", {min: 0.01, max: 2.0, label: "CCoatRoughness"});
 //===========================
 fl.addSeparator();
 //===========================
-
 const ft = fl.addFolder({ title: 'Advanced', expanded: false})
 
-ft.addInput(PARAMS.material, "dither", { label: "Dithering" });
-
-ft.addInput(PARAMS.material, "ior", { min: 0.01, max: 2.0, label: "Ior" });
-
-ft.addInput(PARAMS.material, "ao", {
-	min: 0.01,
-	max: 2.0,
-	label: "Ambient Oc"
-});
-
-ft.addInput(PARAMS.material, "disc", {
-	min: 0.0,
-	max: 1.0,
-	label: "Disp Scale"
-});
-
-ft.addInput(PARAMS.material, "normal", {
-	min: 0.01,
-	max: 4.0,
-	label: "Normal"
-});
-
-ft.addInput(PARAMS.material, "envInt", {
-	label: "Intensity",
-	step: 10
-});
+ft.addInput(PARAMS.material, "dither", { label: "Dithering" })
+ft.addInput(PARAMS.material, "ior", { min: 0.01, max: 2.0, label: "Ior" })
+ft.addInput(PARAMS.material, "ao", { min: 0.01, max: 2.0, label: "Ambient Oc" })
+ft.addInput(PARAMS.material, "disc", { min: 0.0, max: 1.0, label: "Disp Scale" })
+ft.addInput(PARAMS.material, "normal", { min: 0.01, max: 4.0, label: "Normal" })
+ft.addInput(PARAMS.material, "envInt", { label: "Intensity", step: 10 })
 
 //===========================
 
-function regenerateSphereGeometry() {
-const newGeometry = new THREE.SphereGeometry(
-    sphereData.radius,
-    sphereData.widthSegments,
-    sphereData.heightSegments,
-    sphereData.phiStart,
-    sphereData.phiLength,
-    sphereData.thetaStart,
-    sphereData.thetaLength
-)
-sphere.geometry.dispose()
-sphere.geometry = newGeometry
-}
+	const c_tor = new THREE.TorusGeometry(2, 0.2, 32, 100);
 
-// function regenerateCubeGeometry() {
-// const newCubeGeometry = new THREE.BoxGeometry(
-//     cubeData.width,
-//     cubeData.height,
-//     cubeData.depth,
-//     cubeData.widthSegments,
-//     cubeData.heightSegments,
-//     cubeData.depthSegments,
-// )
-// cube.geometry.dispose()
-// cube.geometry = newCubeGeometry
-// }
-
-//===========================
-
-let floor_geo;
-let floor_mat;
-let floor_mesh;
-
-const createFloor = () => {
-	floor_geo = new THREE.BoxGeometry(1, 1, 0.5);
-	floor_mat = new THREE.MeshNormalMaterial();
-	floor_mesh = new THREE.Mesh(floor_geo, floor_mat);
-	floor_mesh.position.z = -1;
-	return floor_mesh;
-};
-
-//--
-
-let wall_geo;
-let wall_mat;
-let wall_mesh;
-
-const createWall = () => {
-	wall_geo = new THREE.PlaneGeometry(4, 4);
-	wall_mat = new THREE.MeshBasicMaterial( { map: g_texture("neon", 4) });
-	wall_mesh = new THREE.Mesh(wall_geo, glassMaterial);
-	wall_mesh.position.z = -3;
-	wall_mesh.name = "wallpaper";
-	//--
-	return wall_mesh;
-};
-
-//--
-
-let ball_geo;
-let ball_mat;
-let ball_mesh;
-
-const createBall = () => {
-	ball_geo = new THREE.SphereGeometry(0.3, 2);
-	ball_mat = new THREE.MeshBasicMaterial();
-	ball_mesh = new THREE.Mesh(ball_geo, ball_mat);
-	//--
-	return ball_mesh;
-};
-
-//--
-
-let c_geo;
-let c_tor;
-let c_tog;
-let c_mesh;
-
-const createElements = () => {
-	c_geo = new THREE.IcosahedronGeometry(1, 6);
-	c_tor = new THREE.TorusGeometry(1, 0.4, 32, 100);
-	c_tog = new THREE.TorusKnotGeometry(0.8, 0.3, 200, 16,4,3);
-
-	c_mesh = new THREE.Mesh(c_tor, wallMaterial);
+	const c_mesh = new THREE.Mesh(c_tor, wallMaterial);
 	c_mesh.rotation.z = (90 * Math.PI) / 180;
 	c_mesh.name = "object3D";
-	//--
-	return c_mesh;
-};
+
+	scene.add(c_mesh)
 
 //--
 
-let hemis_light;
-let point_light;
-let lights;
+	const hemis_light = new THREE.HemisphereLight(0xeeeeff, 0xaaaacc, 2);
+	const point_light = new THREE.PointLight(0xFAF0E6, 5);
 
-const createLights = () => {
-	hemis_light = new THREE.HemisphereLight(0xeeeeff, 0xaaaacc, 8);
-	point_light = new THREE.PointLight(0xFAF0E6, 5);
-	point_light.position.set(2, 2, 2);
-	lights = new THREE.Group();
-	lights.add(hemis_light);
-	lights.add(point_light);
-	return lights;
-};
+	const lights = new THREE.Group();
+
+	lights.add(hemis_light)
+	lights.add(point_light)
+	lights.position.set(2, 2, 2);
+
+	scene.add(lights)
 
 //--
 
-let gridHelper;
-let axesHelper;
-let helpers;
+	// const gridHelper = new THREE.GridHelper(40, 40, PARAMS.lines, PARAMS.lines);
+	// gridHelper.position.y = -1; 
 
-const createHelpers = () => {
-	gridHelper = new THREE.GridHelper(20, 20, PARAMS.lines, PARAMS.lines);
-	gridHelper.position.y = -1;
-	axesHelper = new THREE.AxesHelper();
-	helpers = new THREE.Group();
-	helpers.add(gridHelper);
-	helpers.add(axesHelper);
-	return helpers;
-};
+	const axesHelper = new THREE.AxesHelper();
+	const helpers = new THREE.Group();
+
+	// helpers.add(gridHelper);
+	// helpers.add(axesHelper);
+	// scene.add(helpers)
 
 //--
 
 const debug = document.getElementById('debug1') as HTMLDivElement 
 
+const clock = new THREE.Clock();
+
+	function renderMaterial() {
+		const element = glassMaterial;
+		element.color.set(PARAMS.material.color);
+		element.sheen = PARAMS.material.sheen;
+		element.sheenRoughness = PARAMS.material.sheen;
+		element.dithering = PARAMS.material.dither;
+		element.metalness = PARAMS.material.metal;
+		element.roughness = PARAMS.material.rough;
+		element.opacity = PARAMS.material.alpha;
+		element.transmission = PARAMS.material.glass;
+		element.ior = PARAMS.material.ior;
+		element.thickness = PARAMS.material.thick;
+		element.reflectivity = PARAMS.material.reflex;
+		element.clearcoat = PARAMS.material.clearcoat * 5;
+		element.clearcoatRoughness = PARAMS.material.coatrough;
+		element.envMapIntensity = PARAMS.material.envInt;
+		element.displacementScale = PARAMS.material.disc * 0.1;
+		element.aoMapIntensity = PARAMS.material.ao;
+		element.normalScale.set(PARAMS.material.normal, PARAMS.material.normal);
+		element.needsUpdate = true;
+	}
+	//------------
+
+	function regenerateSphereGeometry() {
+	const newGeometry = new THREE.SphereGeometry(
+	    sphereData.radius,
+	    sphereData.widthSegments,
+	    sphereData.heightSegments,
+	    sphereData.phiStart,
+	    sphereData.phiLength,
+	    sphereData.thetaStart,
+	    sphereData.thetaLength
+	)
+	sphere.geometry.dispose()
+	sphere.geometry = newGeometry
+	}
+
+	//===========================
 ////////////////////////////////////////////////////////////////////
 // ✧ ANIMATIONS
 ///////////////
 
 function animate() {
     requestAnimationFrame(animate)
-
 
     controls.update()
 
@@ -674,7 +509,8 @@ function animate() {
 ///////////////
 
 function render() {
-
+	pane.refresh()
+	renderMaterial()
 	regenerateSphereGeometry()
 
     renderer.render(scene, camera)
