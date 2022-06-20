@@ -1,21 +1,31 @@
-console.clear();
-import './css/style.css'
+console.clear()
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
+import { WebGLRenderer } from 'three'
+import {
+	EffectComposer,
+	EffectPass,
+	NoiseEffect,
+	RenderPass,
+	BloomEffect,
+	VignetteEffect
+} from '../../node_modules/postprocessing/build/postprocessing.esm.js';
 import { Pane } from 'tweakpane'
-import { ButtonProps, TabParams } from '@tweakpane/core';
-import { FolderParams } from 'tweakpane';
-import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config';
+import { ButtonProps, TabParams } from '@tweakpane/core'
+import { FolderParams } from 'tweakpane'
+import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
+
+
 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ GROUPS
 ///////////////
 
-const s_group = new THREE.Group();
-const b_group = new THREE.Group();
-const t_group = new THREE.Group();
+// const s_group = new THREE.Group();
+// const b_group = new THREE.Group();
+// const t_group = new THREE.Group();
 
 ////////////////////////////////////////////////////////////////////
 // ✧ BUTTON SCREENSHOT
@@ -86,10 +96,10 @@ camera:
 },
 material: 
 {
-	color: "#CCCCDD",
+	color: "#A4A4A4",
 		metal: 0.0,
 		rough: 0.4,
-		alpha: 1.0,
+		alpha: 0.5,
 		glass: 1.15,
 		thick: 0.58,
 		reflex: 0.5,
@@ -100,11 +110,9 @@ material:
 		ior: 1.0,
 		disc: 0.3,
 		ao: 1.0,
-		sheen: 0.1,
-		specIntensity: 0.5,
 		dither: true
 },
-	background: "#000000",
+	background: "#F5F5F5",
 }
 
 //--
@@ -192,13 +200,20 @@ camera.lookAt(new THREE.Vector3(0, 0, 0))
 // ✧ RENDERER
 ///////////////
 
-let background = 0x6B8E23
-let backgroundAlpha = 1
+// let background = 0x6B8E23
+// let backgroundAlpha = 1
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true} )
+// const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true} )
+
+const renderer = new THREE.WebGLRenderer ({
+	powerPreference: "high-performance",
+	antialias: false,
+	stencil: false,
+	depth: true,
+});
 
 renderer.setSize(sizes.width, sizes.height)
-renderer.setClearColor(background, backgroundAlpha)
+renderer.setClearColor( 0xf5f5f5 ,1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 renderer.physicallyCorrectLights = true
 renderer.shadowMap.enabled = true
@@ -260,37 +275,47 @@ const c_tor = new THREE.TorusGeometry(1.5, 0.2, 32, 100);
 
 const wallMaterial = new THREE.MeshPhysicalMaterial({
 	side: THREE.DoubleSide,
+	transmission: 1,
+	emissive:0xEE82EE,
+	emissiveMap: g_texture("neon", 4),
+	emissiveIntensity: 20,
 	map: g_texture("neon", 4),
 	normalMap: g_texture("neon", 4),
-	normalScale: new THREE.Vector2(3, 3),
+	normalScale: new THREE.Vector2(1, 1),
 	transmissionMap: g_texture("neon", 4),
 	envMap: g_texture("neon", 4),
-	envMapIntensity: 10,
+	envMapIntensity: 6,
+	reflectivity:0.5,
 	clearcoatMap: g_texture("neon", 4),
+	clearcoatNormalScale: new THREE.Vector2(3, 3),
 	displacementMap: g_texture("neon", 4),
-	displacementScale: 0.16,
+	displacementScale: 0.5,
 	precision: "highp",
+	flatShading: false, 
 });
 
 const glassMaterial = new THREE.MeshPhysicalMaterial({
 	//---"Reset" > RANDOM > needsUpdate = true;
 	side: THREE.FrontSide,
 	precision: "highp",
-	map: g_texture("New York", 4),
-	alphaMap: g_texture("New York", 4),
-	normalMap: g_texture("New York", 4),
+	map: g_texture("new york", 4),
+	aoMap: g_texture("new york", 4),
+	alphaMap: g_texture("new york", 4),
+	normalMap: g_texture("new york", 4),
 	normalScale: new THREE.Vector2(3, 3),
-	transmissionMap: g_texture("New York", 4), 
-	envMap: g_texture("New York", 4),
-	metalnessMap: g_texture("New York", 4),
-	roughnessMap: g_texture("New York", 4),
-	clearcoatMap: g_texture("New York", 4),
+	transmissionMap: g_texture("new york", 4), 
+	envMap: g_texture("new york", 4),
+	metalnessMap: g_texture("new york", 4),
+	roughnessMap: g_texture("new york", 4),
+	clearcoatMap: g_texture("new york", 4),
 	clearcoatNormalScale: new THREE.Vector2(3, 3),
-	displacementMap: g_texture("New York", 4),
+	displacementMap: g_texture("new york", 4),
+	sheen: 0.7,
+	flatShading: false,
 });
 
-glassMaterial.sheenRoughnessMap= g_texture("New York", 4)
-glassMaterial.sheenColorMap= g_texture("New York", 4)
+glassMaterial.sheenRoughnessMap= g_texture("new york", 4)
+glassMaterial.sheenColorMap= g_texture("new york", 4)
 
 ////////////////////////////////////////////////////////////////////
 // ✧ MESHES
@@ -301,6 +326,7 @@ scene.add(sphere)
 
 const c_mesh = new THREE.Mesh(c_tor, wallMaterial);
 c_mesh.rotation.z = (90 * Math.PI) / 180;
+c_mesh.castShadow = true;
 c_mesh.name = "object3D";
 
 scene.add(c_mesh)
@@ -336,13 +362,10 @@ fl.addButton({ title: "Reset" }).on("click", () => {
 	PARAMS.material.coatrough = 0.0
 	PARAMS.material.clearcoat = 0.0
 	PARAMS.material.ior = 0.5
-	PARAMS.material.ao = 0.5
 	PARAMS.material.normal = 1.4
 	PARAMS.material.dither = false
 	PARAMS.material.disc = 0.1
 	PARAMS.material.envInt = 2.0
-	PARAMS.material.specIntensity = 0.3
-	PARAMS.material.sheen = 1.0
 });
 
 fl.addButton({ title: "Random" }).on("click", () => {
@@ -354,46 +377,47 @@ fl.addButton({ title: "Random" }).on("click", () => {
 	PARAMS.material.coatrough = Math.random();
 	PARAMS.material.clearcoat = Math.random();
 	PARAMS.material.ior = Math.random();
-	PARAMS.material.ao = Math.random();
-	PARAMS.material.normal = Math.random();
+	// PARAMS.material.normal = Math.random();
 	PARAMS.material.envInt = 2.0;
 });
 
 fl.addInput(PARAMS.material, "metal", {min: 0.01,max: 1.0,label: "Metalness"});
 fl.addInput(PARAMS.material, "rough", {min: 0.01,max: 1.0,label: "Roughness"});
-fl.addInput(PARAMS.material, "alpha", {min: 0.01,max: 5.0,label: "Opacity"});
+fl.addInput(PARAMS.material, "alpha", {min: 0.01,max: 1.0,label: "Opacity"});
 fl.addInput(PARAMS.material, "glass", {min: 0.01,max: 2.0,label: "Glass"});
 fl.addInput(PARAMS.material, "thick", {min: 0.01,max: 1.0,label: "Thickness"});
 fl.addInput(PARAMS.material, "reflex", {min: 0.01,max: 2.0,label: "Reflectivity"});
 //===========================
 fl.addSeparator();
 //===========================
-fl.addInput(PARAMS.material, "clearcoat", {min: 0.01, max: 2.0, label: "Clearcoat"});
-fl.addInput(PARAMS.material, "coatrough", {min: 0.01, max: 2.0, label: "CCoatRoughness"});
+fl.addInput(PARAMS.material, "clearcoat", {min: 0.0, max: 1.0, label: "Clearcoat"});
+fl.addInput(PARAMS.material, "coatrough", {min: 0.0, max: 1.0, label: "CCoatRoughness"});
 //===========================
 fl.addSeparator();
 //===========================
 const ft = pane.addFolder({ title: 'Advanced', expanded: true})
 
 ft.addInput(PARAMS.material, "dither", { label: "Dithering" })
-ft.addInput(PARAMS.material, "ior", { min: 0.01, max: 2.0, label: "Ior" })
-ft.addInput(PARAMS.material, "ao", { min: 0.01, max: 2.0, label: "Ambient Oc" })
-ft.addInput(PARAMS.material, "disc", { min: 0.2, max: 4.0, label: "Disp Scale" })
-ft.addInput(PARAMS.material, "normal", { min: 0.01, max: 4.0, label: "Normal" })
-ft.addInput(PARAMS.material, "envInt", { min: 0.01, max: 4.0, label: "EnvInt" })
+ft.addInput(PARAMS.material, "ior", { min: 1.0, max: 2.33, label: "Ior" })
+ft.addInput(PARAMS.material, "disc", { min: 0.0, max: 8.0, label: "Disp Scale" })
+ft.addInput(PARAMS.material, "normal", { min: 0.01, max: 8.0, label: "Normal" })
+ft.addInput(PARAMS.material, "envInt", { min: 0.0, max: 20.0, label: "EnvInt" })
 
 //===========================
 
 //--
 
-	const hemis_light = new THREE.HemisphereLight(0xeeeeff, 0xaaaacc, 2);
-	const point_light = new THREE.PointLight(0xFAF0E6, 5);
+	const hemis_light = new THREE.HemisphereLight(0xF5FFFA, 0xFFDEAD, 7);
+	scene.add(hemis_light)
+
+	const point_light0 = new THREE.PointLight(0xDAA520, 7);
+	const point_light1 = new THREE.PointLight(0xffffff, 7);
 
 	const lights = new THREE.Group();
 
-	lights.add(hemis_light)
-	lights.add(point_light)
-	lights.position.set(2, 2, 2);
+	lights.add(point_light0)
+	lights.add(point_light1)
+	lights.position.set(0, 0, 0);
 
 	scene.add(lights)
 
@@ -416,15 +440,10 @@ ft.addInput(PARAMS.material, "envInt", { min: 0.01, max: 4.0, label: "EnvInt" })
 
 //--
 
-const debug = document.getElementById('debug1') as HTMLDivElement 
-
-const clock = new THREE.Clock();
 
 	function renderMaterial() {
 		const element = glassMaterial;
 		element.color.set(PARAMS.material.color);
-		element.sheen = PARAMS.material.sheen;
-		element.sheenRoughness = PARAMS.material.sheen;
 		element.dithering = PARAMS.material.dither;
 		element.metalness = PARAMS.material.metal;
 		element.roughness = PARAMS.material.rough;
@@ -436,7 +455,7 @@ const clock = new THREE.Clock();
 		element.clearcoat = PARAMS.material.clearcoat * 5;
 		element.clearcoatRoughness = PARAMS.material.coatrough;
 		element.envMapIntensity = PARAMS.material.envInt;
-		element.displacementScale = PARAMS.material.disc * 0.22;
+		element.displacementScale = PARAMS.material.disc * 0.2;
 		element.aoMapIntensity = PARAMS.material.ao;
 		element.normalScale.set(PARAMS.material.normal, PARAMS.material.normal);
 		element.needsUpdate = true;
@@ -458,34 +477,67 @@ const clock = new THREE.Clock();
 	}
 
 	//===========================
+
+	// const debug = document.getElementById('debug1') as HTMLDivElement 
+
+	//===========================
+
+	const composer = new EffectComposer(renderer)
+	composer.addPass(new RenderPass(scene, camera))
+	composer.addPass(new EffectPass(camera, new BloomEffect()));
+
 ////////////////////////////////////////////////////////////////////
 // ✧ ANIMATIONS
 ///////////////
 
+const clock = new THREE.Clock()
+let previousTime = 0  
+
+requestAnimationFrame(function render() {
+	controls.update()
+  pane.refresh()
+  scene.background = new THREE.Color(PARAMS.background);
+  regenerateSphereGeometry()
+
+  renderMaterial()
+
+	requestAnimationFrame(render)
+	composer.render()
+	stats.update()
+
+  // debug.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n') 
+
+});
+
 function animate() {
     requestAnimationFrame(animate)
 
-    controls.update()
+    c_mesh.rotation.x += 0.01
+    c_mesh.rotation.y += 0.01
 
-    render()
+    	controls.update()
 
-    debug.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n') 
+      pane.refresh()
 
-    stats.update()
+      scene.background = new THREE.Color(PARAMS.background);
+      regenerateSphereGeometry()
+
+
+      renderMaterial()
+
+    	requestAnimationFrame(render)
+    	composer.render()
+    	stats.update()
+
 }
-
-////////////////////////////////////////////////////////////////////
-// ✧ RENDER
-///////////////
 
 function render() {
-	pane.refresh()
-	scene.background = new THREE.Color(PARAMS.background);
-	renderMaterial()
-	regenerateSphereGeometry()
-
     renderer.render(scene, camera)
-
 }
+
 animate()
+
+  /////////////////////////////////////////////////////////////
+// ✧ RENDER
+///////////////
 
