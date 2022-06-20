@@ -86,25 +86,23 @@ camera:
 },
 material: 
 {
-	color: "#2F4F4F",
-	metal: 0.66,
-	rough: 0.3,
-	alpha: 1.0,
-	glass: 1.0,
-	thick: 2.8,
-	reflex: 1.0,
-	clearcoat: 0.4,
-	coatrough: 0.08,
-	normal: 1.43,
-	envInt: 5,
-	ior: 1.4,
-	disc: 0.04,
-	ao: 0.3,
-	specIntensity: 0.01,
-	sheen: 0.5,
-	dispScale: new THREE.Vector2(2, 2),
-	normalScale: new THREE.Vector2(1, 1),
-	dither: true,
+	color: "#CCCCDD",
+		metal: 0.0,
+		rough: 0.4,
+		alpha: 1.0,
+		glass: 1.15,
+		thick: 0.58,
+		reflex: 0.5,
+		clearcoat: 0.0,
+		coatrough: 0.08,
+		normal: 1.43,
+		envInt: 1,
+		ior: 1.0,
+		disc: 0.3,
+		ao: 1.0,
+		sheen: 0.1,
+		specIntensity: 0.5,
+		dither: true
 },
 	background: "#000000",
 }
@@ -113,12 +111,12 @@ material:
 
 const sphereData = {
     radius: 1,
-    widthSegments: 280,
-    heightSegments: 280,
+    widthSegments: 140,
+    heightSegments: 140,
     phiStart: 0,
-    phiLength: Math.PI * 4,
-    thetaStart: 100,
-    thetaLength: Math.PI * 4, 
+    phiLength: Math.PI * 2,
+    thetaStart: 0,
+    thetaLength: Math.PI * 2, 
 }
 
 //--
@@ -185,7 +183,7 @@ window.addEventListener('resize', () => {
 // ✧ CAMERA
 ///////////////
 
-const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.01, 1000)
 
 camera.position.z = -4 
 camera.lookAt(new THREE.Vector3(0, 0, 0)) 
@@ -276,7 +274,7 @@ const wallMaterial = new THREE.MeshPhysicalMaterial({
 
 const glassMaterial = new THREE.MeshPhysicalMaterial({
 	//---"Reset" > RANDOM > needsUpdate = true;
-	side: THREE.DoubleSide,
+	side: THREE.FrontSide,
 	precision: "highp",
 	map: g_texture("New York", 4),
 	alphaMap: g_texture("New York", 4),
@@ -337,7 +335,7 @@ fl.addButton({ title: "Reset" }).on("click", () => {
 	PARAMS.material.reflex = 0.5
 	PARAMS.material.coatrough = 0.0
 	PARAMS.material.clearcoat = 0.0
-	PARAMS.material.ior = 1
+	PARAMS.material.ior = 0.5
 	PARAMS.material.ao = 0.5
 	PARAMS.material.normal = 1.4
 	PARAMS.material.dither = false
@@ -380,9 +378,9 @@ const ft = pane.addFolder({ title: 'Advanced', expanded: true})
 ft.addInput(PARAMS.material, "dither", { label: "Dithering" })
 ft.addInput(PARAMS.material, "ior", { min: 0.01, max: 2.0, label: "Ior" })
 ft.addInput(PARAMS.material, "ao", { min: 0.01, max: 2.0, label: "Ambient Oc" })
-ft.addInput(PARAMS.material, "disc", { min: 0.0, max: 1.0, label: "Disp Scale" })
+ft.addInput(PARAMS.material, "disc", { min: 0.2, max: 4.0, label: "Disp Scale" })
 ft.addInput(PARAMS.material, "normal", { min: 0.01, max: 4.0, label: "Normal" })
-ft.addInput(PARAMS.material, "envInt", { label: "Intensity", step: 10 })
+ft.addInput(PARAMS.material, "envInt", { min: 0.01, max: 4.0, label: "EnvInt" })
 
 //===========================
 
@@ -438,7 +436,7 @@ const clock = new THREE.Clock();
 		element.clearcoat = PARAMS.material.clearcoat * 5;
 		element.clearcoatRoughness = PARAMS.material.coatrough;
 		element.envMapIntensity = PARAMS.material.envInt;
-		element.displacementScale = PARAMS.material.disc * 0.1;
+		element.displacementScale = PARAMS.material.disc * 0.22;
 		element.aoMapIntensity = PARAMS.material.ao;
 		element.normalScale.set(PARAMS.material.normal, PARAMS.material.normal);
 		element.needsUpdate = true;
