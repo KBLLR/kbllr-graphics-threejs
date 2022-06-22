@@ -17,7 +17,6 @@ import { FolderParams } from 'tweakpane'
 import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
 import canvasScreenshot from 'canvas-screenshot';
 
-
 ////////////////////////////////////////////////////////////////////
 // ✧ GENERATIVE DATA MATERIAL
 ///////////////
@@ -32,18 +31,18 @@ const g_texture = (topic, repeat: 4) => {
 	const preload = new THREE.TextureLoader().load(
 		path ? path : Template,
 		(e) => {
-			e.mapping = THREE.EquirectangularRefractionMapping;
-			e.anisotropy = renderer.capabilities.getMaxAnisotropy();
-			e.magFilter = THREE.NearestFilter;
-			e.minFilter = THREE.LinearMipmapLinearFilter;
-			e.wrapS = e.wrapT = THREE.MirroredRepeatWrapping;
-			e.type = THREE.HalfFloatType;
-			e.format = THREE.RGBAFormat;
-			e.repeat.set(repeat, repeat);
-			e.dispose();
+				e.mapping = THREE.EquirectangularRefractionMapping;
+				e.anisotropy = renderer.capabilities.getMaxAnisotropy();
+				e.magFilter = THREE.NearestFilter;
+				e.minFilter = THREE.LinearMipmapLinearFilter;
+				e.wrapS = e.wrapT = THREE.MirroredRepeatWrapping;
+				e.type = THREE.HalfFloatType;
+				e.format = THREE.RGBAFormat;
+				e.repeat.set(repeat, repeat);
+				e.dispose();
 		}
 	);
-	// console.log(preload);
+	console.log(preload)
 	return preload;
 };
 
@@ -71,11 +70,12 @@ console.log(randPARAM)
 const PARAMS = {
 	camera: 
 	{ 
-		speed: 0.1, 
+		speed: 0.1,
+		wiggle: 5, 
 	},
 	scene: 
 	{ 
-		background: 0xA9A9A9,
+		background: 0xe3f6ff,
 	},
 	gridHelper:
 	{
@@ -92,18 +92,20 @@ const PARAMS = {
 		alpha: 1.0, //opacity
 		glass: 1.0,
 		sheen: 1.0,
-		ior: 1.5,
-		thick: 10.1,
-		reflect: 0.1, //--It has no effect when metalness is 1.0
-		clearcoat: 0.1,
-		coatrough: 0.1,
-		envInt: 0.1,
+		sheenR: 0.5,
+		ior: 1.5,				//--X
+		thick: 8.0,      //
+		reflect: 0.1,   //--It has no effect when metalness is 1.0
+		clearcoat: 0.6, //
+		coatrough: 0.2, //
+		envInt: 1.4,
 		emissive:0xFFEBCD, 
 		emissiveIntensity: 1,
 		displ: 0.1,
-		ao: 1.0,
+		ao: 0.5,
 		normal: 0.1,
 		dither: true,
+		transparent: true,
 		combine: THREE.AddOperation,
 	},
 	material_2: 
@@ -123,13 +125,13 @@ const PARAMS = {
 //============== Data Geometries
 
 const sphereData = {
-    radius: 1.5,
-    widthSegments: 64,
-    heightSegments: 32,
+    radius: 4,
+    widthSegments: 180,
+    heightSegments: 140,
     phiStart: 0,
-    phiLength: Math.PI * 2,
+    phiLength: Math.PI * 4,
     thetaStart: 0,
-    thetaLength: Math.PI * 2, 
+    thetaLength: Math.PI * 4, 
 }
 
 //--
@@ -156,8 +158,7 @@ const canvas = document.querySelector("canvas");
 ///////////////
 
 const scene = new THREE.Scene()
-const environment = 
-scene.background = new THREE.Color('rgba(210,210,210,0.01');
+scene.background = new THREE.Color(0xe3f6ff);
 
 //=============Sizes
 
@@ -226,7 +227,7 @@ const renderer = new THREE.WebGLRenderer ({
 	powerPreference: "high-performance",
 	antialias: false,
 	stencil: false,
-	depth: true,
+	depth: false,
 });
 
 renderer.setSize(sizes.width, sizes.height)
@@ -238,6 +239,7 @@ renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.outputEncoding = THREE.LinearEncoding
 renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 1.2
 
 document.body.appendChild(renderer.domElement)
 
@@ -357,13 +359,15 @@ const material_1A = new THREE.MeshPhysicalMaterial({
 	emissiveIntensity: 1.0,
 
 	aoMap: g_texture("geometry", 4),
+	aoMapIntensity: 1.0,
+
 	envMap: g_texture("neon", 4),
 	envMapIntensity: 6,
 
 	reflectivity: 1.2,
 
 	normalMap: g_texture("geometry", 4),
-	normalScale: new THREE.Vector2(2, 2),
+	normalScale: new THREE.Vector2(4, 4),
 
 	metalness:0.05,
 	metalnessMap: g_texture("geometry", 4),
@@ -372,12 +376,15 @@ const material_1A = new THREE.MeshPhysicalMaterial({
 	roughnessMap: g_texture("geometry", 4),
 
 	sheen: 1.0,
+	sheenRoughness: 0.5,
 	ior: 1.5,
 	opacity: 1.0,
 
-	clearcoat: 0.5,
-	clearcoatRoughness: 0.3,
+	clearcoat: 0.8,
+	clearcoatRoughness: 0.5,
 	clearcoatRoughnessMap: g_texture("geometry", 4),
+	clearcoatNormalMap: g_texture("geometry", 4),
+	clearcoatNormalScale: new THREE.Vector2(0.2, 0.2),
 
 	displacementMap: g_texture("geometry", 4),
 	displacementScale: 0.03,
@@ -483,8 +490,10 @@ sphereF.addSeparator(); //===========================
 //===========PANE MATERIALS
 const paneMaterials = new Pane({title: "Materials TP",container: document.getElementById('c--Materials')})
 const paramsF = paneMaterials.addFolder({title: "PARAMS", expanded: true})
+
 paramsF.addInput(PARAMS.material_1, "color", {color:0xEE82EE, label: ".color"});
 paramsF.addInput(PARAMS.material_1, "emissiveIntensity", {color:0xF5F5F5,label: ".emissiveIntensity"})
+paramsF.addInput(PARAMS.material_1, "ao", {min: 0.1, max: 1.0, label: ".aoMapIntensity"})
 paramsF.addInput(PARAMS.material_1, "envInt", {min: 0.1, max: 10.0, label: ".envIntensity"})
 paramsF.addInput(PARAMS.material_1, "metal", {min: 0.01,max: 1.0,label: "Metalness"})
 paramsF.addInput(PARAMS.material_1, "rough", {min: 0.01,max: 1.0,label: "Roughness"})
@@ -497,10 +506,12 @@ paramsF.addSeparator(); //===========================
 
 const physicalMaterialF = paneMaterials.addFolder({ title: 'Physical Material', expanded: true})
 physicalMaterialF.addInput(PARAMS.material_1, "dither", { label: "Dithering" })
-physicalMaterialF.addInput(PARAMS.material_1, "glass", {min: 0.01,max: 1.0,label: "transmission"})
-physicalMaterialF.addInput(PARAMS.material_1, "ior", { min: 1.0, max: 2.33, label: "Ior" })
-physicalMaterialF.addInput(PARAMS.material_1, "thick", {min: 0.01,max: 20.0,label: "Thickness"})
-physicalMaterialF.addInput(PARAMS.material_1, "reflect", {min: 0.01,max: 2.0,label: "Reflectivity"})
+physicalMaterialF.addInput(PARAMS.material_1, "glass", {min: 0.0,max: 1.0,label: ".transmission"})
+physicalMaterialF.addInput(PARAMS.material_1, "sheen", {min: 0.0,max: 1.0,label: ".sheen"})
+physicalMaterialF.addInput(PARAMS.material_1, "sheenR", {min: 0.0,max: 1.0,label: ".sheenRoughness"})
+physicalMaterialF.addInput(PARAMS.material_1, "ior", { min: 1.0, max: 2.33, label: ".ior" })
+physicalMaterialF.addInput(PARAMS.material_1, "thick", {min: 0.0,max: 20.0,label: ".thickness"})
+physicalMaterialF.addInput(PARAMS.material_1, "reflect", {min: 0.0,max: 2.0,label: ".reflectivity"})
 physicalMaterialF.addSeparator(); //===========================
 
 
@@ -510,22 +521,24 @@ physicalMaterialF.addSeparator(); //===========================
 
 	function renderMaterial() {
 		const element = material_1A
-		//element.color.set(PARAMS.material_1.color)
+		element.color.set(PARAMS.material_1.color)
 		element.attenuationColor.set(PARAMS.material_1.attColor)
 		element.sheen = PARAMS.material_1.sheen
+		element.sheenRoughness = PARAMS.material_1.sheenR
 		element.attenuationDistance = PARAMS.material_1.attDist
 		element.dithering = PARAMS.material_1.dither
+		element.transparent = PARAMS.material_1.transparent
 		element.metalness = PARAMS.material_1.metal
 		element.roughness = PARAMS.material_1.rough
 		element.opacity = PARAMS.material_1.alpha
-		element.transmission = PARAMS.material_1.glass;
-		element.ior = PARAMS.material_1.ior;
-		element.thickness = PARAMS.material_1.thick;
-		element.reflectivity = PARAMS.material_1.reflect;
-		element.clearcoat = PARAMS.material_1.clearcoat * 5;
-		element.clearcoatRoughness = PARAMS.material_1.coatrough;
-		element.envMapIntensity = PARAMS.material_1.envInt;
-		element.displacementScale = PARAMS.material_1.displ * 0.2;
+		element.transmission = PARAMS.material_1.glass
+		element.ior = PARAMS.material_1.ior
+		element.thickness = PARAMS.material_1.thick
+		element.reflectivity = PARAMS.material_1.reflect
+		element.clearcoat = PARAMS.material_1.clearcoat * 5
+		element.clearcoatRoughness = PARAMS.material_1.coatrough
+		element.envMapIntensity = PARAMS.material_1.envInt
+		element.displacementScale = PARAMS.material_1.displ * 0.1
 		element.aoMapIntensity = PARAMS.material_1.ao;
 		element.normalScale.set(PARAMS.material_1.normal, PARAMS.material_1.normal);
 		element.needsUpdate = true;
@@ -560,63 +573,25 @@ physicalMaterialF.addSeparator(); //===========================
 	}
 	//===========================
 
-const options = {
-	filename: "Canvas-YYYY-MM-DD.png",
-	quality: 1,
-	useBlob: true,
-	download: true,
-}
+// const options = {
+// 	filename: "Canvas-YYYY-MM-DD.png",
+// 	quality: 1,
+// 	useBlob: true,
+// 	download: true,
+// }
+// 	// Create
+// 	const contextC = canvas.getContext("2d", sizes)
 
-	// Create
-	const contextC = canvas.getContext("2d", sizes)
-
-	// Export
-	const button = document.createElement("button");
-	button.addEventListener("click", () => {
-	  canvasScreenshot(canvas, options)
-	});
+// 	// Export
+// 	const button = document.getElementById("screenshot");
+// 	button.addEventListener("click", () => {
+// 	  canvasScreenshot(canvas, options)
+// 	});
 
 
 	// const debug = document.getElementById('debug1') as HTMLDivElement 
 
 	//===========================
-
-	//=============PANE BUTTONS
-	// const paneButtons = new Pane({title: "Buttons TP",container: document.getElementById('c--Buttons')})
-	// paneButtons.addButton({ title: "Reset PARAMS" }).on("click", () => {
-	// 	PARAMS.material_1.emissiveIntensity = 1.0
-	// 	PARAMS.material_1.alpha = 1.0
-	// 	PARAMS.material_1.metal = 0.2
-	// 	PARAMS.material_1.rough = 0.1
-	// 	PARAMS.material_1.transm = 1.0
-	// 	PARAMS.material_1.ior = 1.5
-	// 	PARAMS.material_1.thick = 0.3
-	// 	PARAMS.material_1.reflect = 0.5
-	// 	PARAMS.material_1.coatrough = 0.0
-	// 	PARAMS.material_1.clearcoat = 0.0
-	// 	PARAMS.material_1.ao = 0.0
-	// 	PARAMS.material_1.dither = false
-	// 	PARAMS.material_1.displ = 0.1
-	// 	PARAMS.material_1.envInt = 2.0
-	// })
-	// paneButtons.addSeparator(); //===========================
-	// paneButtons.addButton({ title: "Random PARAMS", }).on("click", () => {
-	// 	PARAMS.material_1.emissiveIntensity = Math.random()
-	// 	PARAMS.material_1.alpha = 0.3 + Math.random()
-	// 	PARAMS.material_1.metal = 0.3 + Math.random()
-	// 	PARAMS.material_1.rough = 0.3 + Math.random()
-	// 	PARAMS.material_1.transm = 0.3 + Math.random()
-	// 	PARAMS.material_1.ior = 0.3 + Math.random()
-	// 	PARAMS.material_1.thick = 1.2 + Math.random()
-	// 	PARAMS.material_1.ao = 0.9 + Math.random()
-	// 	PARAMS.material_1.reflect = Math.random();
-	// 	PARAMS.material_1.coatrough = Math.random();
-	// 	PARAMS.material_1.clearcoat = Math.random();
-	// 	PARAMS.material_1.displ = Math.random()
-	// 	PARAMS.material_1.envInt = Math.random()
-	// 	PARAMS.material_1.normal = Math.random()
-	// 	PARAMS.material_1.reflect = Math.random()
-	// })
 
 ////////////////////////////////////////////////////////////////////
 // ✧ EFFECT COMPOSER - POSTPRODUCTION

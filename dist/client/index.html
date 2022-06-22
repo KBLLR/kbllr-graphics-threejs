@@ -10,7 +10,7 @@
   <style>
     :root 
         {
-          --tp-base-background-color: hsla(0, 0%, 10%, 0.3);
+          --tp-base-background-color: hsla(0, 0%, 10%, 0.01);
           --tp-base-shadow-color: hsla(0, 0%, 0%, 0.2);
 
           --tp-button-background-color: hsla(0, 0%, 80%, 1);
@@ -25,9 +25,9 @@
           --tp-container-background-color-hover: hsla(0, 0%, 0%, 0.4);
           --tp-container-foreground-color: hsla(0, 0%, 100%, 0.5);
 
-          --tp-groove-foreground-color: hsla(0, 0%, 0%, 0.2);
+          --tp-groove-foreground-color: hsla(314.13, 87.5%, 68.75%,0.5);
 
-          --tp-input-background-color: hsla(0, 0%, 0%, 0.3);
+          --tp-input-background-color: hsla(0, 0%, 0%, 1);
           --tp-input-background-color-active: hsla(0, 0%, 0%, 0.6);
           --tp-input-background-color-focus: hsla(0, 0%, 0%, 0.5);
           --tp-input-background-color-hover: hsla(0, 0%, 0%, 0.4);
@@ -77,8 +77,8 @@
 
         #logo {
           position: fixed;
-          z-index: 1000;
-          bottom: 2%; right: 2%;
+          z-index: 1010;
+          top: 2%; right: 2%;
           width: 18%;
           padding: min(8px, 14px);
           margin: min(8px, 14px);
@@ -87,10 +87,17 @@
           mix-blend-mode: difference;n
         }
 
-        .tweakPanels {z-index: 1000; position: absolute; top: 2%; left: 2%;}
-        .tp-container {width:  300px;}
+        .tweakPanels {
+            z-index: 1000;
+            display: flex; 
+            flex-flow: column nowrap;
+            position: absolute; 
+            bottom:0%; 
+            right: 0%;
+        }
+        .tp-container {width: 100vw;}
 
-        .button {
+       /*  .button {
             background-color: hsla(0, 0%, 0%, 0.3);
             cursor: pointer;
             padding: 12px 16px;
@@ -101,7 +108,7 @@
             position: fixed;
             z-index: 1000;
             bottom: 0, 
-            right:0;
+            left:0;
             pointer-events:initial;
           }
 
@@ -112,7 +119,7 @@
 
           .button[disabled] {
             opacity: 0.7;
-          }
+          } */
 
         /* #debug1 {
           font-family: monospace;
@@ -138,14 +145,14 @@
     <div class="tp-container" id="c--Helpers"></div>
     <div class="tp-container" id="c--Materials"></div>
     <div class="tp-container" id="c--Meshes"></div>
-    <div class="tp-container" id="c--Buttons"></div>
+    <!-- <div class="tp-container" id="c--Buttons"></div> -->
   </div>
   <canvas class="webgl"></canvas>
 
   <!-- <div id="debug1"></div>  -->
 
-  <button class="button" id="screenshot"></button>
-  
+  <!-- <button class="button" id="screenshot"></button> -->
+
   <script type="module" src="bundle.js"></script>
 </body>
 
