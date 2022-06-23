@@ -8,6 +8,8 @@ import {
 	EffectPass,
 	NoiseEffect,
 	RenderPass,
+	sRGBEncoding,
+	VSMShadowMap,
 	BloomEffect,
 	VignetteEffect
 } from '../../node_modules/postprocessing/build/postprocessing.esm.js';
@@ -15,14 +17,13 @@ import { Pane } from 'tweakpane'
 import { ButtonProps, TabParams } from '@tweakpane/core'
 import { FolderParams } from 'tweakpane'
 import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
-import canvasScreenshot from 'canvas-screenshot';
 
 ////////////////////////////////////////////////////////////////////
 // ✧ GENERATIVE DATA MATERIAL
 ///////////////
 
 const Template = "https://unsplash.com/photos/QwoNAhbmLLo"
-let arrayTop = [ "geometry","New York","Universe","aurora vorearis","northern lights","neon" ]
+let arrayTop = [ "diamonds","minerals","geometry","New York","Universe","aurora vorearis","northern lights","neon" ]
 let topic = arrayTop[Math.floor(Math.random() * arrayTop.length)]
 console.log(topic)
 
@@ -203,7 +204,7 @@ const aspect = sizes.width / sizes.height
 const vFov = 59 //--calculateVerticalFoV(90, Math.max(aspect, 16 / 9));
 const camera = new THREE.PerspectiveCamera(vFov, aspect, 0.01, 20000)
 
-camera.position.z = -12 
+camera.position.z = -10 
 camera.lookAt(new THREE.Vector3(0, 0, 0)) 
 
 ////////////////////////////////////////////////////////////////////
@@ -235,16 +236,17 @@ const renderer = new THREE.WebGLRenderer ({
 	depth: true,
 });
 
+const bgColor = new THREE.Color(0xf5f5f5)
 renderer.setSize(sizes.width, sizes.height)
-renderer.setClearColor( 0xf5f5f5 ,1)
+renderer.setClearColor( bgColor.convertSRGBToLinear())
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 renderer.physicallyCorrectLights = true
 renderer.shadowMap.enabled = true
 // renderer.xr.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
-renderer.outputEncoding = THREE.LinearEncoding
-renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.2
+renderer.outputEncoding = sRGBEncoding;
+renderer.shadowMap.type = VSMShadowMap;
+// renderer.toneMapping = THREE.ACESFilmicToneMapping
+// renderer.toneMappingExposure = 1.2
 
 document.body.appendChild(renderer.domElement)
 
@@ -311,14 +313,14 @@ const toursKnotGeo = new THREE.TorusKnotGeometry()
 
 const material_1A = new THREE.MeshPhysicalMaterial({
 
-	map: g_texture("geometry", 4),
+	map: g_texture("diamonds", 4),
 	attenuationDistance: 1.0,
 
 	emissive: 0xF0E68C,
-	emissiveMap: g_texture("geometry", 4),
+	emissiveMap: g_texture("diamonds", 4),
 	emissiveIntensity: 1.0,
 
-	aoMap: g_texture("geometry", 4),
+	aoMap: g_texture("diamonds", 4),
 	aoMapIntensity: 1.0,
 
 	envMap: g_texture("neon", 4),
@@ -326,14 +328,14 @@ const material_1A = new THREE.MeshPhysicalMaterial({
 
 	reflectivity: 1.2,
 
-	normalMap: g_texture("geometry", 4),
+	normalMap: g_texture("diamonds", 4),
 	normalScale: new THREE.Vector2(4, 4),
 
 	metalness:0.05,
-	metalnessMap: g_texture("geometry", 4),
+	metalnessMap: g_texture("diamonds", 4),
 
 	roughness: 0.2,
-	roughnessMap: g_texture("geometry", 4),
+	roughnessMap: g_texture("diamonds", 4),
 
 	sheen: 1.0,
 	sheenRoughness: 0.5,
@@ -342,11 +344,11 @@ const material_1A = new THREE.MeshPhysicalMaterial({
 
 	clearcoat: 0.8,
 	clearcoatRoughness: 0.5,
-	clearcoatRoughnessMap: g_texture("geometry", 4),
-	clearcoatNormalMap: g_texture("geometry", 4),
+	clearcoatRoughnessMap: g_texture("diamonds", 4),
+	clearcoatNormalMap: g_texture("diamonds", 4),
 	clearcoatNormalScale: new THREE.Vector2(0.2, 0.2),
 
-	displacementMap: g_texture("geometry", 4),
+	displacementMap: g_texture("diamonds", 4),
 	displacementScale: 0.3,
 	displacementBias: 1.3,
 
@@ -355,8 +357,8 @@ const material_1A = new THREE.MeshPhysicalMaterial({
 	precision: "highp",
 });
 
-material_1A.sheenRoughnessMap = g_texture("geometry", 4)
-material_1A.sheenColorMap = g_texture("geometry", 4)
+material_1A.sheenRoughnessMap = g_texture("diamonds", 4)
+material_1A.sheenColorMap = g_texture("diamonds", 4)
 
 //=== MATERIAL #2
 
@@ -560,25 +562,15 @@ physicalMaterialF.addSeparator(); //===========================
 	}
 	//===========================
 
-// const options = {
-// 	filename: "Canvas-YYYY-MM-DD.png",
-// 	quality: 1,
-// 	useBlob: true,
-// 	download: true,
-// }
-// 	// Create
-// 	const contextC = canvas.getContext("2d", sizes)
-
-// 	// Export
-// 	const button = document.getElementById("screenshot");
-// 	button.addEventListener("click", () => {
-// 	  canvasScreenshot(canvas, options)
-// 	});
+////////////////////////////////////////////////////////////////////
+// ✧ SCREENSHOT FUNCTION 📸
+///////////////
 
 
-	// const debug = document.getElementById('debug1') as HTMLDivElement 
-
-	//===========================
+//===========================Debugger
+// const debug = document.getElementById('debug1') as HTMLDivElement 
+// debug.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n') 
+//==========================
 
 ////////////////////////////////////////////////////////////////////
 // ✧ EFFECT COMPOSER - POSTPRODUCTION
@@ -592,48 +584,42 @@ physicalMaterialF.addSeparator(); //===========================
 // ✧ ANIMATIONS
 ///////////////
 
-// const clock = new THREE.Clock()
-// let previousTime = 0  
-
 // requestAnimationFrame(function render() {
-// 	controls.update()
-//   pane.refresh()
 //   scene.background = new THREE.Color(PARAMS.scene.background);
-//   regenerateSphereGeometry()
 
-//   renderMaterial()
-
-// 	requestAnimationFrame(render)
-// 	composer.render()
-// 	stats.update()
-
-//   // debug.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n') 
-
+//
 // });
 
 ////////////////////////////////////////////////////////////////////
 // ✧ STATS
 ///////////////
 
-const stats = Stats()  
+// const stats = Stats()  
 
-document.body.appendChild(stats.dom) 
+// document.body.appendChild(stats.dom) 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ SCREENSHOT BUTTON
 ///////////////
 
+const clock = new THREE.Clock()
+let previousTime = 0
 
 function animate() {
     requestAnimationFrame(animate)
+    const elapsedTime = clock.getElapsedTime()
+    const deltaTime = elapsedTime - previousTime
+    previousTime = elapsedTime
+
 
     torusKnot.rotation.x += 0.01
     torusKnot.rotation.y += 0.01
 
-    pLight0.rotation.y += 0.01
-    pLight0.rotation.x -= 0.01
-    pLight1.rotation.z += 0.01
-    pLight1.rotation.y -= 0.01
+   
+   pLight0.rotation.y += Math.cos(elapsedTime / 0.3) * 30
+   pLight0.rotation.x -= Math.sin(elapsedTime * 0.3) * 30
+   pLight1.rotation.z += Math.sin(elapsedTime / 0.3) * 30
+   pLight1.rotation.y -= Math.cos(elapsedTime * 0.9) * 30
 
     controls.update()
 
@@ -644,14 +630,14 @@ function animate() {
 		// paneButtons.refresh()
 
     scene.background = new THREE.Color(PARAMS.scene.background);
-
+//   // debug.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n') 
     regenerateSphereGeometry()
     regenerateTorusKnotGeometry()
     renderMaterial()
     requestAnimationFrame(render)
 
     composer.render()
-    stats.update()
+    // stats.update()
 
 }
 
