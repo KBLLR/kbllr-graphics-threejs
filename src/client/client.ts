@@ -66,7 +66,6 @@ console.log(randPARAM)
 
 //--Parameters Scene + Materials
 
-
 const PARAMS = {
 	camera: 
 	{ 
@@ -79,16 +78,28 @@ const PARAMS = {
 	},
 	gridHelper:
 	{
-		size: 20,
+		size: 40,
 		divisions: 200,
+		hidden: true,
+	},
+	light:
+	{
+		color: 0xF5F5F5, //--int
+		intensity: 4.5, //--flt
+	},
+	dirLight:
+	{
+		castShadow: true, //--bool
+		position: {x: 1, y: 6, z: -1}, //--Vector3
+		target: {x: 0, y: 0, z: 0}, //--Object3D
 	},
 	material_1: 
 	{ 
-		color: 0xF4A460,
-		metal: 0.1,
-		attColor: 0xFFFFFF,
+		color: "rgb(10, 10, 10, 1)",
+		metal: 0.88,
+		attColor: "rgb(255, 255, 255, 1)",
 		attDist:0.2,
-		rough: 0.4,
+		rough: 0.66,
 		alpha: 1.0, //opacity
 		glass: 1.0,
 		sheen: 1.0,
@@ -97,12 +108,13 @@ const PARAMS = {
 		thick: 8.0,      //
 		reflect: 0.1,   //--It has no effect when metalness is 1.0
 		clearcoat: 0.6, //
-		coatrough: 0.2, //
-		envInt: 1.4,
-		emissive:0xFFEBCD, 
-		emissiveIntensity: 1,
+		coatrough: 0.85, //
+		envInt: 0.21,
+		emissive: "rgb(16, 10, 10, 1)", 
+		emissiveIntensity: 2.45,
 		displ: 0.1,
-		ao: 0.5,
+		displBias: 0.5,
+		ao: 0.35,
 		normal: 0.1,
 		dither: true,
 		transparent: true,
@@ -123,19 +135,16 @@ const PARAMS = {
 }
 
 //============== Data Geometries
-
 const sphereData = {
-    radius: 4,
+    radius: 2,
     widthSegments: 180,
     heightSegments: 140,
     phiStart: 0,
-    phiLength: Math.PI * 4,
+    phiLength: Math.PI * 2,
     thetaStart: 0,
-    thetaLength: Math.PI * 4, 
+    thetaLength: Math.PI * 2, 
 }
-
 //--
-
 const torusKnotData = {
     radius: 1,
     tube: 0.1,
@@ -146,6 +155,7 @@ const torusKnotData = {
 //-- q = xtimes the geometry winds around a circle in the interior of the torus. Default is 3
     q: 3,
 }
+
 
 ////////////////////////////////////////////////////////////////////
 // ✧ CANVAS
@@ -177,20 +187,26 @@ const canvas_height = sizes.height
 
 //===========================GRID
 
-const gridHelper = new THREE.GridHelper()
-gridHelper.position.y = -1;
+const gridHelper = new THREE.GridHelper(100, 100)
+gridHelper.position.y = 0;
 scene.add(gridHelper)
 
-// const gridHelper = new THREE.GridHelper()
-// gridHelper.position.y = -1;
-// gridHelper.size = 20;
-// gridHelper.distance = 20;
-// scene.add(gridHelper)
 
 //=========================== POSITIONING
 	
-	const axesHelper = new THREE.AxesHelper();
+const axesHelper = new THREE.AxesHelper();
 	//scene.add(axesHelper);
+
+
+////////////////////////////////////////////////////////////////////
+// ✧ CAMERA
+///////////////
+const aspect = sizes.width / sizes.height
+const vFov = 59 //--calculateVerticalFoV(90, Math.max(aspect, 16 / 9));
+const camera = new THREE.PerspectiveCamera(vFov, aspect, 0.01, 20000)
+
+camera.position.z = -12 
+camera.lookAt(new THREE.Vector3(0, 0, 0)) 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ RESPONSIVENESS 
@@ -202,22 +218,12 @@ window.addEventListener('resize', () => {
   sizes.height = window.innerHeight
 
   // Update camera
-  camera.aspect = sizes.width / sizes.height
   camera.updateProjectionMatrix()
 
   // Update renderer
   renderer.setSize(sizes.width, sizes.height)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
-
-////////////////////////////////////////////////////////////////////
-// ✧ CAMERA
-///////////////
-
-const camera = new THREE.PerspectiveCamera(70, sizes.width / sizes.height, 0.01, 1000)
-
-camera.position.z = -7 
-camera.lookAt(new THREE.Vector3(0, 0, 0)) 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ RENDERER
@@ -227,7 +233,7 @@ const renderer = new THREE.WebGLRenderer ({
 	powerPreference: "high-performance",
 	antialias: false,
 	stencil: false,
-	depth: false,
+	depth: true,
 });
 
 renderer.setSize(sizes.width, sizes.height)
@@ -244,78 +250,6 @@ renderer.toneMappingExposure = 1.2
 document.body.appendChild(renderer.domElement)
 
 ////////////////////////////////////////////////////////////////////
-// ✧ LIGHTS + group
-///////////////
-
-// const hemis_light = new THREE.HemisphereLight(0xF5FFFA, 0xFFDEAD, 7);
-// scene.add(hemis_light)
-
-const pLight0 = new THREE.PointLight(0xD2691E, 7);
-pLight0.position.set(3, 3, 3)
-const pLight1 = new THREE.PointLight(0xffffff, 7);
-pLight1.position.set(-3, -3, -3)
-
-const lightsGroup = new THREE.Group();
-
-lightsGroup.add(pLight0)
-lightsGroup.add(pLight1)
-lightsGroup.position.set(0, 0, 0);
-
-scene.add(lightsGroup)
-
-//--**********************************************************
-//-- CALC - GET THE WORLD TRANSFORMS OF AN OBJECT
-//--**********************************************************
-
-//-- Position
-
-// const objectsWorldPosition = new THREE.Vector3()  
-// object.getWorldPosition(objectsWorldPosition)  
-// console.log(objectsWorldPosition) 
-
-//-- Direction
-
-// const objectsWorldDirection = new THREE.Vector3()  
-// object.getWorldDirection(objectsWorldDirection)  
-// console.log(objectsWorldDirection)  
-
-//-- Quaternion
-
-// const objectsWorldQuaternion = new THREE.Quaternion()  
-// object.getWorldQuaternion(objectsWorldQuaternion)  
-// console.log(objectsWorldQuaternion)  
-
-//-- Scale
-
-// const objectsWorldScale = new THREE.Vector3()  
-// object.getWorldScale(objectsWorldScale)  
-// console.log(objectsWorldScale) 
-
-//--**********************************************************
-//-- CALC - COLOR LIGHT ATTENUATION
-//--**********************************************************
-
-//-- Calculate a vector from the fragment’s location to the light source.
-
-// const to_light = u_Light_position - v_Vertex;
-
-//-- Calculate the length of the vector, which is the distance to the light source.
-
-// let d = length( to_light );
-
-//-- Calculate the amount of attenuation. (For this example, the function 10.0 / d is used.)
-
-// let attenuation = clamp( 10.0 / d, 0.0, 1.0);
-
-//-- Clamps the attenuation to be a percentage between 0% and 100%. 
-// (For the equation 10.0 / d, any object closer than 10 units will receive 
-// full light, while objects more than 10 units away will receive less than full light.
-// The value of 10 is arbitrary and would change based on a specific application’s needs.)
-
-// const attColor = attenuation * (ambient_color + diffuse_color + specular_color);
-
-
-////////////////////////////////////////////////////////////////////
 // ✧ CONTROLS
 ///////////////
 
@@ -327,11 +261,37 @@ controls.enableDamping = true
 controls.dampingFactor = 0.08
 controls.autoRotate = true
 controls.enableZoom = true
-controls.autoRotateSpeed = 0.9
+controls.autoRotateSpeed = 1
 controls.minDistance = 0.1
-controls.maxDistance = 7
+controls.maxDistance = 15
 controls.minPolarAngle = 0
 controls.maxPolarAngle = Math.PI / 2.1
+
+////////////////////////////////////////////////////////////////////
+// ✧ LIGHTS + group
+///////////////
+
+// const hemis_light = new THREE.HemisphereLight(0xF5FFFA, 0xFFDEAD, 7);
+// scene.add(hemis_light)
+
+const pLight0 = new THREE.PointLight(0xD2691E, 7);
+pLight0.position.set(3, 3, 3)
+
+const pLight1 = new THREE.PointLight(0xffffff, 7);
+pLight1.position.set(-3, -3, -3)
+
+scene.add(pLight0, pLight1)
+
+const dirLight = new THREE.DirectionalLight(PARAMS.light.color, PARAMS.light.intensity)
+dirLight.position.set(1,  2, -1)
+dirLight.castShadow = true
+scene.add( dirLight)
+
+dirLight.shadow.mapSize.width = 1024; // default
+dirLight.shadow.mapSize.height = 1024; // default
+dirLight.shadow.camera.near = 0.1; // default
+dirLight.shadow.camera.far = 10000; // default
+
 
 ////////////////////////////////////////////////////////////////////
 // ✧ GEOMETRIES > THREE.BUFFERGEOMETRY after r125
@@ -354,6 +314,7 @@ const material_1A = new THREE.MeshPhysicalMaterial({
 
 	map: g_texture("geometry", 4),
 	attenuationDistance: 1.0,
+
 	emissive: 0xF0E68C,
 	emissiveMap: g_texture("geometry", 4),
 	emissiveIntensity: 1.0,
@@ -387,7 +348,8 @@ const material_1A = new THREE.MeshPhysicalMaterial({
 	clearcoatNormalScale: new THREE.Vector2(0.2, 0.2),
 
 	displacementMap: g_texture("geometry", 4),
-	displacementScale: 0.03,
+	displacementScale: 0.3,
+	displacementBias: 1.3,
 
 	flatShading: false, 
 	side: THREE.FrontSide,
@@ -466,46 +428,69 @@ scene.add(torusKnot)
 // const paneButtons = new Pane({title: "Buttons"})
 
 //===========PANE SCENE
-const paneScene = new Pane({title: "Scene TP",container: document.getElementById('c--Scene')})
-const cameraF = paneScene.addFolder({title: "Camera" ,expanded: true })
+const paneScene = new Pane({title: "Scene",container: document.getElementById('c--Scene'), expanded: false})
+
+//===========CAMERA FOLDER
+const cameraF = paneScene.addFolder({title: "Camera" ,expanded: false })
 cameraF.addInput(PARAMS.camera, "speed", {min: 0.05,max: 3,label: "Speed"})
 cameraF.addSeparator(); //===========================
 
-const environmentF = paneScene.addFolder({title: "Background", expanded: true})
-environmentF.addInput(PARAMS.scene, "background", {color: 0xFAEBD7,label: ".background"})
+//===========LIGHTS TAB
+const lightsTab = paneScene.addTab({ 
+	pages:[
+	{title:'Light'},
+	{title:'Ambient Light'},
+	{title:'Hemisphere Light'},
+	{title:'Directional Light'},
+	{title:'Point Light'},
+	],
+})
+	lightsTab.pages[0].addInput(PARAMS.light,"color", {view: 'color', color:{alpha:true}, label: ".color"})
+	lightsTab.pages[0].addInput(PARAMS.light,"intensity", {min: 0.0, max: 20.0, label: ".intensity"})
+	lightsTab.pages[3].addInput(PARAMS.dirLight,"castShadow")
+	lightsTab.pages[3].addInput(PARAMS.dirLight,"position")
+	lightsTab.pages[3].addInput(PARAMS.dirLight,"target")
+
+const environmentF = paneScene.addFolder({title: "Background", expanded: false})
+environmentF.addInput(PARAMS.scene, "background", {view: 'color', color:{alpha:true}, label: ".background"})
 environmentF.addSeparator(); //===========================
 
 //===========PANE HELPERS
-const paneHelpers = new Pane({title: "Helpers TP",container: document.getElementById('c--Helpers')})
-const gridF = paneHelpers.addFolder({title: "Grid" ,expanded: true })
+const paneHelpers = new Pane({title: "Helpers",container: document.getElementById('c--Helpers'),expanded: false})
+const gridF = paneHelpers.addFolder({title: "Grid",expanded: false })
 gridF.addInput(PARAMS.gridHelper, "divisions", {min: 20,max: 500, label: ".divisions"})
-gridF.addInput(PARAMS.gridHelper, "size", {min: 20,max: 50, step: 1, label: ".size"})
-gridF.addSeparator();//===========================
+gridF.addInput(PARAMS.gridHelper, "size", {min: 40,max: 150, step: 1, label: ".size"})
+gridF.addInput(PARAMS.gridHelper, "hidden")
+gridF.addSeparator();//=======
 
 //===========PANE MESHES
-const paneMeshes= new Pane({title: "Meshes TP",container: document.getElementById('c--Meshes')})
-const sphereF = paneMeshes.addFolder({ title: "Sphere" });
+const paneMeshes= new Pane({title: "Meshes TP",container: document.getElementById('c--Meshes'), expanded: false})
+const sphereF = paneMeshes.addFolder({ title: "Sphere",expanded: false});
 sphereF.addSeparator(); //===========================
 
 //===========PANE MATERIALS
-const paneMaterials = new Pane({title: "Materials TP",container: document.getElementById('c--Materials')})
-const paramsF = paneMaterials.addFolder({title: "PARAMS", expanded: true})
+const paneMaterials = new Pane({title: "Materials ",container: document.getElementById('c--Materials'),expanded: false})
+const paramsF = paneMaterials.addFolder({title: "PARAMS", expanded: false})
 
-paramsF.addInput(PARAMS.material_1, "color", {color:0xEE82EE, label: ".color"});
-paramsF.addInput(PARAMS.material_1, "emissiveIntensity", {color:0xF5F5F5,label: ".emissiveIntensity"})
+paramsF.addInput(PARAMS.material_1, "color", {view:'color', color:{alpha: true}, label: ".color"})
+paramsF.addInput(PARAMS.material_1, "emissive", {view:'color', color:{alpha: true}, label: ".emissive"})
+paramsF.addInput(PARAMS.material_1, "emissiveIntensity", {min: 1.0, max: 20.0, label: ".emissiveIntensity"})
 paramsF.addInput(PARAMS.material_1, "ao", {min: 0.1, max: 1.0, label: ".aoMapIntensity"})
 paramsF.addInput(PARAMS.material_1, "envInt", {min: 0.1, max: 10.0, label: ".envIntensity"})
-paramsF.addInput(PARAMS.material_1, "metal", {min: 0.01,max: 1.0,label: "Metalness"})
-paramsF.addInput(PARAMS.material_1, "rough", {min: 0.01,max: 1.0,label: "Roughness"})
-paramsF.addInput(PARAMS.material_1, "alpha", {min: 0.01,max: 1.0,label: "Opacity"})
-paramsF.addInput(PARAMS.material_1, "displ", { min: 0.0, max: 8.0, label: "Disp Scale" })
+paramsF.addInput(PARAMS.material_1, "metal", {min: 0.0,max: 1.0,label: ".metalness"})
+paramsF.addInput(PARAMS.material_1, "rough", {min: 0.0,max: 1.0,label: ".roughness"})
+paramsF.addInput(PARAMS.material_1, "alpha", {min: 0.0,max: 1.0,label: ".opacity"})
+paramsF.addInput(PARAMS.material_1, "displ", { min: 0.0, max: 8.0, label: ".displacementScale" })
+paramsF.addInput(PARAMS.material_1, "displBias", { min: 0.0, max: 8.0, label: ".displacementBias" })
 paramsF.addInput(PARAMS.material_1, "normal", { min: 0.01, max: 8.0, label: "Normal" })
 paramsF.addInput(PARAMS.material_1, "clearcoat", {min: 0.0, max: 1.0, label: "Clearcoat"})
 paramsF.addInput(PARAMS.material_1, "coatrough", {min: 0.0, max: 1.0, label: "CCoatRoughness"})
-paramsF.addSeparator(); //===========================
+paramsF.addSeparator() //===========================
 
-const physicalMaterialF = paneMaterials.addFolder({ title: 'Physical Material', expanded: true})
-physicalMaterialF.addInput(PARAMS.material_1, "dither", { label: "Dithering" })
+const physicalMaterialF = paneMaterials.addFolder({ title: 'Physical Material', expanded: false})
+
+physicalMaterialF.addInput(PARAMS.material_1, "dither")
+physicalMaterialF.addInput(PARAMS.material_1, "transparent")
 physicalMaterialF.addInput(PARAMS.material_1, "glass", {min: 0.0,max: 1.0,label: ".transmission"})
 physicalMaterialF.addInput(PARAMS.material_1, "sheen", {min: 0.0,max: 1.0,label: ".sheen"})
 physicalMaterialF.addInput(PARAMS.material_1, "sheenR", {min: 0.0,max: 1.0,label: ".sheenRoughness"})
@@ -522,12 +507,12 @@ physicalMaterialF.addSeparator(); //===========================
 	function renderMaterial() {
 		const element = material_1A
 		element.color.set(PARAMS.material_1.color)
+		element.emissive.set(PARAMS.material_1.emissive)
+		element.emissiveIntensity = PARAMS.material_1.emissiveIntensity
 		element.attenuationColor.set(PARAMS.material_1.attColor)
 		element.sheen = PARAMS.material_1.sheen
 		element.sheenRoughness = PARAMS.material_1.sheenR
 		element.attenuationDistance = PARAMS.material_1.attDist
-		element.dithering = PARAMS.material_1.dither
-		element.transparent = PARAMS.material_1.transparent
 		element.metalness = PARAMS.material_1.metal
 		element.roughness = PARAMS.material_1.rough
 		element.opacity = PARAMS.material_1.alpha
@@ -539,8 +524,11 @@ physicalMaterialF.addSeparator(); //===========================
 		element.clearcoatRoughness = PARAMS.material_1.coatrough
 		element.envMapIntensity = PARAMS.material_1.envInt
 		element.displacementScale = PARAMS.material_1.displ * 0.1
+		element.displacementBias = PARAMS.material_1.displBias
 		element.aoMapIntensity = PARAMS.material_1.ao;
 		element.normalScale.set(PARAMS.material_1.normal, PARAMS.material_1.normal);
+		element.dithering = PARAMS.material_1.dither
+		element.transparent = PARAMS.material_1.transparent
 		element.needsUpdate = true;
 	}
 
@@ -643,8 +631,10 @@ function animate() {
     torusKnot.rotation.x += 0.01
     torusKnot.rotation.y += 0.01
 
-    lightsGroup.rotation.y -= 0.01
-    lightsGroup.rotation.x -= 0.01
+    pLight0.rotation.y += 0.01
+    pLight0.rotation.x -= 0.01
+    pLight1.rotation.z += 0.01
+    pLight1.rotation.y -= 0.01
 
     controls.update()
 
@@ -657,7 +647,6 @@ function animate() {
     scene.background = new THREE.Color(PARAMS.scene.background);
 
     regenerateSphereGeometry()
-
     regenerateTorusKnotGeometry()
 
     renderMaterial()
