@@ -74,7 +74,7 @@ const PARAMS = {
 	},
 	scene: 
 	{ 
-		background: 0xe3f6ff,
+	  background: 0xff0037f5,
 	},
 	gridHelper:
 	{
@@ -90,14 +90,14 @@ const PARAMS = {
 	dirLight:
 	{
 		castShadow: true, //--bool
-		position: {x: 1, y: 6, z: -1}, //--Vector3
+		position: 0x0a0a01f5, //--Vector3
 		target: {x: 0, y: 0, z: 0}, //--Object3D
 	},
 	material_1: 
 	{ 
-		color: "rgb(10, 10, 10, 1)",
+		color: new THREE.Color,
 		metal: 0.88,
-		attColor: "rgb(255, 255, 255, 1)",
+		attColor: "rgb(255, 255, 255)",
 		attDist:0.2,
 		rough: 0.66,
 		alpha: 1.0, //opacity
@@ -186,21 +186,19 @@ const canvas_height = sizes.height
 ///////////////
 
 //===========================GRID
-
 const gridHelper = new THREE.GridHelper(100, 100)
 gridHelper.position.y = 0;
-scene.add(gridHelper)
-
+// scene.add(gridHelper)
 
 //=========================== POSITIONING
-	
 const axesHelper = new THREE.AxesHelper();
 	//scene.add(axesHelper);
 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ CAMERA
-///////////////
+//////////////
+
 const aspect = sizes.width / sizes.height
 const vFov = 59 //--calculateVerticalFoV(90, Math.max(aspect, 16 / 9));
 const camera = new THREE.PerspectiveCamera(vFov, aspect, 0.01, 20000)
@@ -218,6 +216,7 @@ window.addEventListener('resize', () => {
   sizes.height = window.innerHeight
 
   // Update camera
+	camera.aspect = sizes.width / sizes.height
   camera.updateProjectionMatrix()
 
   // Update renderer
@@ -452,7 +451,7 @@ const lightsTab = paneScene.addTab({
 	lightsTab.pages[3].addInput(PARAMS.dirLight,"target")
 
 const environmentF = paneScene.addFolder({title: "Background", expanded: false})
-environmentF.addInput(PARAMS.scene, "background", {view: 'color', color:{alpha:true}, label: ".background"})
+environmentF.addInput(PARAMS.scene, "background")
 environmentF.addSeparator(); //===========================
 
 //===========PANE HELPERS
@@ -472,8 +471,8 @@ sphereF.addSeparator(); //===========================
 const paneMaterials = new Pane({title: "Materials ",container: document.getElementById('c--Materials'),expanded: false})
 const paramsF = paneMaterials.addFolder({title: "PARAMS", expanded: false})
 
-paramsF.addInput(PARAMS.material_1, "color", {view:'color', color:{alpha: true}, label: ".color"})
-paramsF.addInput(PARAMS.material_1, "emissive", {view:'color', color:{alpha: true}, label: ".emissive"})
+paramsF.addInput(PARAMS.material_1, "color")
+paramsF.addInput(PARAMS.material_1, "emissive")
 paramsF.addInput(PARAMS.material_1, "emissiveIntensity", {min: 1.0, max: 20.0, label: ".emissiveIntensity"})
 paramsF.addInput(PARAMS.material_1, "ao", {min: 0.1, max: 1.0, label: ".aoMapIntensity"})
 paramsF.addInput(PARAMS.material_1, "envInt", {min: 0.1, max: 10.0, label: ".envIntensity"})
@@ -506,7 +505,7 @@ physicalMaterialF.addSeparator(); //===========================
 
 	function renderMaterial() {
 		const element = material_1A
-		element.color.set(PARAMS.material_1.color)
+		element.color = PARAMS.material_1.color
 		element.emissive.set(PARAMS.material_1.emissive)
 		element.emissiveIntensity = PARAMS.material_1.emissiveIntensity
 		element.attenuationColor.set(PARAMS.material_1.attColor)
@@ -648,13 +647,10 @@ function animate() {
 
     regenerateSphereGeometry()
     regenerateTorusKnotGeometry()
-
     renderMaterial()
-
     requestAnimationFrame(render)
 
     composer.render()
-
     stats.update()
 
 }
