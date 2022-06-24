@@ -125,7 +125,7 @@ const axesHelper = new THREE.AxesHelper();
 //--Parameters for Abstract Base Classes
 
 const clearBgColor = new THREE.Color(0xf5f5f5)
-const background = new THREE.Color(0x4169E1)
+const background = new THREE.Color(0x000000)
 const lightColor = new THREE.Color(0xffffff)
 const material_1_color = new THREE.Color(0x708090)
 const material_1_emissive = new THREE.Color(0x000000)
@@ -144,19 +144,32 @@ const PARAMS = {
   },
   light: {
     color: lightColor.convertLinearToSRGB(), //--int
-    intensity: 4.5, //--flt
+    intensity: 2.5, //--flt
   },
   dirLight: {
     castShadow: true, //--bool
-    position: { x: -1, y: 2, z: 1 }, //--Vector3
+    position: { x: 1, y: 2, z: 1 }, //--Vector3
     target: { x: 0, y: 0, z: 0 }, //--Object3D
+  },
+  geo:
+  {
+  	baseSphere:
+  	{
+  		radius: 2,
+  		widthS: 180,
+  		heightS: 140,
+  		phiS: 0,
+  		phiL: Math.PI * 2,
+  		thetaS: 0,
+  		thetaL: Math.PI * 2,
+  	},
   },
   material_1: {
     color: material_1_color.convertLinearToSRGB(),
-    metal: 0.0,
+    metal: 0.4,
     attColor: attenuationColor_Mat1.convertLinearToSRGB(),
     attDist: 2.0,
-    rough: 0.6,
+    rough: 0.05,
     alpha: 1.0, //opacity
     transm: 1.0, 
     shn: 0.5,
@@ -165,14 +178,14 @@ const PARAMS = {
     shnR: 0.5,
     ior: 1.4, //--X
     thick: 12.0, //
-    reflect: 1.2, //--no effect when metalness is 1.0
+    reflect: 0.4, //--no effect when metalness is 1.0
     clearcoat: 0.4, //
-    coatrough: 0.8, //
+    coatrough: 0.8, //.15
     envInt: 10.0,
     emissive: material_1_emissive.convertLinearToSRGB(),
     emissiveIntensity: 2.45,
     displ: 0.1,
-    displBias: 0.5,
+    displBias: 0.8,
     ao: 1.0,
     normal: 0.01,
     dither: true,
@@ -507,7 +520,16 @@ paneMeshes.addSeparator(); //===========================
 //===========PANE GEOMETRIES
 const paneGeometries = new Pane({ title: "BufferGeometries", container: document.getElementById('c--Geometries'), expanded: false })
 const sphereG_F = paneGeometries.addFolder({ title: "SphereBufferGeometry", expanded: false });
+sphereG_F.addInput(PARAMS.geo.baseSphere, "radius", { min: 1.0, max: 5.0, label: ".radius" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "widthS", { min: 16.0, max: 180.0, label: ".widthSegments" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "heightS", { min: 12.0, max: 140.0, label: ".heightSegments" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "phiS", { min: 0.0, max: 5.0, label: ".phiStart" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "phiL", { min: 0.0, max: 5.0, label: ".phiLength" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "thetaS", { min: 0.0, max: 5.0, label: ".thetaStart" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "thetaL", { min: 0.0, max: 5.0, label: ".thetaLength" })
+paneGeometries.addSeparator(); //===========================
 const torusG_F = paneGeometries.addFolder({ title: "TorusBufferGeometry", expanded: false });
+paneGeometries.addSeparator(); //===========================
 const torusKnotG_F = paneGeometries.addFolder({ title: "TorusKnotGeometry", expanded: false });
 paneGeometries.addSeparator(); //===========================
 
@@ -584,6 +606,9 @@ paneSocial.addSeparator(); //===========================
 function renderMaterial() {
 
   const element1A = material_1A
+  const element2A = dirLight
+  const element3A = sphereData
+
   element1A.color = PARAMS.material_1.color
   element1A.emissive.set(PARAMS.material_1.emissive)
   element1A.attenuationColor.set(PARAMS.material_1.attColor)
@@ -610,6 +635,12 @@ function renderMaterial() {
   element1A.dithering = PARAMS.material_1.dither
   element1A.transparent = PARAMS.material_1.transparent
   element1A.needsUpdate = true;
+  //--
+  element2A.intensity = PARAMS.light.intensity
+  element2A.color = PARAMS.light.color
+  element2A.castShadow = PARAMS.dirLight.castShadow = true
+  //--
+  element3A.radius = PARAMS.geo.baseSphere.radius
 }
 
 //------------
