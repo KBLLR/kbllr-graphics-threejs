@@ -25,18 +25,6 @@ import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
 ///////////////
 
 
-
-//  ///////////  /////////////// //
-// ✧ DEBUGGING COLUMNS 📸 ///
-//////////  /////////  /////////
-
-const debug1 = document.getElementById('debug1') as HTMLDivElement
-const debug2 = document.getElementById('debug2') as HTMLDivElement
-const debug3 = document.getElementById('debug3') as HTMLDivElement
-const debug4 = document.getElementById('debug4') as HTMLDivElement
-const debug5 = document.getElementById('debug5') as HTMLDivElement
-const debug6 = document.getElementById('debug6') as HTMLDivElement
-
 //==========================
 
 
@@ -49,13 +37,14 @@ const Template = "https://unsplash.com/photos/QwoNAhbmLLo"
 let arrayTop = [
 "diamonds", 
 "minerals", 
-"eye",
+"eye", "eyes",
 "geometry", 
 "New York", 
 "Universe", 
 "aurora vorearis", 
 "northern lights", 
 "neon",
+"clouds", "smoke",
 ]
 
 let topic = arrayTop[Math.floor(Math.random() * arrayTop.length)]
@@ -126,11 +115,22 @@ const axesHelper = new THREE.AxesHelper();
 
 const clearBgColor = new THREE.Color(0xf5f5f5)
 const background = new THREE.Color(0x000000)
-const lightColor = new THREE.Color(0xffffff)
+
+const lightCol = new THREE.Color(0xffffff)
+
+const hLightCol_1_1 = new THREE.Color(0xffffff)
+const hLightCol_1_2 = new THREE.Color(0x000000)
+
+const pLight_1 = new THREE.Color(0xffffff)
+const pLight_2 = new THREE.Color(0xF5F5F5)
+
 const material_1_color = new THREE.Color(0x708090)
 const material_1_emissive = new THREE.Color(0x000000)
+
 const attenuationColor_Mat1 = new THREE.Color(0xF5F5F5)
 const shnColor_Mat1 = new THREE.Color(0xffffff/1.0)
+
+//=====================================================
 
 const PARAMS = {
   camera: {},
@@ -143,24 +143,35 @@ const PARAMS = {
     hidden: true,
   },
   light: {
-    color: lightColor.convertLinearToSRGB(), //--int
+    color: lightCol.convertLinearToSRGB(), //--int
     intensity: 2.5, //--flt
   },
   dirLight: {
-    castShadow: true, //--bool
+    castShadow: true,
     position: { x: 1, y: 2, z: 1 }, //--Vector3
     target: { x: 0, y: 0, z: 0 }, //--Object3D
   },
-  geo:
-  {
-  	baseSphere:
-  	{
-  		radius: 2,
-  		widthS: 180,
-  		heightS: 140,
+  pLight_1: {
+  	color: pLight_1.convertLinearToSRGB(),
+  	intensity: 10,
+  },
+  pLight_2: {
+  	color: pLight_2.convertLinearToSRGB(),
+  	intensity: 10,
+  },
+  hLight: {
+  	color1: hLightCol_1_1.convertLinearToSRGB(),
+  	color2: hLightCol_1_2.convertLinearToSRGB(),
+  	intensity: 10,
+  },
+  geo:{
+  	baseSphere: {
+  		radius: 4,
+  		widthS: 4,
+  		heightS:4,
   		phiS: 0,
   		phiL: Math.PI * 2,
-  		thetaS: 0,
+  		thetaS: 10,
   		thetaL: Math.PI * 2,
   	},
   },
@@ -185,7 +196,7 @@ const PARAMS = {
     emissive: material_1_emissive.convertLinearToSRGB(),
     emissiveIntensity: 2.45,
     displ: 0.1,
-    displBias: 0.8,
+    displBias: 1.0,
     ao: 1.0,
     normal: 0.01,
     dither: true,
@@ -196,9 +207,11 @@ const PARAMS = {
     sheen: 0.7,
     sheenRoughness: 0.3,
     sheenColor: 0xD8BFD8,
+    envMapIntensity: 6,
+    reflectivity: 0.5,
     specularColor: 0xF5F5F5,
     specularIntensity: 0.2,
-    displacementBias: 0.1,
+    displacementBias: 2,
     displacementScale: 0.1,
     ior: 1.2,
     transmission: 1.0,
@@ -217,8 +230,8 @@ const PARAMS = {
 
 const sphereData = {
   radius: 2,
-  widthSegments: 180,
-  heightSegments: 140,
+  widthSegments: 80,
+  heightSegments: 80,
   phiStart: 0,
   phiLength: Math.PI * 2,
   thetaStart: 0,
@@ -319,7 +332,7 @@ controls.autoRotate = true
 controls.enableZoom = true
 controls.autoRotateSpeed = 1.2
 controls.minDistance = 0.1
-controls.maxDistance = 15
+controls.maxDistance = 25
 controls.minPolarAngle = 0
 controls.maxPolarAngle = Math.PI / 2.1
 
@@ -327,19 +340,21 @@ controls.maxPolarAngle = Math.PI / 2.1
 // ✧ LIGHTS + group
 ///////////////
 
-// const hemis_light = new THREE.HemisphereLight(0xF5FFFA, 0xFFDEAD, 7);
-// scene.add(hemis_light)
+const hemis_light = new THREE.HemisphereLight(PARAMS.hLight.color1, PARAMS.hLight.color2, PARAMS.hLight.intensity)
+scene.add(hemis_light)
 
-const pLight0 = new THREE.PointLight(0xD2691E, 7);
-pLight0.position.set(3, 3, 3)
+const pLight0 = new THREE.PointLight(PARAMS.pLight_1.color, PARAMS.pLight_1.intensity)
+pLight0.position.set(7, 7, 12)
 
-const pLight1 = new THREE.PointLight(0xffffff, 7);
-pLight1.position.set(-3, -3, -3)
+const pLight1 = new THREE.PointLight(PARAMS.pLight_2.color, PARAMS.pLight_2.intensity)
+pLight1.position.set(-7, -7, -12)
 
 scene.add(pLight0, pLight1)
 
 const dirLight = new THREE.DirectionalLight(PARAMS.light.color, PARAMS.light.intensity)
-dirLight.position.set(1, 2, -1)
+dirLight.position.x = 8
+dirLight.position.y = 8
+dirLight.position.z = -8
 dirLight.castShadow = true
 scene.add(dirLight)
 
@@ -409,11 +424,8 @@ material_1A.sheenColorMap = g_texture(topic, 4)
 
 const material_2A = new THREE.MeshPhysicalMaterial({
   envMap: g_texture("neon", 4),
-  envMapIntensity: 6,
   //--
-  reflectivity: 0.5,
-  //--
-  
+
   //--
   map: g_texture("neon", 4),
   normalMap: g_texture("neon", 4),
@@ -520,9 +532,9 @@ paneMeshes.addSeparator(); //===========================
 //===========PANE GEOMETRIES
 const paneGeometries = new Pane({ title: "BufferGeometries", container: document.getElementById('c--Geometries'), expanded: false })
 const sphereG_F = paneGeometries.addFolder({ title: "SphereBufferGeometry", expanded: false });
-sphereG_F.addInput(PARAMS.geo.baseSphere, "radius", { min: 1.0, max: 5.0, label: ".radius" })
-sphereG_F.addInput(PARAMS.geo.baseSphere, "widthS", { min: 16.0, max: 180.0, label: ".widthSegments" })
-sphereG_F.addInput(PARAMS.geo.baseSphere, "heightS", { min: 12.0, max: 140.0, label: ".heightSegments" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "radius", { step: 1, min: 1, max: 9, label: ".radius" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "widthS", { step: 1, min: 1, max: 180, label: ".widthSegments" })
+sphereG_F.addInput(PARAMS.geo.baseSphere, "heightS",{ step: 1,min: 1, max: 180, label: ".heightSegments" })
 sphereG_F.addInput(PARAMS.geo.baseSphere, "phiS", { min: 0.0, max: 5.0, label: ".phiStart" })
 sphereG_F.addInput(PARAMS.geo.baseSphere, "phiL", { min: 0.0, max: 5.0, label: ".phiLength" })
 sphereG_F.addInput(PARAMS.geo.baseSphere, "thetaS", { min: 0.0, max: 5.0, label: ".thetaStart" })
@@ -638,9 +650,11 @@ function renderMaterial() {
   //--
   element2A.intensity = PARAMS.light.intensity
   element2A.color = PARAMS.light.color
-  element2A.castShadow = PARAMS.dirLight.castShadow = true
+  element2A.castShadow = PARAMS.dirLight.castShadow
   //--
   element3A.radius = PARAMS.geo.baseSphere.radius
+  element3A.widthSegments = PARAMS.geo.baseSphere.widthS
+  element3A.heightSegments = PARAMS.geo.baseSphere.heightS
 }
 
 //------------
@@ -693,13 +707,6 @@ const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
 composer.addPass(new EffectPass(camera, new BloomEffect()));
 
-////////////////////////////////////////////////////////////////////
-// ✧ ANIMATIONS
-///////////////
-
-// requestAnimationFrame(function render() {
-//   scene.background = new THREE.Color(PARAMS.scene.background);
-// });
 
 ////////////////////////////////////////////////////////////////////
 // ✧ STATS
@@ -753,13 +760,6 @@ function animate() {
   paneGeometries.refresh()
 
   scene.background = new THREE.Color(PARAMS.scene.background);
-
-  //   // debug1.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n')
-  //   // debug2.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n')
-  //   // debug3.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n')
-  //   // debug4.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n')
-  //   // debug5.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n')
-  //   // debug6.innerText =  'Matrix\n' + sphere.matrix.elements.toString().replace(/,/g, '\n')
 
   regenerateSphereGeometry()
   regenerateTorusKnotGeometry()
