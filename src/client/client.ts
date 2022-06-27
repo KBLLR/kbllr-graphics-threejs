@@ -15,8 +15,9 @@ import {
   VignetteEffect,
   blendFunction,
   OverrideMaterialManager
-} from '../../node_modules/postprocessing/build/postprocessing.esm.js';
+} from '../../node_modules/postprocessing/build/postprocessing.esm.js'
 import { Pane } from 'tweakpane'
+import * as EssentialsPlugin from '@tweakpane/plugin-essentials'
 import { ButtonProps, TabParams } from '@tweakpane/core'
 import { FolderParams } from 'tweakpane'
 import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
@@ -953,13 +954,13 @@ function regenerateGeometries() {
 ////////////////////////////////////////////////////////////////////
 // ✧ EFFECT COMPOSER - POSTPRODUCTION
 ///////////////
+const noiseFX = new NoiseEffect()
 
 const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
 composer.addPass(new EffectPass(camera, new SMAAEffect))
-composer.addPass(new EffectPass(camera, new BloomEffect()))
-composer.addPass(new EffectPass(camera, new VignetteEffect()))
-composer.addPass(new EffectPass(camera, new NoiseEffect()))
+composer.addPass(new RenderPass(scene, camera))
+composer.addPass(new EffectPass(camera, noiseFX))
 
 console.log(composer)
 
