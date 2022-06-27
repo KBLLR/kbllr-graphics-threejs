@@ -6,21 +6,89 @@ import { WebGLRenderer } from 'three'
 import {
   EffectComposer,
   EffectPass,
+  SMAAEffect,
   NoiseEffect,
   RenderPass,
   sRGBEncoding,
   VSMShadowMap,
   BloomEffect,
-  VignetteEffect
+  VignetteEffect,
+  blendFunction,
+  OverrideMaterialManager
 } from '../../node_modules/postprocessing/build/postprocessing.esm.js';
 import { Pane } from 'tweakpane'
 import { ButtonProps, TabParams } from '@tweakpane/core'
 import { FolderParams } from 'tweakpane'
 import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
-// import { useDrag } from '@use-gesture/vanilla'
+
 
 //==========================
+// Post-processing
+OverrideMaterialManager.workaroundEnabled = false;
 
+
+const OPTIONS = {
+  fadeFactor: 0.1,
+  scaleX: 0,
+  scaleY: 0,
+  rotationAngle: 0
+}
+
+let orthoCamera
+{
+  const left = -innerWidth / 2
+  const right = innerWidth / 2
+  const top = -innerHeight / 2
+  const bottom = innerHeight / 2
+  const near = -100
+  const far = 100
+
+  orthoCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far)
+  orthoCamera.position.z = -10
+  orthoCamera.lookAt(new THREE.Vector3(0, 0, 0))
+}
+
+const fullscreenQuadGeometry = new THREE.PlaneGeometry(innerWidth, innerHeight)
+
+const uvMatrix = new THREE.Matrix3()
+ // tx : Float, ty : Float, sx : Float, sy : Float, rotation : Float, cx : Float, cy : Float
+
+const fadeMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    inputTexture: { value: null },
+    fadeFactor: { value: OPTIONS.fadeFactor },
+    uvMatrix: { value: uvMatrix }
+  },
+  vertexShader: `
+    uniform mat3 uvMatrix;
+    varying vec2 vUv;
+    void main () {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vUv = (uvMatrix * vec3(uv, 1.0)).xy;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D inputTexture;
+    uniform float fadeFactor;
+    varying vec2 vUv;
+    void main () {
+      float dist = distance(vUv, vec2(0.5));
+      vec4 texColor = texture2D(inputTexture, vUv);
+      vec4 fadeColor = vec4(0.0, 0.0, 0.0, 1.0);
+      gl_FragColor = mix(texColor, fadeColor, fadeFactor);
+    }
+  `
+})
+const fadePlane = new THREE.Mesh(
+  fullscreenQuadGeometry,
+  fadeMaterial
+)
+
+const resultMaterial = new THREE.MeshBasicMaterial({ map: null })
+const resultPlane = new THREE.Mesh(
+  fullscreenQuadGeometry,
+  resultMaterial
+)
 
 ////////////////////////////////////////////////////////////////////
 // ✧ SCREENSHOT FUNCTION 📸
@@ -40,6 +108,8 @@ let arrayTop = [
 "lines", 
 "butterfly", 
 "iris",
+"raven",
+"crow",
 "geometry",
 "sun",
 "shimmer", 
@@ -101,6 +171,8 @@ const background = new THREE.Color(0xffffff)
 const clearBgCol = new THREE.Color(0xf5f5f5) 
 const lightCol = new THREE.Color(0xffffff)
 
+const spLightCol = new THREE.Color(0xffffff)
+
 const hLightCol1 = new THREE.Color(0xffffff)
 const hLightCol2 = new THREE.Color(0x000000)
 
@@ -146,38 +218,44 @@ const PARAMS = {
   light: {
   	dirLight: {
   		color: lightCol.convertLinearToSRGB(),
-  		intensity: 2.5,
+  		intensity: 0.0,
   	  castShadow: true,
-  	  pX: 1, pY: 2, pZ: 1,
+  	  pX: 0, pY: 10, pZ: 0,
   	  target: {x: 0, y: 0, z: 0}, 
   	},
   	pLight: {
   		color: pLightCol.convertLinearToSRGB(),
-  		intensity: 10,
-  		castShadow: true,
+  		intensity: 0.0,
   	},
   	hLight: {
   		col1: hLightCol1.convertLinearToSRGB(),
   		col2: hLightCol2.convertLinearToSRGB(),
-  		intensity: 10,
+  		intensity: 0,
   		pX: 0, pY: 0, pZ: 0,
+  	},
+  	spotLight: {
+  		col: spLightCol.convertLinearToSRGB(),
+  		intensity: 10,
+  		castShadow: true,
   	},
   },
   geo:{
   	sphere: {
   		radius: 4,
-  		widthS: 8,
-  		heightS:12,
+  		widthS: 115,
+  		heightS:115,
   		phiS: 0,
   		phiL: Math.PI * 2,
   		thetaS: 10,
   		thetaL: Math.PI * 2,
+  		rSh: true,
   	},
   	plane: {
   		w: 100,
   		h: 100,
-  		wS:1,
-  		hS:1,
+  		wS:100,
+  		hS:100,
+  		rSh: false,
   	},
   	torus: {//look for Parametric equation for a 3D torus
   	  radius: 1,
@@ -185,6 +263,7 @@ const PARAMS = {
   	  tubularSegments: 200,
   	  radialSegments: 30,
   	  arc: 6.283,
+  	  rSh: true,
   	},
   	torusK: {
   	  radius: 1,
@@ -193,6 +272,7 @@ const PARAMS = {
   	  radialSegments: 20,
   	  p: 1,
   	  q: 3,
+  	  rSh: true,
   	},
   },
   material: {
@@ -300,6 +380,9 @@ window.addEventListener('resize', () => {
 // ✧ RENDERER  /// //
 ///// ///   ///  //// 
 
+let framebuffer1 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
+let framebuffer2 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
+
 const renderer = new THREE.WebGLRenderer({
 	canvas: canvas,
   powerPreference: "high-performance",
@@ -308,19 +391,25 @@ const renderer = new THREE.WebGLRenderer({
   depth: true,
 });
 
+renderer.setClearColor(0x111111)
+// renderer.setRenderTarget(framebuffer1)
+// renderer.clearColor()
+// renderer.setRenderTarget(framebuffer2)
+// renderer.clearColor()
+
 renderer.setSize(sizes.width, sizes.height)
-renderer.setClearColor(PARAMS.rndr.bgCol)
+// renderer.setClearColor(PARAMS.rndr.bgCol)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 renderer.physicallyCorrectLights = true
 renderer.shadowMap.enabled = true
 // renderer.xr.enabled = true
-renderer.outputEncoding = sRGBEncoding;
-renderer.shadowMap.type = THREE.VSMShadowMap;
-// renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = sRGBEncoding
+// renderer.shadowMap.type = THREE.VSMShadowMap
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 1.2
 
-// document.body.appendChild(renderer.domElement)
+ document.body.appendChild(renderer.domElement)
 
 /////////////////
 // ✧ CONTROLS ///
@@ -344,34 +433,35 @@ controls.maxPolarAngle = Math.PI / 2.1
 // ✧ LIGHTS ////
 ///////////////
 
-const hemis_light = new THREE.HemisphereLight(PARAMS.light.hLight.col1, PARAMS.light.hLight.col2, PARAMS.light.hLight.intensity)
-scene.add(hemis_light)
+const hLight = new THREE.HemisphereLight(PARAMS.light.hLight.col1, PARAMS.light.hLight.col2, PARAMS.light.hLight.intensity)
+// scene.add(hLight)
 
 
 const pLight0 = new THREE.PointLight(PARAMS.light.pLight.color, PARAMS.light.pLight.intensity)
-pLight0.castShadow = true
+pLight0.castShadow = false
 pLight0.shadow.mapSize.width = 1500
 pLight0.shadow.mapSize.height = 1500
 pLight0.position.set(7, 7, 12)
 
-const spotLight = new THREE.SpotLight( 0xffffff, 8.5 );
-spotLight.position.set( 0, 5, 200 );
-spotLight.angle = Math.PI * 0.2;
-spotLight.castShadow = true;
-spotLight.penumbra = 0.2
-spotLight.decay = 0.2
-spotLight.distance = 50
-spotLight.shadow.camera.near = 200;
-spotLight.shadow.camera.far = 2000;
-spotLight.shadow.bias = - 0.000222;
-spotLight.shadow.mapSize.width = 1024;
-spotLight.shadow.mapSize.height = 1024;
-scene.add(spotLight)
+const spotLight = new THREE.SpotLight( 0x00ff00, 28.5 );
+// spotLight.position.set( 0, 10, 0 );
+// spotLight.angle = Math.PI /2;
+// spotLight.castShadow = true;
+// spotLight.penumbra = 0.3
+// spotLight.decay = 0.4
+// spotLight.distance = 20
+// spotLight.shadow.camera.near = 0.1;
+// spotLight.shadow.camera.far = 10000;
+// spotLight.shadow.bias = 0.001;
+// spotLight.shadow.blurSamples = 240
+// spotLight.shadow.mapSize.width = 1024;
+// spotLight.shadow.mapSize.height = 1024;
+// scene.add(spotLight)
 
 const dirLight = new THREE.DirectionalLight(PARAMS.light.dirLight.color, PARAMS.light.dirLight.intensity)
 dirLight.position.x = 0
-dirLight.position.y = 0
-dirLight.position.z = 12
+dirLight.position.y = 20
+dirLight.position.z = 0
 dirLight.castShadow = true
 dirLight.shadow.mapSize.width = 1024 // default
 dirLight.shadow.mapSize.height = 1024 // default
@@ -447,13 +537,10 @@ mat_1A.sheenColorMap = g_texture(topic, 4)
 
 //===========================================================+
 
-//=== MATERIAL #2
+//=== MATERIAL #1B
 
 const mat_2A = new THREE.MeshPhysicalMaterial({
   envMap: g_texture("neon", 4),
-  //--
-
-  //--
   map: g_texture("neon", 4),
   normalMap: g_texture("neon", 4),
   normalScale: new THREE.Vector2(1, 1),
@@ -477,70 +564,44 @@ mat_2A.sheenColorMap = g_texture(topic, 4)
 
 //===========================================================+
 
-
 //=== MATERIAL #3
 const lineBasicMat = new THREE.LineBasicMaterial( { color: 0xff0000 } );
 let lineColorConvert = lineBasicMat.color.convertLinearToSRGB()
 
-////////////////////////////
-// ✧ MeshPhysicalMaterial//
-//////////////////////////
+//=== MATERIAL #4
+const shadowMat = new THREE.ShadowMaterial()
+shadowMat.opacity = 0.1
+shadowMat.color.set(0xF5F5F5)
 
-//========LINE GEOMETRY + MATERIAL
-let MAX_POINTS = 5000;
-
-// geometry
-const lineGeo = new THREE.BufferGeometry();
-
-// attributes
-const positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
-lineGeo.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-
-// draw range
-let drawCount = 2; // draw the first 2 points, only
-lineGeo.setDrawRange( 0, drawCount );
-
-// line
-const lineMesh = new THREE.Line( lineGeo, lineBasicMat );
-scene.add( lineMesh );
-
-let x, y, z, index;
-x = y = z = index = 0;
-
-// update positions
-function updatePositions() {
-
-	for ( let i = 0, l = MAX_POINTS; i < l; i ++ ) {
-
-		positions[ index ++ ] = x;
-		positions[ index ++ ] = y;
-		positions[ index ++ ] = z;
-
-		x += ( Math.random() - 0.5 ) * 30;
-		y += ( Math.random() - 0.5 ) * 30;
-		z += ( Math.random() - 0.5 ) * 30;
-
-	}
-
-}
-
-//========GEOMETRIES + MATERIALS = MESH
-
-//--- PLANE
+//=== MATERIAL #5
 const matFloor = new THREE.MeshPhongMaterial();
 matFloor.color.set(0xffffff)
 
-const geoFloor = new THREE.PlaneGeometry( 2000, 2000 );
+///////////////////////////////////////////
+// EDGES - LINES - GEOMETRIES - MESH ////
+///////////////////////////////////////
 
-const planeMesh = new THREE.Mesh( geoFloor, matFloor );
+//--- EDGES
+// const plEdges = new THREE.EdgesGeometry( geoFloor );
+// const plLine = new THREE.LineSegments( plEdges, new THREE.LineBasicMaterial( { color: 0x0f0000 } ) );
+// scene.add( plLine );
+
+//--
+
+//--- PLANE
+const geoFloor = new THREE.PlaneGeometry( 2000, 2000 );
+const planeMesh = new THREE.Mesh( geoFloor, shadowMat );
 planeMesh.rotation.x = - Math.PI * 0.5;
 planeMesh.receiveShadow = true;
-planeMesh.position.set( 0, -10, 0)
+planeMesh.position.set( 0, -5, 0)
 scene.add(planeMesh)
+
 
 //--- SPHERE
 const sphereGeometry = new THREE.SphereGeometry()
 const sphere = new THREE.Mesh(sphereGeometry, mat_1A)
+sphere.receiveShadow = true
+sphere.castShadow = true
 scene.add(sphere)
 
 
@@ -550,17 +611,25 @@ const torusMesh = new THREE.Mesh(torusG, mat_2A)
 torusMesh.rotation.z = (90 * Math.PI) / 180
 torusMesh.castShadow = true;
 torusMesh.name = "TORUS#0";
+torusMesh.receiveShadow = true
 scene.add(torusMesh)
 
 
 //--- TORUS_KNOT
 const torusKGeo = new THREE.TorusKnotGeometry()
 const torusKnot = new THREE.Mesh(torusKGeo, mat_2A)
+torusKnot.receiveShadow = false
 scene.add(torusKnot)
 
+
 //✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
-//✧✧ GUI > TWEAKPANE ✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
+//✧✧ GUI > TWEAKPANE - MENU
 //✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
+
+//PARENT -> MENU
+
+
+
 
 //===========USER PANES 
 //--Time Pane
@@ -596,34 +665,32 @@ const lightsTab = paneScene.addTab({
     { title: 'Directional Light' },
     { title: 'Hemisphere  Light' },
     { title: 'Point Light' },
+    { title: 'Spot Light' },
   ],
 })
 //--Directional Light
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "castShadow", { options: { Yes:'toggle', No:'toggle'}})
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "intensity", { min: 0.0, max: 20.0, label: ".intensity" })
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "color", { view: 'color', color: { alpha: true }, label: ".color" })
-lightsTab.pages[0].addInput(PARAMS.light.dirLight, "pX")
-lightsTab.pages[0].addInput(PARAMS.light.dirLight, "pY"	)
-lightsTab.pages[0].addInput(PARAMS.light.dirLight, "pZ")
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "target")
 //--Hemisphere Light
 lightsTab.pages[1].addInput(PARAMS.light.hLight, "intensity", { min: 0.0, max: 20.0, label: ".intensity" })
 lightsTab.pages[1].addInput(PARAMS.light.hLight, "col1", { view: 'col1', color: { type: 'float', alpha: true }, label: ".skyColor" })
 lightsTab.pages[1].addInput(PARAMS.light.hLight, "col1", { view: 'col2', color: { type: 'float', alpha: true }, label: ".groundColor" })
-lightsTab.pages[1].addInput(PARAMS.light.hLight, "pX")
-lightsTab.pages[1].addInput(PARAMS.light.hLight, "pY")
-lightsTab.pages[1].addInput(PARAMS.light.hLight, "pZ")
 //--Point Light
-lightsTab.pages[0].addInput(PARAMS.light.pLight, "castShadow", { options: { yes:'toggle', no:'toggle'}})
-lightsTab.pages[1].addInput(PARAMS.light.pLight, "intensity", { min: 0.0, max: 30.0, label: ".intensity" })
-lightsTab.pages[1].addInput(PARAMS.light.pLight, "color", { view: 'color', color: { type: 'float', alpha: true }, label: ".skyColor" })
+lightsTab.pages[2].addInput(PARAMS.light.pLight, "intensity", { min: 0.0, max: 30.0, label: ".intensity" })
+lightsTab.pages[2].addInput(PARAMS.light.pLight, "color", { view: 'color', color: { type: 'float', alpha: true }, label: ".color" })
+//--Spot Light
+lightsTab.pages[3].addInput(PARAMS.light.spotLight, "castShadow", { options: { yes:'toggle', no:'toggle'}})
+lightsTab.pages[3].addInput(PARAMS.light.spotLight, "intensity", { min: 0.0, max: 30.0, label: ".intensity" })
+lightsTab.pages[3].addInput(PARAMS.light.spotLight, "col", { view: 'color', color: { type: 'float', alpha: true }, label: ".color" })
 paneScene.addSeparator() //=======================
 
 
 //===========PANE HELPERS
 const paneHelpers = new Pane({ title: "Helpers", container: document.getElementById('c--Helpers'), expanded: false })
 
-// NOT VALID for PANE but LOOK DOCS for correct method. Expanded doesn0t cover the use case .
+// NOT VALID for PANE but LOOK DOCS for correct method. Expanded doesnt cover the use case .
 // if (window.innerWidth < 600) paneHelpers.close();
 
 const gridF = paneHelpers.addFolder({ title: "Grid", expanded: false })
@@ -641,6 +708,7 @@ const sphereG_F = paneGeometries.addFolder({ title: "Sphere", expanded: false })
 sphereG_F.addInput(PARAMS.geo.sphere, "radius", { step: 1, min: 1, max: 9, label: ".radius" })
 sphereG_F.addInput(PARAMS.geo.sphere, "widthS", { step: 1, min: 1, max: 180, label: ".widthSegments" })
 sphereG_F.addInput(PARAMS.geo.sphere, "heightS",{ step: 1,min: 1, max: 180, label: ".heightSegments" })
+sphereG_F.addInput(PARAMS.geo.sphere, "rSh", { options: { Yes:'toggle', No:'toggle'}})
 // sphereG_F.addInput(PARAMS.geo.sphere, "phiS", { min: 0.0, max: 5.0, label: ".phiStart" })
 // sphereG_F.addInput(PARAMS.geo.sphere, "phiL", { min: 0.0, max: 5.0, label: ".phiLength" })
 // sphereG_F.addInput(PARAMS.geo.sphere, "thetaS", { min: 0.0, max: 5.0, label: ".thetaStart" })
@@ -653,6 +721,7 @@ torusG_F.addInput(PARAMS.geo.torus, "radius", { step: 1, min: 1, max: 9, label: 
 torusG_F.addInput(PARAMS.geo.torus, "tube", { step: 0.1, min: 0.1, max: 18, label: ".tube" })
 torusG_F.addInput(PARAMS.geo.torus, "tubularSegments", { step: 10, min: 100, max: 200, label: ".tubularSegments" })
 torusG_F.addInput(PARAMS.geo.torus, "arc", { step: 0.100, min: 6.0, max: 54.0, label: ".arc" })
+torusG_F.addInput(PARAMS.geo.torus, "rSh", { options: { Yes:'toggle', No:'toggle'}})
 
 paneGeometries.addSeparator(); //===========================
 
@@ -663,6 +732,7 @@ torusKnotG_F.addInput(PARAMS.geo.torusK, "tubularSegments", { step: 1, min: 1, m
 torusKnotG_F.addInput(PARAMS.geo.torusK, "radialSegments", { step: 1, min: 1, max: 9, label: ".radialSegments" })
 torusKnotG_F.addInput(PARAMS.geo.torusK, "p", { step: 1, min: 1, max: 9, label: ".phiL" })
 torusKnotG_F.addInput(PARAMS.geo.torusK, "q", { step: 1, min: 1, max: 9, label: ".phiS" })
+torusKnotG_F.addInput(PARAMS.geo.torusK, "rSh", { options: { Yes:'toggle', No:'toggle'}})
 
 paneGeometries.addSeparator(); //===========================
 
@@ -671,6 +741,7 @@ planeG_F.addInput(PARAMS.geo.plane, "w", { step: 1, min: 1, max: 60, label: ".ra
 planeG_F.addInput(PARAMS.geo.plane, "h", { step: 1, min: 1, max: 60, label: ".radius" })
 planeG_F.addInput(PARAMS.geo.plane, "wS",{ step: 1, min: 1, max: 60, label: ".radius" })
 planeG_F.addInput(PARAMS.geo.plane, "hS",{ step: 1, min: 1, max: 60, label: ".rplane" })
+planeG_F.addInput(PARAMS.geo.plane, "rSh",{ options: { Yes:'toggle', No:'toggle'}})
 paneGeometries.addSeparator(); //===========================
 
 //===========PANE PARAMS
@@ -761,6 +832,8 @@ paneSocial.addButton({ title: "Twitter" })
 paneSocial.addSeparator(); //===========================
 paneSocial.addButton({ title: "Instagram" })
 paneSocial.addSeparator(); //===========================
+paneSocial.addButton({ title: "Are✧na" }) 
+paneSocial.addSeparator(); //===========================
 paneSocial.addButton({ title: "Medium" })
 paneSocial.addSeparator(); //===========================
 paneSocial.addButton({ title: "ClubHouse" })
@@ -769,7 +842,7 @@ paneSocial.addButton({ title: "SketchFab" })
 paneSocial.addSeparator(); //===========================
 paneSocial.addButton({ title: "Github" })
 paneSocial.addSeparator(); //===========================
-paneSocial.addButton({ title: "Email" })
+paneSocial.addButton({ title: "Email" }) 
 paneSocial.addSeparator(); //===========================
 
 ////////////////////////////////////////////////////////////////////
@@ -780,7 +853,10 @@ function renderMaterials() {
 
   const element1A = mat_1A
   const element2A = dirLight
-  const element3A = camera
+  const element3A = spotLight
+  const element4A = camera
+  const element5A = hLight
+  const element6A = pLight0
 
   element1A.color = PARAMS.material.mat_1.color
   element1A.emissive.set(PARAMS.material.mat_1.emissive)
@@ -813,7 +889,18 @@ function renderMaterials() {
   element2A.color = PARAMS.light.dirLight.color
   element2A.castShadow = PARAMS.light.dirLight.castShadow
   //--
-  element3A.fov = PARAMS.cam.vfov
+  element3A.intensity = PARAMS.light.spotLight.intensity
+  element3A.color = PARAMS.light.spotLight.col
+  element3A.castShadow = PARAMS.light.spotLight.castShadow
+  element3A.castShadow = PARAMS.light.spotLight.castShadow
+  //--
+  element4A.fov = PARAMS.cam.vfov
+  element4A.updateProjectionMatrix()
+  //--
+  element5A.intensity = PARAMS.light.hLight.intensity
+  //--
+  element6A.intensity= PARAMS.light.pLight.intensity
+  element6A.color = PARAMS.light.pLight.color
 
 }
 
@@ -830,6 +917,7 @@ function regenerateGeometries() {
   )
   sphere.geometry.dispose()
   sphere.geometry = newSphGeo
+
   //--
   const newTorGeo = new THREE.TorusGeometry (
     PARAMS.geo.torus.radius,
@@ -851,14 +939,15 @@ function regenerateGeometries() {
   torusKnot.geometry.dispose()
   torusKnot.geometry = newTorKnotGeo
   //--
-  const newPlaneGeo = new THREE.PlaneBufferGeometry (
-		PARAMS.geo.plane.w,  	
-		PARAMS.geo.plane.h,
-		PARAMS.geo.plane.wS,
-		PARAMS.geo.plane.hS 	
+  const newPlaneGeo = new THREE.PlaneGeometry (
+    PARAMS.geo.plane.w,
+    PARAMS.geo.plane.h,
+    PARAMS.geo.plane.wS,
+    PARAMS.geo.plane.hS,
   )
   planeMesh.geometry.dispose()
   planeMesh.geometry = newPlaneGeo
+  
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -867,20 +956,21 @@ function regenerateGeometries() {
 
 const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
-composer.addPass(new EffectPass(camera, new BloomEffect()));
+composer.addPass(new EffectPass(camera, new SMAAEffect))
+composer.addPass(new EffectPass(camera, new BloomEffect()))
+composer.addPass(new EffectPass(camera, new VignetteEffect()))
+composer.addPass(new EffectPass(camera, new NoiseEffect()))
 
+console.log(composer)
 
 ////////////////////////////////////////////////////////////////////
 // ✧ STATS
 ///////////////
 
-// const stats = Stats()
+const stats = Stats()
 
-// document.body.appendChild(stats.dom)
+document.body.appendChild(stats.dom)
 
-////////////////////////////////////////////////////////////////////
-// ✧ SCREENSHOT BUTTON
-///////////////
 
 const clock = new THREE.Clock()
 let previousTime = 0
@@ -896,32 +986,20 @@ function animate() {
   const deltaTime = elapsedTime - previousTime
   previousTime = elapsedTime
 
-
-  drawCount = ( drawCount + 1 ) % MAX_POINTS;
-
-  lineMesh.geometry.setDrawRange( 0, drawCount );
-
-  if ( drawCount === 0 ) {
-
-  	// periodically, generate new data
-
-  	updatePositions();
-
-  	lineMesh.geometry.attributes.position.needsUpdate = true; // required after the first render
-
-  	lineMesh.material.color.setHSL( Math.random(), 1, 0.5 );
-
-  }
-
   torusKnot.rotation.x += 0.01
   torusKnot.rotation.y += 0.01
 
   torusMesh.rotation.x += 0.01
   torusMesh.rotation.z += 0.01
 
+  sphere.rotation.y += 0.005
 
-  // pLight0.rotation.y += Math.cos(deltaTime * 0.3) * 30
-  // pLight0.rotation.x += Math.sin(deltaTime * 0.3) * 30
+
+  // plLine.rotation.y += 0.005
+  // plLine.rotation.z += 0.005
+
+  pLight0.rotation.y += Math.cos(elapsedTime * 0.3) * 30
+  pLight0.rotation.x += Math.sin(elapsedTime * 0.3) * 30
 
   controls.update()
 
@@ -941,8 +1019,8 @@ function animate() {
 
   composer.render()
 
-  // stats.update()
+  stats.update()
 
 }
-
+// -- Ω
 animate()

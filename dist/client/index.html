@@ -12,25 +12,26 @@
   <meta property="og:url" content="https://www.kbllr.graphics" />
   <meta property="og:image" content="https://htdi.community/favicon.svg" />
   <meta property="og:description" content="Artwork from Creative Developer and Technical Artist, David Caballero" />
+
   <style type="text/css">
       :root {
-        --tp-base-background-color: hsla(230, 0%, 43.75%, 0.5);
+        --tp-base-background-color: hsla(230, 0%, 43.75%, 0.1);
         --tp-base-shadow-color: hsla(83, 100%, 50%, 0.11.0);
-        --tp-button-background-color: hsla(230, 2%, 0%, 1.00);
+        --tp-button-background-color: hsla(230, 2%, 0%, 0.2);
         --tp-button-background-color-active: hsla(85, 100%, 47%, 1.00);
         --tp-button-background-color-focus: hsla(85, 8%, 9%, 1.00);
-        --tp-button-background-color-hover: hsla(83, 0%, 0%, 1.00);
+        --tp-button-background-color-hover: hsla(224.38, 75%, 18.75%, 0.5);
         --tp-button-foreground-color: hsla(230, 0%, 72%, 1.00);
-        --tp-container-background-color: hsla(230, 1%, 14%, 1.00);
+        --tp-container-background-color: hsla(230, 1%, 14%, 0.5);
         --tp-container-background-color-active: hsla(83, 100%, 50%, 1.00);
         --tp-container-background-color-focus: hsla(0, 0%, 0%, 0.8);
-        --tp-container-background-color-hover: hsla(230, 25%, 21%, 1.00);
+        --tp-container-background-color-hover: hsla(246.81, 31.25%, 18.75%, 0.2);
         --tp-container-foreground-color: hsla(230, 4%, 73%, 1.00);
         --tp-groove-foreground-color: hsla(230, 20%, 8%, 1.00);
         --tp-input-background-color: hsla(83, 100%, 50%, 0.71);
-        --tp-input-background-color-active: hsla(230, 28%, 23%, 1.00);
+        --tp-input-background-color-active: hsla(246.81, 31.25%, 18.75%, 0.2);
         --tp-input-background-color-focus: hsla(230, 28%, 18%, 1.00);
-        --tp-input-background-color-hover: hsla(104, 0%, 37%, 1.00);
+        --tp-input-background-color-hover: hsla(269.25, 37.5%, 37%, 0.5);
         --tp-input-foreground-color: hsla(230, 0%, 0%, 1.00);
         --tp-label-foreground-color: hsla(83, 100%, 50%, 1.00);
         --tp-monitor-background-color: hsla(230, 20%, 8%, 0.26);
@@ -54,7 +55,8 @@
       body {
         height: 100%;
         width: 100%;
-        overflow: hidden;
+        overflow-y: scroll;
+        scroll-behavior: smooth;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -77,16 +79,18 @@
       #brandLogo {
         position: fixed;
         z-index: 0;
-        top:  0; left:  0;
-        line-clamp: min(50%);
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        padding: max(80px, 140px);
+        top:  0; left:  0%;
+        padding: max(20px, 40px);
         margin: min(8px, 14px);
         pointer-events: none;
         background-color: color(srgb-linear 0 0 0);
         mix-blend-mode: difference;
+      }
+
+      #logo {
+        position: relative;
+        left: 0%;
+        max-width: 18%;
       }
 
       .tp {
@@ -94,14 +98,15 @@
         display: flex;
         flex-flow: row nowrap;
         gap: 8px;
-        left:  2%;
-        bottom: 2%;
+        right:  2%;
+        top: 2%;
         position: absolute;
       }
 
       .tp2 {
         z-index: 1100;
         display: flex;
+        width: 96%;
         flex-flow: column nowrap;
         gap: 4px;
         position: absolute;
@@ -109,10 +114,10 @@
 
       #debugger {
         right: 2%;
-        top: 2%;
-        max-height: 100%;
-        /* mix-blend-mode: difference */
-        overflow: scroll;
+        bottom: 2%;
+        left: 2%;
+        mix-blend-mode: normal;
+        overflow-y: scroll;
         scroll-behavior: smooth;
       }
 
@@ -132,9 +137,11 @@
       #tvLines {
         background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAECAYAAABP2FU6AAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDAgNzkuMTYwNDUxLCAyMDE3LzA1LzA2LTAxOjA4OjIxICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+LUNEtwAAABBJREFUCJljYGBg8GViQAEABQIAUMdse+oAAAAASUVORK5CYII=");
         mix-blend-mode: normal;
+        pointer-events: none;
+        display: none;
     }
 
-      .data-layout {
+   /*    .data-layout {
         position: fixed;
         z-index: 0;
         top: 0;
@@ -157,8 +164,9 @@
         height: 100%;
         color: color(srgb-linear 0.73884 0.73884 0.73884 / 5);
         pointer-events: none;
-        /* mix-blend-mode: difference; */
+        mix-blend-mode: difference;
       }
+       */
   </style>
   
 </head>
