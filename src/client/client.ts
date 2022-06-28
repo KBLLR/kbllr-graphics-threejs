@@ -21,6 +21,8 @@ import * as EssentialsPlugin from '@tweakpane/plugin-essentials'
 import { ButtonProps, TabParams } from '@tweakpane/core'
 import { FolderParams } from 'tweakpane'
 import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
+import { getProject } from "@theatre/core";
+import studio from "@theatre/studio";
 
 
 //==========================
@@ -594,7 +596,7 @@ const geoFloor = new THREE.PlaneGeometry( 2000, 2000 );
 const planeMesh = new THREE.Mesh( geoFloor, shadowMat );
 planeMesh.rotation.x = - Math.PI * 0.5;
 planeMesh.receiveShadow = true;
-planeMesh.position.set( 0, -5, 0)
+planeMesh.position.set( 0, -15, 0)
 scene.add(planeMesh)
 
 
@@ -627,13 +629,77 @@ scene.add(torusKnot)
 //✧✧ GUI > TWEAKPANE - MENU
 //✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
 
-//PARENT -> MENU
+// ... CAMERA PLUGIN
+
+const pluginPane_1 = new Pane({ title: "Camera", container: document.getElementById('c--Camera'), expanded: false });
+pluginPane_1.registerPlugin(EssentialsPlugin);
+
+const caramS = {flen: 55,fnum: 1.8,iso: 100,};
 
 
+// ...INTERVAL ( range ) PLUGIN
 
+
+const pluginPane_2 = new Pane({ title: "Interval", container: document.getElementById('c--Interval'), expanded: false });
+pluginPane_2.registerPlugin(EssentialsPlugin);
+
+const par = { range: {min: 16, max: 48},};
+pluginPane_2.addInput(par, 'range', { min: 0, max: 100, step: 1,})
+
+
+// ... FPS GRAPH PLUGIN
+
+
+const pluginPane_3 = new Pane({ title: "FPS Graph", container: document.getElementById('c--FPS'), expanded: false });
+pluginPane_3.registerPlugin(EssentialsPlugin);
+
+const fpsGraph = pluginPane_3.addBlade({view: 'fpsgraph', label: 'fpsgraph', lineCount: 2, });
+
+
+// ... BEZIER CURVE PLUGIN
+
+
+const pluginPane_4 = new Pane({ title: "Radio Grid", container: document.getElementById('c--RadioG'), expanded: false });
+pluginPane_4.registerPlugin(EssentialsPlugin);
+ 
+const scales = [10, 20, 25, 50, 75, 100];
+const params = {scale: 25,};
+
+pluginPane_4.addInput(params, 'scale', { view:'radiogrid', groupName: 'scale', size: [3, 2],
+	cells: (x, y) => ({ title: `${scales[y * 3 + x]}%`, value: scales[y * 3 + x],}),label: 'radiogrid',}).on('change', (ev) => { console.log(ev); });
+
+
+// ... BEZIER CURVE PLUGIN
+
+
+const pluginPane_5 = new Pane({ title: "Bezier Curves", container: document.getElementById('c--Bezier'), expanded: false });
+pluginPane_5.registerPlugin(EssentialsPlugin);
+
+const bezierP = pluginPane_5.addBlade({ view: 'cubicbezier', value: [0.5, 0, 0.5, 1], expanded: true, label: 'cubicbezier', picker: 'inline',})
+pluginPane_5.on('change', (ev) => { console.log(ev) } )
+
+
+// ... BUTTON GRID PANE
+
+
+const pluginPane_6 = new Pane({ title: "Button Grid", container: document.getElementById('c--Buttons'), expanded: false });
+pluginPane_6.registerPlugin(EssentialsPlugin);
+
+pluginPane_6.addBlade({ view: 'buttongrid', size: [3, 3], cells: (x, y) => ({
+    title: [
+      ['NW', 'N', 'NE'],
+      ['W',  '*', 'EF'],
+      ['SW', 'S', 'SE'],
+    ][y][x],
+  }),
+	label: 'buttongrid',})
+
+// -- To finish Button Grid .on('click', (ev) => { console.log(ev);}
 
 //===========USER PANES 
-//--Time Pane
+	1
+// ...Time Pane
+
 // const paneTime = new Pane({title: "CountDown ", container: document.getElementById('c--Count'), expanded: true })
 // paneTime.addMonitor(20000000, 'time', { interval: 1000,})
 
@@ -642,6 +708,7 @@ scene.add(torusKnot)
 const paneScene = new Pane({ title: "Scene", container: document.getElementById('c--Scene'), expanded: false })
 
 //--Background Tab
+
 const bgTab = paneScene.addTab({
   pages: [
     { title: 'scene' },
@@ -652,6 +719,7 @@ bgTab.pages[0].addInput(PARAMS.scene, "background", { view: 'color', color: { al
 bgTab.pages[1].addInput(PARAMS.rndr, "bgCol", { view: 'color', color: { alpha: true }, label: "renderer.setClearColor" })
 
 //===========CAMERAS TAB
+
 const camerasTab = paneScene.addTab({ 
 	pages: [
 	{ title: 'Perspective Camera' } 
@@ -661,6 +729,7 @@ const camerasTab = paneScene.addTab({
 camerasTab.pages[0].addInput(PARAMS.cam, "vfov")
 
 //===========LIGHTS TAB
+
 const lightsTab = paneScene.addTab({
   pages: [
     { title: 'Directional Light' },
@@ -669,26 +738,35 @@ const lightsTab = paneScene.addTab({
     { title: 'Spot Light' },
   ],
 })
+
 //--Directional Light
+
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "castShadow", { options: { Yes:'toggle', No:'toggle'}})
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "intensity", { min: 0.0, max: 20.0, label: ".intensity" })
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "color", { view: 'color', color: { alpha: true }, label: ".color" })
 lightsTab.pages[0].addInput(PARAMS.light.dirLight, "target")
+
 //--Hemisphere Light
+
 lightsTab.pages[1].addInput(PARAMS.light.hLight, "intensity", { min: 0.0, max: 20.0, label: ".intensity" })
 lightsTab.pages[1].addInput(PARAMS.light.hLight, "col1", { view: 'col1', color: { type: 'float', alpha: true }, label: ".skyColor" })
 lightsTab.pages[1].addInput(PARAMS.light.hLight, "col1", { view: 'col2', color: { type: 'float', alpha: true }, label: ".groundColor" })
+
 //--Point Light
+
 lightsTab.pages[2].addInput(PARAMS.light.pLight, "intensity", { min: 0.0, max: 30.0, label: ".intensity" })
 lightsTab.pages[2].addInput(PARAMS.light.pLight, "color", { view: 'color', color: { type: 'float', alpha: true }, label: ".color" })
+
 //--Spot Light
+
 lightsTab.pages[3].addInput(PARAMS.light.spotLight, "castShadow", { options: { yes:'toggle', no:'toggle'}})
 lightsTab.pages[3].addInput(PARAMS.light.spotLight, "intensity", { min: 0.0, max: 30.0, label: ".intensity" })
 lightsTab.pages[3].addInput(PARAMS.light.spotLight, "col", { view: 'color', color: { type: 'float', alpha: true }, label: ".color" })
+
 paneScene.addSeparator() //=======================
 
-
 //===========PANE HELPERS
+
 const paneHelpers = new Pane({ title: "Helpers", container: document.getElementById('c--Helpers'), expanded: false })
 
 // NOT VALID for PANE but LOOK DOCS for correct method. Expanded doesnt cover the use case .
@@ -968,9 +1046,9 @@ console.log(composer)
 // ✧ STATS
 ///////////////
 
-const stats = Stats()
+// const stats = Stats()
 
-document.body.appendChild(stats.dom)
+// document.body.appendChild(stats.dom)
 
 
 const clock = new THREE.Clock()
@@ -1020,8 +1098,9 @@ function animate() {
 
   composer.render()
 
-  stats.update()
+  // stats.update()
 
 }
+
 // -- Ω
 animate()

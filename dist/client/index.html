@@ -55,7 +55,7 @@
       body {
         height: 100%;
         width: 100%;
-        overflow-y: scroll;
+        overflow: scroll;
         scroll-behavior: smooth;
         display: flex;
         justify-content: center;
@@ -88,41 +88,48 @@
       }
 
       #logo {
-        position: relative;
-        left: 0%;
-        max-width: 18%;
-      }
-
-      .tp {
+        position: fixed;
         z-index: 1000;
-        display: flex;
-        flex-flow: row nowrap;
-        gap: 8px;
-        right:  2%;
-        top: 2%;
-        position: absolute;
+        left: 2%; top:  2%;
+        max-width: 25%;
+        background-color: color(srgb-linear 0 0 0);
+        mix-blend-mode: difference;
       }
 
-      .tp2 {
-        z-index: 1100;
+      .actions {
         display: flex;
-        width: 96%;
-        flex-flow: column nowrap;
-        gap: 4px;
-        position: absolute;
-      }
-
-      #debugger {
-        right: 2%;
-        bottom: 2%;
-        left: 2%;
-        mix-blend-mode: normal;
-        overflow-y: scroll;
+        flex-direction: column; 
+        height:  50%;  
+        place-self: center;
+        align-items: center; 
+        justify-content:center; 
+        position: fixed; 
+        z-index: 1000 ; 
+        bottom: 0%; left: 2%; top: 8%; right:  2%;
+        padding-top: 5%;
+        overflow-y: auto;
         scroll-behavior: smooth;
-      }
+        scroll-padding: 0;
+
+    }
+
+      #c--Render {width: 96%;}
+      #c--Socials {width: 96%;}
+      #c--PARAMS { width: 96%; }
+      #c--Geometries { width: 96%; }
+      #c--Helpers { width: 96%;}
+      #c--Scene { width: 96%; }
+      #c--Settings { width: 96%; }
+      #c--Interval { width: 96%; }
+      #c--FPS { width: 96%; }
+      #c--Scale { width: 96%; }
+      #c--Camera { width: 96%; }
+      #c--Bezier { width: 96%; }
+      #c--Buttons { width: 96%; }
 
       .overlay {
         display: flex;
+        z-index: 999;
         flex-direction: row;
         justify-content: center;
         width: 100vw;
@@ -138,7 +145,6 @@
         background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAECAYAAABP2FU6AAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDAgNzkuMTYwNDUxLCAyMDE3LzA1LzA2LTAxOjA4OjIxICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+LUNEtwAAABBJREFUCJljYGBg8GViQAEABQIAUMdse+oAAAAASUVORK5CYII=");
         mix-blend-mode: normal;
         pointer-events: none;
-        display: none;
     }
 
    /*    .data-layout {
@@ -174,31 +180,39 @@
 <body>
     <!-- Cursor -->
     <div id="custom-cursor"></div>
+
     <!-- Canvas Web GL ------------>
     <canvas class="webgl" id="canvas"></canvas>
 
-    <div class="branding" id="brandLogo"><img src="./img/logo.png" id="logo"></div>
+    <img src="./img/logo.png" id="logo">
 
-    <div class="tp"><div class="tp-container" id="c--Socials"></div></div>
-
-    <div class="overlay" id="tvLines"></div>
-
-  <div class="tp2" id="debugger">
+<div class="actions">
+    <div class="tp-container" id="c--Render"></div>
+    <div class="tp-container" id="c--Socials"></div>
     <div class="tp-container" id="c--Settings"></div>
     <div class="tp-container" id="c--PARAMS"></div>
     <div class="tp-container" id="c--Geometries"></div>
     <div class="tp-container" id="c--Scene"></div>
     <div class="tp-container" id="c--Helpers"></div>
-  </div>
+    <div class="tp-container" id="c--Interval"></div>
+    <div class="tp-container" id="c--Scale"></div>
+    <div class="tp-container" id="c--FPS"></div>
+    <div class="tp-container" id="c--Bezier"></div>
+    <div class="tp-container" id="c--Camera"></div>
+    <div class="tp-container" id="c--Buttons"></div>
+</div>
 
-  <div class="data-layout">
+<div class="overlay" id="tvLines"></div>
+
+
+ <!--  <div class="data-layout">
     <div class="column" id="debug1"></div>
     <div class="column" id="debug2"></div>
     <div class="column" id="debug3"></div>
     <div class="column" id="debug4"></div>
     <div class="column" id="debug5"></div>
     <div class="column" id="debug6"></div>
-  </div>
+  </div> -->
 
 
 
