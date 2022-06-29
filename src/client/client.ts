@@ -1,4 +1,5 @@
 console.clear()
+
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
@@ -6,14 +7,33 @@ import { WebGLRenderer } from 'three'
 import {
   EffectComposer,
   EffectPass,
+  CopyMaterial,
   SMAAEffect,
+  SMAAImageLoader,
   NoiseEffect,
+  PredicationMode,
   RenderPass,
+  ShaderPass,
+	SMAAPreset,
+	ColorDepthEffect,
+	TextureEffect,
   sRGBEncoding,
+  MaskFunction,
+  ToneMappingMode,
   VSMShadowMap,
   BloomEffect,
+  ColorChannel,
+  DepthTestStrategy,
+  DepthOfFieldEffect,
+  EdgeDetectionMode,
+  kernelSize,
+  LUTOperation,
+  SelectiveBloomEffect,
+  FXAAEffect,	
   VignetteEffect,
-  blendFunction,
+  VignetteTechnique,
+  WebGlExtension,
+  BlendFunction,
   OverrideMaterialManager
 } from '../../node_modules/postprocessing/build/postprocessing.esm.js'
 import { Pane } from 'tweakpane'
@@ -21,8 +41,24 @@ import * as EssentialsPlugin from '@tweakpane/plugin-essentials'
 import { ButtonProps, TabParams } from '@tweakpane/core'
 import { FolderParams } from 'tweakpane'
 import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
-import { getProject } from "@theatre/core";
-import studio from "@theatre/studio";
+import { getProject } from "@theatre/core"
+import studio from "@theatre/studio"
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { MeshBVH } from '../../node_modules/three-mesh-bvh/'
+// import {
+// 	generateEdges,
+// 	isLineAbovePlane,
+// 	isYProjectedTriangleDegenerate,
+// 	isLineTriangleEdge,
+// 	trimToBeneathTriPlane,
+// 	edgesToGeometry,
+// 	overlapsToLines,
+// 	getProjectedOverlaps,
+// 	isYProjectedLineDegenerate,
+// 	compressEdgeOverlaps,
+// } from '../../node_modules/three-mesh-bvh/example/utils/edgeUtils.js'
+import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 
 //==========================
@@ -30,98 +66,158 @@ import studio from "@theatre/studio";
 OverrideMaterialManager.workaroundEnabled = false;
 
 
-const OPTIONS = {
-  fadeFactor: 0.1,
-  scaleX: 0,
-  scaleY: 0,
-  rotationAngle: 0
-}
+//===========================
+//Animation TheatreJS
 
-let orthoCamera
-{
-  const left = -innerWidth / 2
-  const right = innerWidth / 2
-  const top = -innerHeight / 2
-  const bottom = innerHeight / 2
-  const near = -100
-  const far = 100
+// studio.initialize();
 
-  orthoCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far)
-  orthoCamera.position.z = -10
-  orthoCamera.lookAt(new THREE.Vector3(0, 0, 0))
-}
+// create a project, sheet, and object
+// const objValues = { foo: 0, bar: true, baz: "A string" };
+// const obj = getProject("First project")
+//   .sheet("Sheet")
+//   .object("First Object", objValues);
 
-const fullscreenQuadGeometry = new THREE.PlaneGeometry(innerWidth, innerHeight)
-
-const uvMatrix = new THREE.Matrix3()
- // tx : Float, ty : Float, sx : Float, sy : Float, rotation : Float, cx : Float, cy : Float
-
-const fadeMaterial = new THREE.ShaderMaterial({
-  uniforms: {
-    inputTexture: { value: null },
-    fadeFactor: { value: OPTIONS.fadeFactor },
-    uvMatrix: { value: uvMatrix }
-  },
-  vertexShader: `
-    uniform mat3 uvMatrix;
-    varying vec2 vUv;
-    void main () {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      vUv = (uvMatrix * vec3(uv, 1.0)).xy;
-    }
-  `,
-  fragmentShader: `
-    uniform sampler2D inputTexture;
-    uniform float fadeFactor;
-    varying vec2 vUv;
-    void main () {
-      float dist = distance(vUv, vec2(0.5));
-      vec4 texColor = texture2D(inputTexture, vUv);
-      vec4 fadeColor = vec4(0.0, 0.0, 0.0, 1.0);
-      gl_FragColor = mix(texColor, fadeColor, fadeFactor);
-    }
-  `
-})
-const fadePlane = new THREE.Mesh(
-  fullscreenQuadGeometry,
-  fadeMaterial
-)
-
-const resultMaterial = new THREE.MeshBasicMaterial({ map: null })
-const resultPlane = new THREE.Mesh(
-  fullscreenQuadGeometry,
-  resultMaterial
-)
 
 ////////////////////////////////////////////////////////////////////
 // ✧ SCREENSHOT FUNCTION 📸
 ///////////////
 
 
-//==========================
+
+
+////////////////////////////////////////////////////////////////////
+// ✧ WebCam 📸
+///////////////
+
+
+// const webcam = document.createElement('video') as HTMLMediaElement
+
+// var constraints = { audio: false, video: { width: 640, height: 480 } }
+
+// navigator.mediaDevices
+//     .getUserMedia(constraints)
+//     .then(function (mediaStream) {
+//         webcam.srcObject = mediaStream
+//         webcam.onloadedmetadata = function (e) {
+//             webcam.setAttribute('autoplay', 'true')
+//             webcam.setAttribute('playsinline', 'true')
+//             webcam.play()
+//         }
+//     })
+//     .catch(function (err) {
+//         alert(err.name + ': ' + err.message)
+//     })
+
+// const webcamCanvas = document.createElement('canvas') as HTMLCanvasElement
+// webcamCanvas.width = 1080
+// webcamCanvas.height = 1080
+
+// const canvasCtx = webcamCanvas.getContext('2d') as CanvasRenderingContext2D
+// canvasCtx.fillStyle = '#000000'
+// canvasCtx.fillRect(0, 0, webcamCanvas.width, webcamCanvas.height)
+
+// const webcamTexture2D: THREE.Texture = new THREE.Texture(webcamCanvas)
+// webcamTexture2D.minFilter = THREE.LinearFilter
+// webcamTexture2D.magFilter = THREE.LinearFilter
+
+
+// // const geometry = new THREE.BoxGeometry()
+// //const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({ map: webcamTexture})
+
+
+// function vertexShader() {
+//     return `
+//         varying vec2 vUv;
+//         void main( void ) {     
+//             vUv = uv;
+//             gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+//         }
+//     `
+// }
+// function fragmentShader() {
+//     return `
+//         uniform vec3 keyColor;
+//         uniform float similarity;
+//         uniform float smoothness;
+//         varying vec2 vUv;
+//         uniform sampler2D map;
+//         void main() {
+//             vec4 videoColor = texture2D(map, vUv);
+     
+//             float Y1 = 0.299 * keyColor.r + 0.587 * keyColor.g + 0.114 * keyColor.b;
+//             float Cr1 = keyColor.r - Y1;
+//             float Cb1 = keyColor.b - Y1;
+            
+//             float Y2 = 0.299 * videoColor.r + 0.587 * videoColor.g + 0.114 * videoColor.b;
+//             float Cr2 = videoColor.r - Y2; 
+//             float Cb2 = videoColor.b - Y2; 
+            
+//             float blend = smoothstep(similarity, similarity + smoothness, distance(vec2(Cr2, Cb2), vec2(Cr1, Cb1)));
+//             gl_FragColor = vec4(videoColor.rgb, videoColor.a * blend); 
+//         }
+//     `
+// }
+
+// const webcamTextureShader = new THREE.ShaderMaterial({
+//     transparent: true,
+//     uniforms: {
+//         map: { value: webcamTexture2D },
+//         keyColor: { value: [0.0, 1.0, 0.0] },
+//         similarity: { value: 0.8 },
+//         smoothness: { value: 0.0 },
+//     },
+//     vertexShader: vertexShader(),
+//     fragmentShader: fragmentShader(),
+// })
+
+
+// // const cube = new THREE.Mesh(geometry, material)
+// // cube.add(new THREE.BoxHelper(cube, 0xff0000))
+
+// // cube.rotateY(0.5)
+// // cube.scale.x = 4
+// // cube.scale.y = 3
+// // cube.scale.z = 4
+// // 	
+
+// var data = {
+//     keyColor: [0, 255, 0],
+//     similarity: 0.8,
+//     smoothness: 0.0,
+// }
+
+
+// function updateKeyColor(v: number[]) {
+//     webcamTextureShader.uniforms.keyColor.value = [v[0] / 255, v[1] / 255, v[2] / 255]
+// }
+// function updateSimilarity(v: number) {
+//     webcamTextureShader.uniforms.similarity.value = v
+// }
+// function updateSmoothness(v: number) {
+//     webcamTextureShader.uniforms.smoothness.value = v
+// }
 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ GENERATIVE Data Texture
 ///////////////
 
-const Template = "https://unsplash.com/photos/QwoNAhbmLLo"
 
+const Template = "https://unsplash.com/photos/QwoNAhbmLLo"
 let arrayTop = [
 "lines", 
-"butterfly", 
-"iris",
+"B&W",
+"eyes",
 "raven",
-"crow",
 "geometry",
-"sun",
+"symmetry",
 "shimmer", 
-"bubbles",
-"planets", 
-"New York",  
+"city lights",
+"planets",  
 "feather", 
 "neon",
-"clouds", "smoke",
+"clouds", 
+"rainbow",
 ]
 
 let topic = arrayTop[Math.floor(Math.random() * arrayTop.length)]
@@ -151,46 +247,54 @@ const g_texture = (topic, repeat: 4) => {
 // ✧ RANDOMIZERS///
 //////////////////
 
+
 // const randomSeed = () => {
 // // Log the seed for later reproduc
 // console.log('Seed:', Random.getSeed());
 // };
 
 //--Random Color Generator
+
 var rRGB = () => Math.random() * 256 >> 0
 var randRGB = `rgb(${rRGB()}, ${rRGB()}, ${rRGB()})`
 console.log(randRGB)
 
 //--Random PARAM between 0.1 and 1.0
+
 var rParam = () => Math.random() * 1.0 >> 0.1
 var randPARAM = `rParam()`
 console.log(randPARAM)
+
 
 /////  ////////////  /////////  /////
 // ✧ COLOR + MATERIAL PROPERTY PARAMS /// 
 ///  /////  /////  /////   ///////////
 
+
 const background = new THREE.Color(0xffffff)
-const clearBgCol = new THREE.Color(0xf5f5f5) 
+const clearBgCol = new THREE.Color(0x111111/ 0.5) 
 const lightCol = new THREE.Color(0xffffff)
-
+// ...
 const spLightCol = new THREE.Color(0xffffff)
-
+// ...
 const hLightCol1 = new THREE.Color(0xffffff)
 const hLightCol2 = new THREE.Color(0x000000)
-
+// ...
 const pLightCol = new THREE.Color(0xffffff)
-
+// ...
 const mat_1_color = new THREE.Color(0x708090)
 const mat_1_emissive = new THREE.Color(0x000000)
 const attCol_Mat1 = new THREE.Color(0xF5F5F5)
 const shnColor_Mat1 = new THREE.Color(0xffffff)
-
+// ...
 const shnColor_Mat2 = new THREE.Color(0xD8BFD8)
 const specColor_Mat2 = new THREE.Color(0xF5F5F5)
+// ...
 
 
 //=====================================================
+
+
 //--Most Classes share properties with Object 3D
 //--A Layers object assigns an Object3D to 1 or more of 32 layers numbered 0 to 31
 //--internally the layers are stored as a bit mask
@@ -200,9 +304,7 @@ const specColor_Mat2 = new THREE.Color(0xF5F5F5)
 const PARAMS = {
 	userS: {
 		overlay: true, //<div>Tv Lines</div>
-		gui: {
-
-		},
+		gui: {},
 	},
 	rndr: {
 		bgCol: clearBgCol.convertLinearToSRGB(), 
@@ -228,7 +330,7 @@ const PARAMS = {
   	},
   	pLight: {
   		color: pLightCol.convertLinearToSRGB(),
-  		intensity: 0.0,
+  		intensity: 5.0,
   	},
   	hLight: {
   		col1: hLightCol1.convertLinearToSRGB(),
@@ -245,11 +347,11 @@ const PARAMS = {
   geo:{
   	sphere: {
   		radius: 4,
-  		widthS: 115,
-  		heightS:115,
+  		widthS: 180,
+  		heightS:180,
   		phiS: 0,
   		phiL: Math.PI * 2,
-  		thetaS: 10,
+  		thetaS: 0,
   		thetaL: Math.PI * 2,
   		rSh: true,
   	},
@@ -285,7 +387,7 @@ const PARAMS = {
   	  attColor: attCol_Mat1.convertLinearToSRGB(),
   	  attDist: 2.0,
   	  rough: 0.05,
-  	  alpha: 1.0,
+  	  alpha: 0.7,
   	  transm: 1.0, 
   	  shn: 0.5,
   	  shnColor: shnColor_Mat1.convertLinearToSRGB(),
@@ -334,9 +436,11 @@ const PARAMS = {
   }, 
 }
 
+
 ////////////////////////////////////
 // ✧ CANVAS ✧ SCENES ✧ CONSTANTS///
 //////////////////////////////////
+
 
 const canvas = document.querySelector("canvas");
 
@@ -351,19 +455,40 @@ const aspect = sizes.width / sizes.height
 
 scene.background = PARAMS.scene.background
 
+
 ////////////////
 // ✧ CAMERA  //
 ///////////////
 
+
 const camera = new THREE.PerspectiveCamera(59, aspect, 0.01, 20000)
-camera.position.x = -10
+camera.position.x = 10
 camera.position.y = 0
-camera.position.z = 0
+camera.position.z = 10
 camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+
+//-- ORTHOGRAPHIC CAMERA
+
+let orthoCamera
+{
+  const left = -innerWidth / 2
+  const right = innerWidth / 2
+  const top = -innerHeight / 2
+  const bottom = innerHeight / 2
+  const near = -1000
+  const far = 1000
+
+  orthoCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far)
+  orthoCamera.position.z = -10
+  orthoCamera.lookAt(new THREE.Vector3(0, 0, 0))
+}
+
 
 ///////////////////////
 // ✧ RESPONSIVENESS //
 //////////////////////
+
 
 window.addEventListener('resize', () => {
   // Update sizes
@@ -379,12 +504,15 @@ window.addEventListener('resize', () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
+
 ///   /////  ////// //
 // ✧ RENDERER  /// //
 ///// ///   ///  //// 
 
+
 let framebuffer1 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
 let framebuffer2 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
+
 
 const renderer = new THREE.WebGLRenderer({
 	canvas: canvas,
@@ -394,14 +522,13 @@ const renderer = new THREE.WebGLRenderer({
   depth: true,
 });
 
-renderer.setClearColor(0x111111)
-// renderer.setRenderTarget(framebuffer1)
-// renderer.clearColor()
-// renderer.setRenderTarget(framebuffer2)
-// renderer.clearColor()
+renderer.setRenderTarget(framebuffer1)
+renderer.clearColor()
+renderer.setRenderTarget(framebuffer2)
+renderer.clearColor()
 
 renderer.setSize(sizes.width, sizes.height)
-// renderer.setClearColor(PARAMS.rndr.bgCol)
+renderer.setClearColor(PARAMS.rndr.bgCol)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 renderer.physicallyCorrectLights = true
 renderer.shadowMap.enabled = true
@@ -412,14 +539,15 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 1.2
 
- document.body.appendChild(renderer.domElement)
+// document.body.appendChild(renderer.domElement)
+
 
 /////////////////
 // ✧ CONTROLS ///
 ///////////////
 
-const controls = new OrbitControls(camera, renderer.domElement)
 
+const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, 0, 0)
 controls.enabled = true
 controls.enableDamping = true
@@ -432,19 +560,24 @@ controls.maxDistance = 55
 controls.minPolarAngle = 0
 controls.maxPolarAngle = Math.PI / 2.1
 
+
 /////////////////
 // ✧ LIGHTS ////
 ///////////////
+
 
 const hLight = new THREE.HemisphereLight(PARAMS.light.hLight.col1, PARAMS.light.hLight.col2, PARAMS.light.hLight.intensity)
 // scene.add(hLight)
 
 
 const pLight0 = new THREE.PointLight(PARAMS.light.pLight.color, PARAMS.light.pLight.intensity)
-pLight0.castShadow = false
-pLight0.shadow.mapSize.width = 1500
-pLight0.shadow.mapSize.height = 1500
-pLight0.position.set(7, 7, 12)
+pLight0.castShadow = true
+pLight0.shadow.bias = 0.001
+pLight0.shadow.mapSize.width = 1024
+pLight0.shadow.mapSize.height = 1024
+pLight0.position.set(0, 0, 0)
+
+
 
 const spotLight = new THREE.SpotLight( 0x00ff00, 28.5 );
 // spotLight.position.set( 0, 10, 0 );
@@ -461,9 +594,11 @@ const spotLight = new THREE.SpotLight( 0x00ff00, 28.5 );
 // spotLight.shadow.mapSize.height = 1024;
 // scene.add(spotLight)
 
+
+
 const dirLight = new THREE.DirectionalLight(PARAMS.light.dirLight.color, PARAMS.light.dirLight.intensity)
 dirLight.position.x = 0
-dirLight.position.y = 20
+dirLight.position.y = 12
 dirLight.position.z = 0
 dirLight.castShadow = true
 dirLight.shadow.mapSize.width = 1024 // default
@@ -472,6 +607,10 @@ dirLight.shadow.camera.near = 0.1 // default
 dirLight.shadow.camera.far = 10000 // default
 scene.add(dirLight)
 
+
+const gridHelper = new THREE.GridHelper(20, 20)
+gridHelper.position.y = -10
+scene.add(gridHelper)
 
 // const dirHelper = new THREE.DirectionalLightHelper( dirLight, 5 )
 // scene.add( dirHelper )
@@ -483,14 +622,15 @@ scene.add(dirLight)
 // scene.add( helper );
 
 
-////////////////////////////
-// ✧ MeshPhysicalMaterial//
-//////////////////////////
+//--- MATERIALS
+
 
 //=== MATERIAL #1
 
+
 const mat_1A = new THREE.MeshPhysicalMaterial({
   map: g_texture(topic, 4),
+
   attenuationDistance: 2.0,
 
   // emissive: 0xF0E68C,
@@ -534,13 +674,12 @@ const mat_1A = new THREE.MeshPhysicalMaterial({
   side: THREE.FrontSide,
   precision: "highp",
 });
-
 mat_1A.sheenRoughnessMap = g_texture(topic, 4)
 mat_1A.sheenColorMap = g_texture(topic, 4)
 
-//===========================================================+
 
 //=== MATERIAL #1B
+
 
 const mat_2A = new THREE.MeshPhysicalMaterial({
   envMap: g_texture("neon", 4),
@@ -565,20 +704,81 @@ const mat_2A = new THREE.MeshPhysicalMaterial({
 mat_2A.sheenRoughnessMap = g_texture(topic, 4)
 mat_2A.sheenColorMap = g_texture(topic, 4)
 
-//===========================================================+
 
 //=== MATERIAL #3
+
 const lineBasicMat = new THREE.LineBasicMaterial( { color: 0xff0000 } );
 let lineColorConvert = lineBasicMat.color.convertLinearToSRGB()
 
 //=== MATERIAL #4
+
+
 const shadowMat = new THREE.ShadowMaterial()
-shadowMat.opacity = 0.1
+shadowMat.opacity = 0.4
 shadowMat.color.set(0xF5F5F5)
 
 //=== MATERIAL #5
 const matFloor = new THREE.MeshPhongMaterial();
 matFloor.color.set(0xffffff)
+
+
+//=== MATERIAL #6
+
+
+const OPTIONS = {
+  fadeFactor: 0.1,
+  scaleX: 0,
+  scaleY: 0,
+  rotationAngle: 0
+}
+
+const fullscreenQuadGeometry = new THREE.PlaneGeometry(innerWidth, innerHeight)
+const uvMatrix = new THREE.Matrix3()
+ // tx : Float, ty : Float, sx : Float, sy : Float, rotation : Float, cx : Float, cy : Float
+
+
+const fadeMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    inputTexture: { value: null },
+    fadeFactor: { value: OPTIONS.fadeFactor },
+    uvMatrix: { value: uvMatrix }
+  },
+  vertexShader: `
+    uniform mat3 uvMatrix;
+    varying vec2 vUv;
+    void main () {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vUv = (uvMatrix * vec3(uv, 1.0)).xy;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D inputTexture;
+    uniform float fadeFactor;
+    varying vec2 vUv;
+    void main () {
+      float dist = distance(vUv, vec2(0.5));
+      vec4 texColor = texture2D(inputTexture, vUv);
+      vec4 fadeColor = vec4(0.0, 0.0, 0.0, 1.0);
+      gl_FragColor = mix(texColor, fadeColor, fadeFactor);
+    }
+  `
+})
+
+
+//-- 
+
+
+const fadePlane = new THREE.Mesh(
+  fullscreenQuadGeometry,
+  fadeMaterial
+)
+
+const resultMaterial = new THREE.MeshBasicMaterial({ map: null })
+const resultPlane = new THREE.Mesh(
+  fullscreenQuadGeometry,
+  resultMaterial
+)
+
 
 ///////////////////////////////////////////
 // EDGES - LINES - GEOMETRIES - MESH ////
@@ -591,16 +791,18 @@ matFloor.color.set(0xffffff)
 
 //--
 
-//--- PLANE
+//--- PLANE ----------------------------------------
+
 const geoFloor = new THREE.PlaneGeometry( 2000, 2000 );
 const planeMesh = new THREE.Mesh( geoFloor, shadowMat );
 planeMesh.rotation.x = - Math.PI * 0.5;
 planeMesh.receiveShadow = true;
-planeMesh.position.set( 0, -15, 0)
+planeMesh.position.set( 0, -10, 0)
 scene.add(planeMesh)
 
 
-//--- SPHERE
+//--- SPHERE ----------------------------------------
+
 const sphereGeometry = new THREE.SphereGeometry()
 const sphere = new THREE.Mesh(sphereGeometry, mat_1A)
 sphere.receiveShadow = true
@@ -608,36 +810,43 @@ sphere.castShadow = true
 scene.add(sphere)
 
 
-//--- TORUS
+//--- TORUS ----------------------------------------
+
 const torusG = new THREE.TorusGeometry()
 const torusMesh = new THREE.Mesh(torusG, mat_2A)
 torusMesh.rotation.z = (90 * Math.PI) / 180
-torusMesh.castShadow = true;
-torusMesh.name = "TORUS#0";
+torusMesh.castShadow = true
+torusMesh.name = "TORUS#0"
 torusMesh.receiveShadow = true
 scene.add(torusMesh)
 
 
-//--- TORUS_KNOT
+//--- TORUS_KNOT ----------------------------------------
+
 const torusKGeo = new THREE.TorusKnotGeometry()
 const torusKnot = new THREE.Mesh(torusKGeo, mat_2A)
 torusKnot.receiveShadow = false
-scene.add(torusKnot)
+// scene.add(torusKnot) 
 
 
 //✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
 //✧✧ GUI > TWEAKPANE - MENU
 //✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
 
+ const menu = new Pane({ title: "Menu", container: document.getElementById('c--Menu'), expanded: false });
+ 
+ const menuFLDR = menu.addFolder({ title: "Plugins", expanded: false })
+ const menuFLDR2 = menu.addFolder({ title: "Settings", expanded: false })
+
 // ... CAMERA PLUGIN
 
-const pluginPane_1 = new Pane({ title: "Camera", container: document.getElementById('c--Camera'), expanded: false });
-pluginPane_1.registerPlugin(EssentialsPlugin);
+// const pluginPane_1 = new Pane({ title: "Camera", container: document.getElementById('c--Camera'), expanded: false });
+// pluginPane_1.registerPlugin(EssentialsPlugin);
 
-const caramS = {flen: 55,fnum: 1.8,iso: 100,};
+// const caramS = {flen: 55,fnum: 1.8,iso: 100,};
 
 
-// ...INTERVAL ( range ) PLUGIN
+// ...INTERVAL ( range ) PLUGIN ----------------------------------------
 
 
 const pluginPane_2 = new Pane({ title: "Interval", container: document.getElementById('c--Interval'), expanded: false });
@@ -646,8 +855,8 @@ pluginPane_2.registerPlugin(EssentialsPlugin);
 const par = { range: {min: 16, max: 48},};
 pluginPane_2.addInput(par, 'range', { min: 0, max: 100, step: 1,})
 
-
-// ... FPS GRAPH PLUGIN
+menuFLDR.add(pluginPane_2)
+// ... FPS GRAPH PLUGIN ----------------------------------------
 
 
 const pluginPane_3 = new Pane({ title: "FPS Graph", container: document.getElementById('c--FPS'), expanded: false });
@@ -656,7 +865,7 @@ pluginPane_3.registerPlugin(EssentialsPlugin);
 const fpsGraph = pluginPane_3.addBlade({view: 'fpsgraph', label: 'fpsgraph', lineCount: 2, });
 
 
-// ... BEZIER CURVE PLUGIN
+// ... RADIO GRID PLUGIN ----------------------------------------
 
 
 const pluginPane_4 = new Pane({ title: "Radio Grid", container: document.getElementById('c--RadioG'), expanded: false });
@@ -669,7 +878,7 @@ pluginPane_4.addInput(params, 'scale', { view:'radiogrid', groupName: 'scale', s
 	cells: (x, y) => ({ title: `${scales[y * 3 + x]}%`, value: scales[y * 3 + x],}),label: 'radiogrid',}).on('change', (ev) => { console.log(ev); });
 
 
-// ... BEZIER CURVE PLUGIN
+// ... BEZIER CURVE PLUGIN ----------------------------------------
 
 
 const pluginPane_5 = new Pane({ title: "Bezier Curves", container: document.getElementById('c--Bezier'), expanded: false });
@@ -679,7 +888,7 @@ const bezierP = pluginPane_5.addBlade({ view: 'cubicbezier', value: [0.5, 0, 0.5
 pluginPane_5.on('change', (ev) => { console.log(ev) } )
 
 
-// ... BUTTON GRID PANE
+// ... BUTTON GRID PANE ----------------------------------------
 
 
 const pluginPane_6 = new Pane({ title: "Button Grid", container: document.getElementById('c--Buttons'), expanded: false });
@@ -696,18 +905,18 @@ pluginPane_6.addBlade({ view: 'buttongrid', size: [3, 3], cells: (x, y) => ({
 
 // -- To finish Button Grid .on('click', (ev) => { console.log(ev);}
 
-//===========USER PANES 
-	1
+//===========USER PANES ----------------------------------------
+
 // ...Time Pane
 
 // const paneTime = new Pane({title: "CountDown ", container: document.getElementById('c--Count'), expanded: true })
 // paneTime.addMonitor(20000000, 'time', { interval: 1000,})
 
-//===========SCENE PANES
+//===========SCENE PANES ----------------------------------------
 
 const paneScene = new Pane({ title: "Scene", container: document.getElementById('c--Scene'), expanded: false })
 
-//--Background Tab
+//--Background Tab ----------------------------------------
 
 const bgTab = paneScene.addTab({
   pages: [
@@ -718,15 +927,17 @@ const bgTab = paneScene.addTab({
 bgTab.pages[0].addInput(PARAMS.scene, "background", { view: 'color', color: { alpha: true }, label: "scene.background" })
 bgTab.pages[1].addInput(PARAMS.rndr, "bgCol", { view: 'color', color: { alpha: true }, label: "renderer.setClearColor" })
 
-//===========CAMERAS TAB
+//===========CAMERAS TAB ----------------------------------------
 
 const camerasTab = paneScene.addTab({ 
 	pages: [
-	{ title: 'Perspective Camera' } 
+	{ title: 'Perspective Camera' }, 
+	{ title: 'Orthographic Camera' }, 
 	],
 })
 //--
 camerasTab.pages[0].addInput(PARAMS.cam, "vfov")
+camerasTab.pages[1].addInput(PARAMS.cam, "vfov")
 
 //===========LIGHTS TAB
 
@@ -766,6 +977,7 @@ lightsTab.pages[3].addInput(PARAMS.light.spotLight, "col", { view: 'color', colo
 paneScene.addSeparator() //=======================
 
 //===========PANE HELPERS
+
 
 const paneHelpers = new Pane({ title: "Helpers", container: document.getElementById('c--Helpers'), expanded: false })
 
@@ -899,10 +1111,11 @@ const userSettingsTab = paneSettings.addTab({
   ],
 })
 
-userSettingsTab.pages[0].addButton({ title: "chickPox" }) //.on("click", () => {PARAMS.material.mat_1.emissiveIntensity = 1.0 })
-userSettingsTab.pages[0].addButton({ title: "NWO" }) //.on("click", () => {PARAMS.material.mat_1.emissiveIntensity = 1.0 })
-userSettingsTab.pages[0].addButton({ title: "the great reset" }) //.on("click", () => {PARAMS.material.mat_1.emissiveIntensity = 1.0 })
-paneSettings.addSeparator(); //===========================
+userSettingsTab.pages[0].addButton({ title: "tab#1" }) //.on("click", () => {PARAMS.material.mat_1.emissiveIntensity = 1.0 })
+userSettingsTab.pages[0].addButton({ title: "tab#2" }) //.on("click", () => {PARAMS.material.mat_1.emissiveIntensity = 1.0 })
+userSettingsTab.pages[0].addButton({ title: "tab#3" }) //.on("click", () => {PARAMS.material.mat_1.emissiveIntensity = 1.0 })
+
+menuFLDR2.add(paneSettings)
 
 //================PANE SOCIAL NETWORKING
 
@@ -923,6 +1136,8 @@ paneSocial.addButton({ title: "Github" })
 paneSocial.addSeparator(); //===========================
 paneSocial.addButton({ title: "Email" }) 
 paneSocial.addSeparator(); //===========================
+
+menuFLDR2.add(paneSocial)
 
 ////////////////////////////////////////////////////////////////////
 // ✧ REGENERATORS
@@ -1032,25 +1247,103 @@ function regenerateGeometries() {
 ////////////////////////////////////////////////////////////////////
 // ✧ EFFECT COMPOSER - POSTPRODUCTION
 ///////////////
-const noiseFX = new NoiseEffect()
+
+const optNoise = {
+	BlendFunction: BlendFunction.SCREEN,
+	premultiply: true
+}
+
+const noiseFX = new NoiseEffect(optNoise)
+
+//--
+
+const optbloom = {
+	BlendFunction: BlendFunction.SOFT_LIGHT,
+	luminanceThreshold: 13.2, 
+	luminanceSmoothing: 0.5,
+	mipmapBlur : true,
+	intensity: 10.0,
+	radius: 0.85,
+	levels: 8,
+	resolutionScale: 0.5,
+}
+
+const bloomFX = new BloomEffect(optbloom)
+
+//--
+
+const optSMAA = {
+	BlendFunction: BlendFunction.SRC,
+	preset: SMAAPreset.HIGH,
+	edgeDetectionMode: EdgeDetectionMode.DEPTH,
+	predicationMode: PredicationMode.DISABLED
+
+}
+
+const sMAAFX = new SMAAEffect(optSMAA)
+
+
+sMAAFX.edgeDetectionMaterial.setEdgeDetectionThreshold(0.01);
+
+const colorDepthFX = new ColorDepthEffect({ bits: 16 });
+
+
+//--
+
+const optVignette = {
+	BlendFunction: BlendFunction.OVERLAY,
+	technique: VignetteTechnique.DEFAULT,
+	eskil: true,
+	offset: 0.8,
+	darkness: 0.8
+}
+
+const vignetteFX = new VignetteEffect(optVignette)
+
+
+//--
+
+const optFXAA = { BlendFunction: BlendFunction.SRC }
+
+const FXAAFX = new FXAAEffect(optFXAA)
+
+//---
+
+// const optDOF = {
+// 	worldFocusDistance: 10,
+// 	worldFocusRange: 4,
+// 	focusDistance: 0.0,
+// 	focusRange: 0.1,
+// 	focalLength: 0.1,
+// 	bokehScale: 1.0,
+// 	resolutionScale: 0.5
+// }
+
+// const DOFFX = new DepthOfFieldEffect(optDOF)
+
+
 
 const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
-composer.addPass(new EffectPass(camera, new SMAAEffect))
-composer.addPass(new RenderPass(scene, camera))
+composer.addPass(new EffectPass(camera, sMAAFX))
+composer.addPass(new EffectPass(camera, sMAAFX, colorDepthFX))
 composer.addPass(new EffectPass(camera, noiseFX))
+composer.addPass(new EffectPass(camera, bloomFX))
+composer.addPass(new EffectPass(camera, vignetteFX))
+composer.addPass(new EffectPass(camera, FXAAFX))
+// composer.addPass(new EffectPass(camera, DOFFX))
 
-console.log(composer)
+// console.log(composer)
 
 ////////////////////////////////////////////////////////////////////
 // ✧ STATS
 ///////////////
 
 // const stats = Stats()
-
 // document.body.appendChild(stats.dom)
 
 
+// -- RENDERING
 const clock = new THREE.Clock()
 let previousTime = 0
 
@@ -1061,24 +1354,25 @@ function render() {
 function animate() {
   requestAnimationFrame(animate)
 
+//   if (webcam.readyState === webcam.HAVE_ENOUGH_DATA) {
+//   canvasCtx.drawImage(webcam as CanvasImageSource, 0, 0, webcamCanvas.width, webcamCanvas.height)
+//   if (webcamTexture2D) webcamTexture2D.needsUpdate = true
+// }
+
   const elapsedTime = clock.getElapsedTime()
   const deltaTime = elapsedTime - previousTime
   previousTime = elapsedTime
 
-  torusKnot.rotation.x += 0.01
-  torusKnot.rotation.y += 0.01
+  // torusKnot.rotation.x += 0.01
+  // torusKnot.rotation.y += 0.01
 
   torusMesh.rotation.x += 0.01
   torusMesh.rotation.z += 0.01
 
   sphere.rotation.y += 0.005
 
-
   // plLine.rotation.y += 0.005
   // plLine.rotation.z += 0.005
-
-  pLight0.rotation.y += Math.cos(elapsedTime * 0.3) * 30
-  pLight0.rotation.x += Math.sin(elapsedTime * 0.3) * 30
 
   controls.update()
 
