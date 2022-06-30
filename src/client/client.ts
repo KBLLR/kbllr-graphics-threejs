@@ -1,7 +1,13 @@
 console.clear()
-
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+// import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
+// import { DragControls } from 'three/examples/jsm/controls/DragControls'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { Water } from 'three/examples/jsm/objects/Water2.js'
+import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { WebGLRenderer } from 'three'
 import {
@@ -81,7 +87,6 @@ OverrideMaterialManager.workaroundEnabled = false;
 ////////////////////////////////////////////////////////////////////
 // ✧ SCREENSHOT FUNCTION 📸
 ///////////////
-
 
 
 
@@ -198,9 +203,25 @@ OverrideMaterialManager.workaroundEnabled = false;
 // }
 
 
+///////////////////////////////////////////////////
+// ✧ MENU PANEL FOR POINTER LOCK CONTROLS MODE
+///////////////////////////////////////////////
+
+
+// const menuPanel = document.getElementById('menuPanel') as HTMLDivElement
+// const startButton = document.getElementById('startButton') as HTMLInputElement
+// startButton.addEventListener(
+//     'click',
+//     function () {
+//         pointerControls.lock()
+//     },
+//     false
+// )
+
+
 ////////////////////////////////////////////////////////////////////
 // ✧ GENERATIVE Data Texture
-///////////////
+///////////////////////////////////
 
 
 const Template = "https://unsplash.com/photos/QwoNAhbmLLo"
@@ -211,8 +232,8 @@ let arrayTop = [
 "raven",
 "geometry",
 "symmetry",
-"shimmer", 
-"city lights",
+"iridiscent", 
+"pattern",
 "planets",  
 "feather", 
 "neon",
@@ -227,19 +248,19 @@ const g_texture = (topic, repeat: 4) => {
   const preload = new THREE.TextureLoader().load(
     path ? path : Template,
     (e) => {
-      e.mapping = THREE.EquirectangularRefractionMapping;
-      e.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      e.magFilter = THREE.NearestFilter;
-      e.minFilter = THREE.LinearMipmapLinearFilter;
-      e.wrapS = e.wrapT = THREE.MirroredRepeatWrapping;
-      e.type = THREE.HalfFloatType;
-      e.format = THREE.RGBAFormat;
-      e.repeat.set(repeat, repeat);
+      e.mapping = THREE.EquirectangularRefractionMapping
+      e.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      e.magFilter = THREE.NearestFilter
+      e.minFilter = THREE.LinearMipmapLinearFilter
+      e.wrapS = e.wrapT = THREE.MirroredRepeatWrapping
+      e.type = THREE.HalfFloatType
+      e.format = THREE.RGBAFormat
+      e.repeat.set(repeat, repeat)
       e.dispose();
     }
   );
   console.log(preload)
-  return preload;
+  return preload
 };
 
 
@@ -271,7 +292,7 @@ console.log(randPARAM)
 ///  /////  /////  /////   ///////////
 
 
-const background = new THREE.Color(0xffffff)
+const background = new THREE.Color(0x000000)
 const clearBgCol = new THREE.Color(0x111111/ 0.5) 
 const lightCol = new THREE.Color(0xffffff)
 // ...
@@ -323,14 +344,14 @@ const PARAMS = {
   light: {
   	dirLight: {
   		color: lightCol.convertLinearToSRGB(),
-  		intensity: 0.0,
-  	  castShadow: true,
+  		intensity: 2.2,
+  	  castShadow: false,
   	  pX: 0, pY: 10, pZ: 0,
   	  target: {x: 0, y: 0, z: 0}, 
   	},
   	pLight: {
   		color: pLightCol.convertLinearToSRGB(),
-  		intensity: 5.0,
+  		intensity: 3.0,
   	},
   	hLight: {
   		col1: hLightCol1.convertLinearToSRGB(),
@@ -443,18 +464,28 @@ const PARAMS = {
 
 
 const canvas = document.querySelector("canvas");
-
 const scene = new THREE.Scene()
-
 const sizes = { width: window.innerWidth, height: window.innerHeight }
-
 const canvas_width = sizes.width
 const canvas_height = sizes.height
-
 const aspect = sizes.width / sizes.height
 
-scene.background = PARAMS.scene.background
 
+//===================================================
+// EQUIRECTANGULAR HDR
+//===================================================
+
+const textureLoader = new THREE.TextureLoader()
+const textureLoad = new RGBELoader()
+
+textureLoad.setPath('img/')
+
+const textureCube = textureLoad.load('Background_05_v2.hdr', function(texture) {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+})
+
+scene.background = textureCube
+scene.fog = new THREE.FogExp2( 0x000, 0.01 )
 
 ////////////////
 // ✧ CAMERA  //
@@ -472,15 +503,15 @@ camera.lookAt(new THREE.Vector3(0, 0, 0))
 
 let orthoCamera
 {
-  const left = -innerWidth / 2
-  const right = innerWidth / 2
-  const top = -innerHeight / 2
-  const bottom = innerHeight / 2
-  const near = -1000
-  const far = 1000
+  const left = - 5
+  const right = 5
+  const top = 5
+  const bottom = -5
+  const near = 0.5
+  const far = 500
 
   orthoCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far)
-  orthoCamera.position.z = -10
+  orthoCamera.position.z = -1
   orthoCamera.lookAt(new THREE.Vector3(0, 0, 0))
 }
 
@@ -510,8 +541,8 @@ window.addEventListener('resize', () => {
 ///// ///   ///  //// 
 
 
-let framebuffer1 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
-let framebuffer2 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
+// let framebuffer1 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
+// let framebuffer2 = new THREE.WebGLRenderTarget(innerWidth, innerHeight)
 
 
 const renderer = new THREE.WebGLRenderer({
@@ -522,10 +553,10 @@ const renderer = new THREE.WebGLRenderer({
   depth: true,
 });
 
-renderer.setRenderTarget(framebuffer1)
-renderer.clearColor()
-renderer.setRenderTarget(framebuffer2)
-renderer.clearColor()
+// renderer.setRenderTarget(framebuffer1)
+// renderer.clearColor()
+// renderer.setRenderTarget(framebuffer2)
+// renderer.clearColor()
 
 renderer.setSize(sizes.width, sizes.height)
 renderer.setClearColor(PARAMS.rndr.bgCol)
@@ -549,16 +580,107 @@ renderer.toneMappingExposure = 1.2
 
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, 0, 0)
+controls.addEventListener('start', ()=> console.log("Controls start event"))
+controls.addEventListener('end', ()=> console.log("Controls end event"))
 controls.enabled = true
 controls.enableDamping = true
 controls.dampingFactor = 0.08
 controls.autoRotate = false
 controls.enableZoom = true
 controls.autoRotateSpeed = 1.2
+controls.zoomSpeed = 1.2
+controls.panSpeed = 0.8
 controls.minDistance = 0.1
 controls.maxDistance = 55
 controls.minPolarAngle = 0
 controls.maxPolarAngle = Math.PI / 2.1
+
+
+// / //// // ////////// ////
+// ✧ POINTER LOCK CONTROLS - FIRST PERSON VIEW ///
+///  ////////  /////// //
+
+// const pointerControls = new PointerLockControls(camera, renderer.domElement)
+// pointerControls.addEventListener('lock', () => (menuPanel.style.display = 'none'))
+// pointerControls.addEventListener('unlock', () => (menuPanel.style.display = 'block'))
+
+// const onKeyDown = function (event: KeyboardEvent) {
+// switch (event.code) {
+// case 'KeyW':
+//     pointerControls.moveForward(0.25)
+//     break
+// case 'KeyA':
+//     pointerControls.moveRight(-0.25)
+//     break
+// case 'KeyS':
+//     pointerControls.moveForward(-0.25)
+//     break
+// case 'KeyD':
+//     pointerControls.moveRight(0.25)
+//     break
+// }
+// }
+// document.addEventListener('keydown', onKeyDown, false)
+
+
+// / //// // ////////// ////
+// ✧ DRAG CONTROLS ///
+///  ////////  /////// //
+
+
+// const dragSphereGeo = new THREE.SphereGeometry()
+
+// const materials = [
+//     new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true }),
+//     new THREE.MeshPhongMaterial({ color: 0x00ff00, transparent: true }),
+//     new THREE.MeshPhongMaterial({ color: 0x0000ff, transparent: true })
+// ]
+
+// const dragSpheres = [
+//     new THREE.Mesh(dragSphereGeo, materials[0]),
+//     new THREE.Mesh(dragSphereGeo, materials[1]),
+//     new THREE.Mesh(dragSphereGeo, materials[2])
+// ]
+// dragSpheres[0].position.x = -2
+// dragSpheres[1].position.x = 0
+// dragSpheres[2].position.x = 2
+// dragSpheres.forEach((s) => scene.add(s))
+
+
+// const dragControls = new DragControls(dragSpheres, camera, renderer.domElement)
+// dragControls.addEventListener('dragstart', function (event) {
+//   event.object.materials.opacity = 0.33
+// })
+
+// dragControls.addEventListener('dragend', function (event) {
+//   event.object.materials.opacity = 1
+// })
+
+
+// / //// // ////////// ////
+// ✧ TRANSFORM CONTROLS ///
+///  ////////  /////// //
+
+
+const transformControls = new TransformControls(camera, renderer.domElement)
+// controls.enabled = !event.value
+// transformControls.attach(cube)
+// transformControls.setMode('rotate')
+// scene.add(transformControls)
+
+window.addEventListener('keydown', function (event) {
+switch (event.code) {
+case 'KeyG':
+    transformControls.setMode('translate')
+    break
+case 'KeyR':
+    transformControls.setMode('rotate')
+    break
+case 'KeyT':
+    transformControls.setMode('scale')
+    break
+}
+})
 
 
 /////////////////
@@ -571,10 +693,10 @@ const hLight = new THREE.HemisphereLight(PARAMS.light.hLight.col1, PARAMS.light.
 
 
 const pLight0 = new THREE.PointLight(PARAMS.light.pLight.color, PARAMS.light.pLight.intensity)
-pLight0.castShadow = true
-pLight0.shadow.bias = 0.001
-pLight0.shadow.mapSize.width = 1024
-pLight0.shadow.mapSize.height = 1024
+pLight0.castShadow = false
+// pLight0.shadow.bias = 0.001
+// pLight0.shadow.mapSize.width = 1024
+// pLight0.shadow.mapSize.height = 1024
 pLight0.position.set(0, 0, 0)
 
 
@@ -597,19 +719,19 @@ const spotLight = new THREE.SpotLight( 0x00ff00, 28.5 );
 
 
 const dirLight = new THREE.DirectionalLight(PARAMS.light.dirLight.color, PARAMS.light.dirLight.intensity)
-dirLight.position.x = 0
-dirLight.position.y = 12
-dirLight.position.z = 0
-dirLight.castShadow = true
-dirLight.shadow.mapSize.width = 1024 // default
-dirLight.shadow.mapSize.height = 1024 // default
-dirLight.shadow.camera.near = 0.1 // default
-dirLight.shadow.camera.far = 10000 // default
+dirLight.position.x = -20
+dirLight.position.y = 40
+dirLight.position.z = -40
+dirLight.castShadow = false
+// dirLight.shadow.mapSize.width = 1024 // default
+// dirLight.shadow.mapSize.height = 1024 // default
+// dirLight.shadow.camera.near = 1// default
+// dirLight.shadow.camera.far = 100 // default
 scene.add(dirLight)
 
 
-const gridHelper = new THREE.GridHelper(20, 20)
-gridHelper.position.y = -10
+const gridHelper = new THREE.GridHelper(500, 100)
+gridHelper.position.y = -20
 scene.add(gridHelper)
 
 // const dirHelper = new THREE.DirectionalLightHelper( dirLight, 5 )
@@ -717,68 +839,91 @@ const shadowMat = new THREE.ShadowMaterial()
 shadowMat.opacity = 0.4
 shadowMat.color.set(0xF5F5F5)
 
+
 //=== MATERIAL #5
 const matFloor = new THREE.MeshPhongMaterial();
-matFloor.color.set(0xffffff)
-
-
-//=== MATERIAL #6
-
-
-const OPTIONS = {
-  fadeFactor: 0.1,
-  scaleX: 0,
-  scaleY: 0,
-  rotationAngle: 0
-}
-
-const fullscreenQuadGeometry = new THREE.PlaneGeometry(innerWidth, innerHeight)
-const uvMatrix = new THREE.Matrix3()
- // tx : Float, ty : Float, sx : Float, sy : Float, rotation : Float, cx : Float, cy : Float
-
-
-const fadeMaterial = new THREE.ShaderMaterial({
-  uniforms: {
-    inputTexture: { value: null },
-    fadeFactor: { value: OPTIONS.fadeFactor },
-    uvMatrix: { value: uvMatrix }
-  },
-  vertexShader: `
-    uniform mat3 uvMatrix;
-    varying vec2 vUv;
-    void main () {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      vUv = (uvMatrix * vec3(uv, 1.0)).xy;
-    }
-  `,
-  fragmentShader: `
-    uniform sampler2D inputTexture;
-    uniform float fadeFactor;
-    varying vec2 vUv;
-    void main () {
-      float dist = distance(vUv, vec2(0.5));
-      vec4 texColor = texture2D(inputTexture, vUv);
-      vec4 fadeColor = vec4(0.0, 0.0, 0.0, 1.0);
-      gl_FragColor = mix(texColor, fadeColor, fadeFactor);
-    }
-  `
-})
+matFloor.color.set(0x000000)
 
 
 //-- 
 
+/////////////////////////////////////////////////////////////////////////////
+// LOADERS  
+//
 
-const fadePlane = new THREE.Mesh(
-  fullscreenQuadGeometry,
-  fadeMaterial
-)
+const fbxLoader = new FBXLoader()
+const gltfLoader = new GLTFLoader()
 
-const resultMaterial = new THREE.MeshBasicMaterial({ map: null })
-const resultPlane = new THREE.Mesh(
-  fullscreenQuadGeometry,
-  resultMaterial
-)
+/////////////////////////////////////////////////////////////////////////////
+// Inner_KID 👦🏽 * Inner_KID 👦🏽 * Inner_KID 👦🏽 * Inner_KID 👦🏽   
+////////////////////////////////////////////////////////////////////////////
 
+
+let kidMixer;
+let kid2Mixer;
+let kidMaterial;
+let kid;
+
+fbxLoader.load(
+  'models/innerKid/animations/walking.fbx', (object) => {
+    kid = object;
+    kidMixer = new THREE.AnimationMixer(kid);
+    const action = kidMixer.clipAction(kid.animations[0]);
+    action.play();
+
+    kidMaterial = new THREE.MeshPhysicalMaterial({
+      map: textureLoader.load("models/innerKid/tex/skin004/map02.png"),
+      color: 0xFAFAD2,//lightgoldenrodyellow 0xC71585, mediumVioletRed
+      emissive: 0xfff,
+      emissiveMap: g_texture(topic, 4),
+      emissiveIntensity: 10.8, 
+      transmission: 1,
+      transparent: true,
+      opacity: 1,
+      metalness: 0.1,
+      sheen: 1.0,
+      sheenRoughness: 0.5,
+      clearcoatMap: g_texture(topic, 4),
+      clearcoatNormalMap: g_texture(topic, 4),
+      clearcoatNormalScale: new THREE.Vector2(3, 3),
+      roughnessMap: g_texture(topic, 4), //textureLoader.load("models/fbx/curiousKid/tex/skin004/roughness.png"),
+      roughness: 1.5,
+      normalMap: g_texture(topic, 4), //textureLoader.load("models/fbx/curiousKid/tex/skin004/NormalMap.png"),
+      normalScale: new THREE.Vector2(2, 2),
+      ior: 1.2,
+      transmissionMap: g_texture("neon", 4),
+      specularIntensityMap: g_texture("neon", 4),
+      specularColorMap: g_texture("neon", 4),
+      // thickness: 0.1,
+      specularIntensity: 5.9,
+      // specularColor: 0xBC8F8F,
+      aoMap: g_texture(topic, 4),
+      aoMapIntensity: 1.0,
+      envMap: g_texture("neon", 4),
+      envMapIntensity: 6,
+      reflectivity: 1.2,
+    })
+    kidMaterial.sheenRoughnessMap = g_texture(topic, 4)
+    kidMaterial.sheenColorMap = g_texture(topic, 4)
+
+    kid.traverse(function(object) {
+      if (object.isMesh) {
+        object.material = kidMaterial;
+        object.castShadow = true;
+        object.receiveShadow = true;
+      }
+    });
+
+   	scene.add(kid)
+
+    kid.scale.set(.0014, .0014, .0014)
+    kid.position.set(0, -0.002, 0)
+    kid.rotation.set(0, 0, 0)
+    kid.addEventListener("click", (event) => {
+      event.target.material.color.set(0xff0000);
+      document.body.style.cursor = "pointer";
+    });
+  });
 
 ///////////////////////////////////////////
 // EDGES - LINES - GEOMETRIES - MESH ////
@@ -794,10 +939,10 @@ const resultPlane = new THREE.Mesh(
 //--- PLANE ----------------------------------------
 
 const geoFloor = new THREE.PlaneGeometry( 2000, 2000 );
-const planeMesh = new THREE.Mesh( geoFloor, shadowMat );
+const planeMesh = new THREE.Mesh( geoFloor, matFloor );
 planeMesh.rotation.x = - Math.PI * 0.5;
-planeMesh.receiveShadow = true;
-planeMesh.position.set( 0, -10, 0)
+planeMesh.receiveShadow = false
+planeMesh.position.set( 0, -20.01, 0)
 scene.add(planeMesh)
 
 
@@ -828,7 +973,46 @@ const torusKnot = new THREE.Mesh(torusKGeo, mat_2A)
 torusKnot.receiveShadow = false
 // scene.add(torusKnot) 
 
+/////////////////////////////////////////////////////////////////////////////
+// Natural_element - Water  Natural_element - Water  Natural_element - Water  
+////////////////////////////////////////////////////////////////////////////
 
+
+const waterGeometry = new THREE.CircleGeometry(0.1, 80);
+const groundGeometry = new THREE.CircleGeometry(0.1, 80);
+
+const groundMaterial = new THREE.MeshStandardMaterial({
+  color: 0x6495ED, //0xFF7F50
+  roughness: 0.05,
+  metalness: 0.1,
+  side: THREE.DoubleSide,
+  normalMap: textureLoader.load('/textures/water/Water_2_M_Normal.jpg'),
+  normalScale: new THREE.Vector2(3, 3),
+});
+
+const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+ground.rotation.x = Math.PI * -0.5
+scene.add(ground)
+
+const optWater = {
+  color: 0xFFDEAD,
+  side: THREE.DoubleSide,
+  scale: 0.5,
+  flowDirection: new THREE.Vector2(-1, 1),
+  textureWidth: 1024,
+  textureHeight: 1024,
+  wrapS: THREE.RepeatWrapping,
+  wrapT: THREE.RepeatWrapping,
+  anisotropy: 16,
+  needsUpdate: true,
+}
+
+const water = new Water(waterGeometry, optWater) 
+
+water.position.set(0,0.001,0)
+water.rotation.x = Math.PI * -0.5
+
+scene.add(water)
 //✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
 //✧✧ GUI > TWEAKPANE - MENU
 //✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧✧
@@ -1321,8 +1505,6 @@ const FXAAFX = new FXAAEffect(optFXAA)
 
 // const DOFFX = new DepthOfFieldEffect(optDOF)
 
-
-
 const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
 composer.addPass(new EffectPass(camera, sMAAFX))
@@ -1373,6 +1555,9 @@ function animate() {
 
   // plLine.rotation.y += 0.005
   // plLine.rotation.z += 0.005
+
+  if (kidMixer) { kidMixer.update(deltaTime) }
+  if (kid2Mixer) { kid2Mixer.update(deltaTime) }
 
   controls.update()
 
