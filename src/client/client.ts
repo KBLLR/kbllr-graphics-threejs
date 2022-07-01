@@ -224,7 +224,7 @@ OverrideMaterialManager.workaroundEnabled = false;
 ///////////////////////////////////
 
 
-const Template = "https://unsplash.com/photos/QwoNAhbmLLo"
+const Template = "https://source.unsplash.com/random/"
 let arrayTop = [
 "lines", 
 "B&W",
@@ -580,8 +580,8 @@ renderer.toneMappingExposure = 1.2
 
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, 0, 0)
-controls.addEventListener('start', ()=> console.log("Controls start event"))
-controls.addEventListener('end', ()=> console.log("Controls end event"))
+// controls.addEventListener('start', ()=> console.log("Controls start event"))
+// controls.addEventListener('end', ()=> console.log("Controls end event"))
 controls.enabled = true
 controls.enableDamping = true
 controls.dampingFactor = 0.08

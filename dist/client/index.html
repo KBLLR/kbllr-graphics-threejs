@@ -112,7 +112,7 @@
     overflow-y: scroll;
     scroll-behavior: smooth;
     scroll-padding: 0;
-    width: 50%;
+    width: 25%;
     gap: 8px;
 
   }
@@ -174,32 +174,14 @@
     pointer-events: none;
   }
 
-  /*    .data-layout {
-        position: fixed;
-        z-index: 0;
-        top: 0;
-        left: 0;
-        display: grid;
-        height: 100%;
-        width: 100%;
-        grid-template-columns: repeat(6, 1fr);
-        overflow: hidden;
-        pointer-events: none;
+  .credits {
+    position: fixed;
+    z-index: 1000;
+    bottom: 2%;
+    left: 2%;
+    color: rgba(255, 255, 255, 1.0);
+  }
 
-      }
-
-      .column {
-        font-family: monospace;
-        font-size: larger;
-        padding: 8px;
-        overflow: hidden;
-        border: 0.5px solid color(srgb-linear 0 0 0);
-        height: 100%;
-        color: color(srgb-linear 0.73884 0.73884 0.73884 / 5);
-        pointer-events: none;
-        mix-blend-mode: difference;
-      }
-       */
   </style>
 </head>
 
@@ -228,6 +210,10 @@
     <div class="tp-container" id="c--Buttons"></div>
     <div class="tp-container" id="c--RadioG"></div>
   </div>
+
+  <div class="credits">
+    Images by: 
+    <a href="https://unsplash.com/@anniespratt?utm_source=your_app_name&utm_medium=referral">Annie Spratt</a> on <a href="https://unsplash.com/?utm_source=your_app_name&utm_medium=referral">Unsplash</a><div>
 
   <div class="overlay" id="tvLines"></div>
 
