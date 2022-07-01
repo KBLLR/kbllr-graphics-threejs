@@ -588,8 +588,8 @@ controls.dampingFactor = 0.08
 controls.autoRotate = false
 controls.enableZoom = true
 controls.autoRotateSpeed = 1.2
-controls.zoomSpeed = 1.2
-controls.panSpeed = 0.8
+controls.zoomSpeed = 1.5
+controls.panSpeed = 1
 controls.minDistance = 0.1
 controls.maxDistance = 55
 controls.minPolarAngle = 0
@@ -899,7 +899,7 @@ fbxLoader.load(
       // specularColor: 0xBC8F8F,
       aoMap: g_texture(topic, 4),
       aoMapIntensity: 1.0,
-      envMap: g_texture("neon", 4),
+      envMap: g_texture(topic, 4),
       envMapIntensity: 6,
       reflectivity: 1.2,
     })
@@ -986,7 +986,7 @@ const groundMaterial = new THREE.MeshStandardMaterial({
   roughness: 0.05,
   metalness: 0.1,
   side: THREE.DoubleSide,
-  normalMap: textureLoader.load('/textures/water/Water_2_M_Normal.jpg'),
+  normalMap: g_texture("water", 4),
   normalScale: new THREE.Vector2(3, 3),
 });
 
