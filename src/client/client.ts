@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 // import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
 // import { DragControls } from 'three/examples/jsm/controls/DragControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { Water } from 'three/examples/jsm/objects/Water2.js'
@@ -21,10 +22,12 @@ import {
   RenderPass,
   ShaderPass,
 	SMAAPreset,
+	ACESFilmicToneMapping,
 	ColorDepthEffect,
 	TextureEffect,
   sRGBEncoding,
   MaskFunction,
+  NoToneMapping,
   ToneMappingMode,
   VSMShadowMap,
   BloomEffect,
@@ -224,7 +227,7 @@ OverrideMaterialManager.workaroundEnabled = false;
 ///////////////////////////////////
 
 
-const Template = "https://source.unsplash.com/random/"
+const Template = "https://unsplash.com/photos/QwoNAhbmLLo"
 let arrayTop = [
 "lines", 
 "B&W",
@@ -328,13 +331,13 @@ const PARAMS = {
 		gui: {},
 	},
 	rndr: {
-		bgCol: clearBgCol.convertLinearToSRGB(), 
+		bgCol: clearBgCol, 
 	},
   cam: {
   	vfov: 59,
   },
   scene: {
-    background: background.convertLinearToSRGB(),
+    background: background,
   },
   grid: {
     size: 40,
@@ -343,24 +346,24 @@ const PARAMS = {
   },
   light: {
   	dirLight: {
-  		color: lightCol.convertLinearToSRGB(),
+  		color: lightCol.convertSRGBToLinear(),
   		intensity: 2.2,
   	  castShadow: false,
   	  pX: 0, pY: 10, pZ: 0,
   	  target: {x: 0, y: 0, z: 0}, 
   	},
   	pLight: {
-  		color: pLightCol.convertLinearToSRGB(),
+  		color: pLightCol.convertSRGBToLinear(),
   		intensity: 3.0,
   	},
   	hLight: {
-  		col1: hLightCol1.convertLinearToSRGB(),
-  		col2: hLightCol2.convertLinearToSRGB(),
+  		col1: hLightCol1.convertSRGBToLinear(),
+  		col2: hLightCol2.convertSRGBToLinear(),
   		intensity: 0,
   		pX: 0, pY: 0, pZ: 0,
   	},
   	spotLight: {
-  		col: spLightCol.convertLinearToSRGB(),
+  		col: spLightCol.convertSRGBToLinear(),
   		intensity: 10,
   		castShadow: true,
   	},
@@ -403,15 +406,15 @@ const PARAMS = {
   },
   material: {
   	mat_1: {
-  	  color: mat_1_color.convertLinearToSRGB(),
+  	  color: mat_1_color.convertSRGBToLinear(),
   	  metal: 0.4,
-  	  attColor: attCol_Mat1.convertLinearToSRGB(),
+  	  attColor: attCol_Mat1.convertSRGBToLinear(),
   	  attDist: 2.0,
   	  rough: 0.05,
   	  alpha: 0.7,
   	  transm: 1.0, 
   	  shn: 0.5,
-  	  shnColor: shnColor_Mat1.convertLinearToSRGB(),
+  	  shnColor: shnColor_Mat1.convertSRGBToLinear(),
   	  shnColorMap: g_texture(topic, 4),
   	  shnR: 0.5,
   	  ior: 1.4, //--X
@@ -420,7 +423,7 @@ const PARAMS = {
   	  clearcoat: 0.4, //
   	  coatrough: 0.8, //.15
   	  envInt: 10.0,
-  	  emissive: mat_1_emissive.convertLinearToSRGB(),
+  	  emissive: mat_1_emissive.convertSRGBToLinear(),
   	  emissiveIntensity: 2.45,
   	  displ: 0.1,
   	  displBias: 1.0,
@@ -433,10 +436,10 @@ const PARAMS = {
   	mat_2: {
   	  sheen: 0.7,
   	  sheenRoughness: 0.3,
-  	  sheenColor: shnColor_Mat2.convertLinearToSRGB(),
+  	  sheenColor: shnColor_Mat2.convertSRGBToLinear(),
   	  envMapIntensity: 6,
   	  reflectivity: 0.5,
-  	  specularColor: specColor_Mat2.convertLinearToSRGB(),
+  	  specularColor: specColor_Mat2.convertSRGBToLinear(),
   	  specularIntensity: 0.2,
   	  displacementBias: 2,
   	  displacementScale: 0.1,
@@ -485,7 +488,7 @@ const textureCube = textureLoad.load('Background_05_v2.hdr', function(texture) {
 })
 
 scene.background = textureCube
-scene.fog = new THREE.FogExp2( 0x000, 0.01 )
+scene.fog = new THREE.FogExp2( 0x000, 0.08 )
 
 ////////////////
 // ✧ CAMERA  //
@@ -551,7 +554,7 @@ const renderer = new THREE.WebGLRenderer({
   antialias: false,
   stencil: false,
   depth: true,
-});
+})
 
 // renderer.setRenderTarget(framebuffer1)
 // renderer.clearColor()
@@ -567,8 +570,8 @@ renderer.shadowMap.enabled = true
 renderer.outputEncoding = sRGBEncoding
 // renderer.shadowMap.type = THREE.VSMShadowMap
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
-renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.2
+renderer.toneMapping = NoToneMapping
+renderer.toneMappingExposure = 1
 
 // document.body.appendChild(renderer.domElement)
 
@@ -830,7 +833,7 @@ mat_2A.sheenColorMap = g_texture(topic, 4)
 //=== MATERIAL #3
 
 const lineBasicMat = new THREE.LineBasicMaterial( { color: 0xff0000 } );
-let lineColorConvert = lineBasicMat.color.convertLinearToSRGB()
+let lineColorConvert = lineBasicMat.color.convertSRGBToLinear()
 
 //=== MATERIAL #4
 
@@ -899,7 +902,7 @@ fbxLoader.load(
       // specularColor: 0xBC8F8F,
       aoMap: g_texture(topic, 4),
       aoMapIntensity: 1.0,
-      envMap: g_texture(topic, 4),
+      envMap: g_texture("neon", 4),
       envMapIntensity: 6,
       reflectivity: 1.2,
     })
@@ -986,7 +989,7 @@ const groundMaterial = new THREE.MeshStandardMaterial({
   roughness: 0.05,
   metalness: 0.1,
   side: THREE.DoubleSide,
-  normalMap: g_texture("water", 4),
+  normalMap: textureLoader.load('/textures/water/Water_2_M_Normal.jpg'),
   normalScale: new THREE.Vector2(3, 3),
 });
 
@@ -1394,6 +1397,7 @@ function regenerateGeometries() {
     PARAMS.geo.sphere.thetaL
   )
   sphere.geometry.dispose()
+  sphere.material.dispose()
   sphere.geometry = newSphGeo
 
   //--
@@ -1404,6 +1408,7 @@ function regenerateGeometries() {
     PARAMS.geo.torus.radialSegments
   )
   torusMesh.geometry.dispose()
+  torusMesh.material.dispose()
   torusMesh.geometry = newTorGeo
   //--
   const newTorKnotGeo = new THREE.TorusKnotGeometry (
@@ -1415,6 +1420,7 @@ function regenerateGeometries() {
     PARAMS.geo.torusK.q
   )
   torusKnot.geometry.dispose()
+  torusKnot.material.dispose()
   torusKnot.geometry = newTorKnotGeo
   //--
   const newPlaneGeo = new THREE.PlaneGeometry (
@@ -1424,6 +1430,7 @@ function regenerateGeometries() {
     PARAMS.geo.plane.hS,
   )
   planeMesh.geometry.dispose()
+  planeMesh.material.dispose()
   planeMesh.geometry = newPlaneGeo
   
 }
@@ -1506,16 +1513,63 @@ const FXAAFX = new FXAAEffect(optFXAA)
 // const DOFFX = new DepthOfFieldEffect(optDOF)
 
 const composer = new EffectComposer(renderer)
-composer.addPass(new RenderPass(scene, camera))
-composer.addPass(new EffectPass(camera, sMAAFX))
-composer.addPass(new EffectPass(camera, sMAAFX, colorDepthFX))
-composer.addPass(new EffectPass(camera, noiseFX))
-composer.addPass(new EffectPass(camera, bloomFX))
-composer.addPass(new EffectPass(camera, vignetteFX))
-composer.addPass(new EffectPass(camera, FXAAFX))
+
+function setupPost(camera, renderer, scene) {
+  const renderScene = new RenderPass(scene, camera);
+  const gammaCorrection = new ShaderPass( GammaCorrectionShader );
+  const composer = new EffectComposer(renderer)
+  composer.addPass( renderScene);
+  composer.addPass( gammaCorrection);
+  composer.addPass( FXAAFX )
+  composer.addPass( vignetteFX )
+  composer.addPass( colorDepthFX )
+  composer.addPass( sMAAFX )
+  composer.addPass( noiseFX )
+  composer.addPass( bloomFX )
+  return composer
+}
+
+// const composer = new EffectComposer(renderer)
+// composer.addPass(new RenderPass(scene, camera))
+// composer.addPass(new EffectPass(camera, sMAAFX))
+// composer.addPass(new EffectPass(camera, sMAAFX, colorDepthFX))
+// composer.addPass(new EffectPass(camera, noiseFX))
+// composer.addPass(new EffectPass(camera, bloomFX))
+// composer.addPass(new EffectPass(camera, vignetteFX))
+// composer.addPass(new EffectPass(camera, FXAAFX))
 // composer.addPass(new EffectPass(camera, DOFFX))
 
 // console.log(composer)
+
+////////////////////////////////////////////////////////////////////
+// ✧ EFFECT COMPOSER - Version 2.0
+///////////////
+
+// const fX = [
+// 		new NoiseEffect(optNoise),
+// 		new BloomEffect(optbloom),
+// 		new SMAAEffect(optSMAA),
+// 		new ColorDepthEffect({ bits: 16 }),
+// 		new VignetteEffect(optVignette),
+// 		new FXAAEffect(optFXAA),
+// 		new DepthOfFieldEffect(optDOF)
+// ]
+
+// //--
+
+// const composer = new EffectComposer(renderer)
+// const renderPass = new RenderPass(scene, camera)
+
+// composer.addPass(renderPass)
+// composer.addPass(new EffectPass(camera, fX[0]))
+// composer.addPass(new EffectPass(camera, fX[1]))
+// composer.addPass(new EffectPass(camera, fX[2]))
+// composer.addPass(new EffectPass(camera, fX[3]))
+// composer.addPass(new EffectPass(camera, fX[4]))
+// composer.addPass(new EffectPass(camera, fX[5]))
+// composer.addPass(new EffectPass(camera, fX[6]))
+
+
 
 ////////////////////////////////////////////////////////////////////
 // ✧ STATS
@@ -1526,12 +1580,13 @@ composer.addPass(new EffectPass(camera, FXAAFX))
 
 
 // -- RENDERING
-const clock = new THREE.Clock()
-let previousTime = 0
 
 function render() {
   renderer.render(scene, camera)
 }
+
+const clock = new THREE.Clock()
+let previousTime = 0
 
 function animate() {
   requestAnimationFrame(animate)
@@ -1574,7 +1629,6 @@ function animate() {
   renderMaterials()
 
   requestAnimationFrame(render)
-
   composer.render()
 
   // stats.update()
