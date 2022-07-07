@@ -1,13 +1,16 @@
 console.clear()
 import * as THREE from 'three'
+import gsap from 'gsap'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls'
-import { MD2CharacterComplex } from 'three/examples/jsm/misc/MD2CharacterComplex.js';
-import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js';
+import { MD2CharacterComplex } from 'three/examples/jsm/misc/MD2CharacterComplex.js'
+import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js'
+import { AnaglyphEffect } from 'three/examples/jsm/effects/AnaglyphEffect.js'
+import { BokehShader, BokehDepthShader } from 'three/examples/jsm/shaders/BokehShader2.js'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
-import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
-import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js'
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { Water } from 'three/examples/jsm/objects/Water2.js'
@@ -109,10 +112,11 @@ const textureLoad = new RGBELoader()
 // SCENE FOG & BACKGROUND
 //===================================================
 
-scene.fog = new THREE.Fog(0xffffff, 0.1, 2.9)
+scene.fog = new THREE.Fog(0x0000ff, 0.1, 14)
+
 //scene.fog = new THREE.FogExp2( 0xffffff, 1.5 )
 
-scene.background = new THREE.Color( 0xffffff)
+scene.background = new THREE.Color(0x0000ff)
 
 
 //===================================================
@@ -121,12 +125,66 @@ scene.background = new THREE.Color( 0xffffff)
 
 const camera = new THREE.PerspectiveCamera(45, aspect, 0.001, 20000)
 
-camera.position.x = -0.15
-camera.position.y = 0
-camera.position.z = 0
+camera.position.x = 14
+camera.position.y = 24
+camera.position.z = 14
 camera.lookAt(new THREE.Vector3(0, 0, 0))
 
 scene.add(camera)
+
+//===================================================
+// ✧ ORBIT CONTROLS 
+//===================================================
+
+
+const cameraControls = new OrbitControls(camera, canvas)
+cameraControls.enabled = true
+cameraControls.enableDamping = true
+cameraControls.dampingFactor = 0.08
+cameraControls.autoRotate = false
+cameraControls.enableZoom = true
+cameraControls.autoRotateSpeed = 2
+cameraControls.zoomSpeed = 1.5
+cameraControls.panSpeed = 1
+cameraControls.minDistance = 0.02
+cameraControls.maxDistance = 14
+cameraControls.minPolarAngle = 0
+cameraControls.maxPolarAngle = Math.PI / 2.1
+
+//===================================================
+// CATMULLROM
+//
+//-[i]-> https://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline
+
+let u = 0.2 //-- range[0, 1]
+let t
+
+const curve = new THREE.CatmullRomCurve3( [
+  new THREE.Vector3( -5, 0, 5 ),
+  new THREE.Vector3( -2.5, 2.5, 2.5 ),
+  new THREE.Vector3( 0, 0, 0 ),
+  new THREE.Vector3( 2.5, -2.5, 2.5 ),
+  new THREE.Vector3( 5, 0, 5 )
+], true, "catmullrom", 3.2)
+
+const point = curve.getPoint(0.0) //-- range[0, 1]
+const points = curve.getPoints( 10 )
+const getPAt = curve.getPointAt(u) 
+const gPoints = new THREE.BufferGeometry().setFromPoints( points )
+
+const mPoints = new THREE.LineBasicMaterial( { color: 0xff0000 } )
+
+// Create the final object to add to the scene
+const curveObject = new THREE.Line( gPoints, mPoints )
+// scene.add( curveObject )
+
+//===================================================
+// GYROSCOPE
+
+
+// const gyro = new Gyroscope()
+// gyro.add(camera)
+
 
 //===================================================
 //-- ORTHOGRAPHIC CAMERA
@@ -144,25 +202,6 @@ scene.add(camera)
 //   orthoCamera.lookAt(new THREE.Vector3(0, 0, 0))
 // }
 
-//===================================================
-// ✧ RESPONSIVENESS 
-//===================================================
-
-
-window.addEventListener('resize', () => {
-  // Update sizes
-  sizes.width = window.innerWidth
-  sizes.height = window.innerHeight
-
-  // Update camera
-  camera.aspect = sizes.width / sizes.height
-  camera.updateProjectionMatrix()
-
-  // Update renderer
-  renderer.setSize(sizes.width, sizes.height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-})
-
 
 //===================================================
 // ✧ RENDERER  
@@ -176,7 +215,6 @@ const renderer = new THREE.WebGLRenderer({
   depth: true,
 })
 
-
 renderer.setSize(sizes.width, sizes.height)
 renderer.setClearColor(0x000000, 1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
@@ -189,28 +227,11 @@ renderer.toneMappingExposure = 1.9
 
 // document.body.appendChild(renderer.domElement)
 
-
 //===================================================
-// ✧ ORBIT CONTROLS 
-//===================================================
+// ✧ FX 
 
 
-const controls = new OrbitControls(camera, canvas)
-controls.target.set(0, 0, 0)
-// controls.addEventListener('start', ()=> console.log("Controls start event"))
-// controls.addEventListener('end', ()=> console.log("Controls end event"))
-controls.enabled = true
-controls.enableDamping = true
-controls.dampingFactor = 0.08
-controls.autoRotate = false
-controls.enableZoom = true
-controls.autoRotateSpeed = 2
-controls.zoomSpeed = 1.5
-controls.panSpeed = 1
-controls.minDistance = 0.05
-controls.maxDistance = 1.2
-controls.minPolarAngle = 0
-controls.maxPolarAngle = Math.PI / 2.1
+// const anaglyphFX = new AnaglyphEffect( renderer, sizes.width, sizes.height  )
 
 
 //===================================================
@@ -218,12 +239,12 @@ controls.maxPolarAngle = Math.PI / 2.1
 //===================================================
 
 
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 8.61)
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.61)
 hemiLight.position.set(0, 0, 0)
 scene.add(hemiLight)
 
-const light = new THREE.DirectionalLight( 0xffffff, 10.25 )
-light.position.set( 2, 2, 2)
+const light = new THREE.DirectionalLight(0xffffff, 1.25)
+light.position.set(20, 2, 2)
 
 light.castShadow = true
 light.shadow.mapSize.width = 1024
@@ -237,45 +258,51 @@ light.shadow.mapSize.height = 1024
 // light.shadow.camera.top = 0
 // light.shadow.camera.bottom = 0
 
-scene.add( light )
-// scene.add( new THREE.CameraHelper( light.shadow.camera ) )
+// gyro.add(light, light.target)
+
+ scene.add( light )
 
 
 //===================================================
 // ✧ GROUND 
 //===================================================
 
-const gGeometry = new THREE.PlaneGeometry( 512, 512)
- 
-const gMaterial = new THREE.MeshPhysicalMaterial({ 
-  
-  map: textureLoader.load( "/img/terrazzo/Terrazzo010_2K_Color.png" ),
-  emissive: 0x000000,
+const gGeometry = new THREE.PlaneGeometry(1024, 1024, 100, 100)
+
+const gMaterial = new THREE.MeshPhysicalMaterial({
+
+  map: textureLoader.load("/img/terrazzo/Terrazzo010_2K_Color.png"),
+  color: new THREE.Color('white'),
+  emissive: new THREE.Color('black'),
   emissiveIntensity: 1,
   transmission: 1,
+  ior: 1.3,
   // emissiveMap: textureLoader.load('/img/terrazzo/Terrazzo_2K_Emission.png'),
   displacementMap: textureLoader.load("/img/terrazzo/Terrazzo_2K_Displacement.png"),
-  displacementScale: 1.2,
-  roughnessMap:  textureLoader.load( "/img/terrazzo/Terrazzo010_2K_Roughness.png" ),
+  displacementScale: 0.5,
+  roughnessMap: textureLoader.load("/img/terrazzo/Terrazzo010_2K_Roughness.png"),
   roughness: 3.2,
-  metalnessMap:  textureLoader.load( "/img/terrazzo/Terrazzo010_2K_Metalness.png" ),
-  metalness:0.2,
-  normalMap: textureLoader.load( "/img/terrazzo/Terrazzo010_2K_NormalGL.png" ),
-  normalMapType: 1,
-  normalScale: new THREE.Vector2( 1, 1),
+  metalnessMap: textureLoader.load("/img/terrazzo/Terrazzo010_2K_Metalness.png"),
+  metalness: 0.2,
+  normalMap: textureLoader.load("/img/terrazzo/Terrazzo010_2K_NormalGL.png"),
+  normalScale: new THREE.Vector2(3, 3),
   fog: true
 })
 
 
-const ground = new THREE.Mesh( gGeometry, gMaterial )
-ground.rotation.x = - Math.PI / 2
-// ground.material.map.repeat.set( 64, 64 )
-// ground.material.map.wrapS = THREE.RepeatWrapping
-// ground.material.map.wrapT = THREE.RepeatWrapping
-// ground.material.map.encoding = THREE.sRGBEncoding
+const ground = new THREE.Mesh(gGeometry, gMaterial)
+ground.rotation.x = -Math.PI / 2
+ground.material.map.repeat.set(2048, 2048)
+ground.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy()
+ground.material.map.magFilter = THREE.NearestFilter
+ground.material.map.minFilter = THREE.LinearMipmapLinearFilter
+ground.material.map.wrapS = THREE.RepeatWrapping
+ground.material.map.wrapT = THREE.RepeatWrapping
+ground.material.map.type = THREE.HalfFloatType
+ground.material.map.encoding = THREE.sRGBEncoding
 ground.receiveShadow = true
 
-scene.add( ground )
+scene.add(ground)
 
 //===================================================
 // ✧ GRID HELPER 
@@ -287,20 +314,219 @@ scene.add( ground )
 //
 //
 //===================================================
-// EVENTS
+// CHARACTER
 //===================================================
 
-// window.addEventListener( 'resize', onWindowResize )
-// document.addEventListener( 'keydown', onKeyDown )
-// document.addEventListener( 'keyup', onKeyUp )
+const controls = {
+
+  moveForward: false,
+  moveBackward: false,
+  moveLeft: false,
+  moveRight: false
+}
 
 
+function onKeyDown(event) {
+
+  switch (event.code) {
+
+    case 'ArrowUp':
+    case 'KeyW':
+      controls.moveForward = true;
+      break;
+
+    case 'ArrowDown':
+    case 'KeyS':
+      controls.moveBackward = true;
+      break;
+
+    case 'ArrowLeft':
+    case 'KeyA':
+      controls.moveLeft = true;
+      break;
+
+    case 'ArrowRight':
+    case 'KeyD':
+      controls.moveRight = true;
+      break;
+
+      // case 'KeyC': controls.crouch = true; break;
+      // case 'Space': controls.jump = true; break;
+      // case 'ControlLeft':
+      // case 'ControlRight': controls.attack = true; break;
+
+  }
+
+}
+
+function onKeyUp(event) {
+
+  switch (event.code) {
+
+    case 'ArrowUp':
+    case 'KeyW':
+      controls.moveForward = false;
+      break;
+
+    case 'ArrowDown':
+    case 'KeyS':
+      controls.moveBackward = false;
+      break;
+
+    case 'ArrowLeft':
+    case 'KeyA':
+      controls.moveLeft = false;
+      break;
+
+    case 'ArrowRight':
+    case 'KeyD':
+      controls.moveRight = false;
+      break;
+
+      // case 'KeyC': controls.crouch = false; break;
+      // case 'Space': controls.jump = false; break;
+      // case 'ControlLeft':
+      // case 'ControlRight': controls.attack = false; break;
+
+  }
+
+}
+
+//===================================================
+// PLAYER CONFIGURATION
+//===================================================
+//     
+const configPlayer = {
+  baseUrl: 'models/innerKid/',
+  body: 'innerKid.fbx',
+  skins: [],
+  animations: {
+    move: 'run',
+    idle: 'stand',
+    jump: 'jump',
+    attack: 'attack',
+    crouchMove: 'cwalk',
+    crouchIdle: 'cstand',
+    crouchAttach: 'crattack'
+  },
+  walkSpeed: 350,
+  crouchSpeed: 175
+}
+//
+//
+//===================================================
+// EVENTS
+//===================================================
+//
+document.addEventListener('keydown', onKeyDown)
+//
+document.addEventListener('keyup', onKeyUp)
+//
+window.addEventListener('resize', () => {
+
+  sizes.width = window.innerWidth
+  sizes.height = window.innerHeight
+
+  camera.aspect = sizes.width / sizes.height
+  camera.updateProjectionMatrix()
+
+  renderer.setSize(sizes.width, sizes.height)
+  // anaglyphFX.setSize(sizes.width, sizes.height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+})
+//
+//
+
+//===================================================
+// TIMELINES
+//===================================================
+
+const tl = gsap.timeline()
+const duration = 8
+const ease = 'linear'
+const easeOut = 'ease out'
+const easeIn = 'ease in'
+let animationIsFinished = false
+
+
+function cameraAnimation() {
+
+  if(!animationIsFinished) {
+    animationIsFinished = true
+
+    tl.to(camera.position, {
+      x: 14,
+      y: 14,
+      z: 14,
+      duration,
+      easeIn
+    })
+
+    .to(camera.position, {
+      x: 1,
+      y: 0,
+      z: 1,
+      duration,
+      ease,
+      onUpdate: function() {
+        camera.lookAt(0, 0, 0)
+      }
+    },)
+
+    .to(camera.position, {
+      x: 0.05,
+      y: 0.05,
+      z: 0.05,
+      duration,
+      easeOut,
+      onUpdate: function() {
+        camera.lookAt(0, 0, 0)
+      }
+    })
+
+    .to(camera.position, {
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: 10,
+      easeIn,
+      })
+  }
+}
+
+window.addEventListener('mousedown', cameraAnimation)
+
+//
+//
+cameraControls.addEventListener('start', () => console.log("Controls start event"))
+cameraControls.addEventListener('end', () => console.log("Controls end event"))
+//
+let mouseX, mouseY
+//
+if (window.DeviceOrientationEvent) {
+  window.addEventListener('deviceorientation', function(eventData) {
+
+    const tiltX = Math.round(eventData.gamma * 2);
+    const tiltY = Math.round(eventData.beta * 2);
+
+    deviceOrientationHandler(tiltX, tiltY);
+
+  }, false);
+}
+//
+function deviceOrientationHandler(tiltX, tiltY) {
+
+  mouseX = tiltX;
+  mouseY = tiltY;
+}
+//
+//
 //===================================================
 // TWEAKPANE CHARACTER ACTIONS
 //===================================================
 
 
-const pane = new Pane({ title: "Character Actions", container: document.getElementById('p--chActions'), expanded: false })
+const pane = new Pane({ title: "Animations", container: document.getElementById('p--chActions'), expanded: false })
 pane.addButton({ title: 'Offended Iddle' })
 pane.addButton({ title: 'Neutral Iddle' })
 pane.addButton({ title: 'Happy Iddle' })
@@ -310,16 +536,17 @@ pane.addButton({ title: 'Running ' })
 pane.addButton({ title: 'Running 2' })
 pane.addButton({ title: 'Default' })
 
-// animationsFolder.addInput(PARAMS, 'Animations', {options: { default,}})
 
-
-/////////////////////////////////////////////////////////////////////////////
+//===================================================
 // Inner_KID 👦🏽    
-/////////////////
+//===================================================
 
 const gltfLoader = new GLTFLoader()
 
 let mixer = null
+let mixer2 = null
+let mixer3 = null
+
 let allies
 
 let allie_1, allie_2, allie_3, allie_4, allie_5, allie_6
@@ -327,7 +554,9 @@ let allie_1, allie_2, allie_3, allie_4, allie_5, allie_6
 gltfLoader.load('/models/theAllies/THE_ALLIES.glb', (gltf) => {
 
   allies = gltf.scene
+  allies.scale.set(0.25, 0.25, 0.25)
   allies.position.set(0, 0, 0)
+
   console.log(allies.children)
 
   allie_1 = allies.children[0]
@@ -338,10 +567,11 @@ gltfLoader.load('/models/theAllies/THE_ALLIES.glb', (gltf) => {
   allie_6 = allies.children[5]
 
   allie_1.position.set(0, 0, 0)
-  // allie_1.scale.set(0.025, 0.025, 0.025)
+  allie_1.scale.set(1.5, 1.5, 1.5)
 
   allie_2.position.set(0, 0, 0)
   allie_2.scale.set(0.025, 0.025, 0.025)
+
 
   allie_3.position.set(0, 0, -0.1)
   allie_3.scale.set(0.025, 0.025, 0.025)
@@ -382,6 +612,8 @@ gltfLoader.load('/models/theAllies/THE_ALLIES.glb', (gltf) => {
   action5.play()
 
 })
+
+// gyro.add(allies)
 
 
 ////////////////////////////////////////////////////////////////////
@@ -458,27 +690,29 @@ const clock = new THREE.Clock()
 let previousTime = 0
 
 function animate() {
+
+
   requestAnimationFrame(animate)
 
   const elapsedTime = clock.getElapsedTime()
   const deltaTime = elapsedTime - previousTime
   previousTime = elapsedTime
 
-
-  controls.update()
-
+  cameraControls.update()
 
   if (mixer) { mixer.update(deltaTime) }
 
-  render()
-
+  renderer.render( scene, camera)
 
   stats.update()
+
 
 }
 
 function render() {
+
   renderer.render(scene, camera)
+
 }
 
 // -- Ω

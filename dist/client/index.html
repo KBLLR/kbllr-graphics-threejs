@@ -57,18 +57,18 @@
     position: fixed;
     z-index: 1000;
     pointer-events: none;
-    right: 2%;
-    bottom: 4%;
+    left: 6%;
+    bottom: 3%;
     max-width: 20%;
     background-color: color(srgb-linear 0 0 0);
-    /* mix-blend-mode: difference; */
+    mix-blend-mode: difference;
   }
 
   .pane {
     position: fixed;
-    width: 40%;
-    bottom: 2%;
-    left: 2%;
+    width: 24%;
+    top: 2%;
+    right: 2%;
   }
 
 
@@ -83,7 +83,7 @@
     top: 0;
     left: 0;
     pointer-events: none;
-    opacity: 1;
+    opacity: 0;
   }
 
   /*  #menuPanel {
@@ -116,9 +116,12 @@
   .credits {
     position: fixed;
     z-index: 1000;
-    bottom: 2%;
-    right: 2%;
+    bottom: 3%;
+    right: 6%;
+    font-size: 0.8em;
     color: color(srgb-linear 0.01435 0.01435 0.01435);
+    text-decoration: none;
+    font-family: Pirulen Regular ;
   }
 
   </style>
@@ -126,28 +129,50 @@
 
 <body>
   <!-- Cursor -->
+
   <div class="cursor">
     <div class="cursor-ball"></div>
   </div>
 
   <!-- Canvas Web GL ------------>
+
   <canvas class="webgl" id="canvas"></canvas>
+
+  <!-- UI: LOGO ------------>
 
   <img src="./img/logo.png" id="logo" data-link>
 
+  <div class="blured-wrapper">
+    <div class="blured-circle"></div>
+    <div class="blured-circle"></div>
+    <div class="blured-circle"></div>
+  </div>
+
+  <!-- UI: Credits ------------>
+
   <div class="credits">
-    Character Configurator by: <a href="https://instagram.com/kbllr.graphics">David Caballero</a> for <a href="https://kbllr.graphics">kbllr.graphics</a>
+    The Allies: 
+    <a href="https://instagram.com/kbllr.graphics" target="_blank">
+    by David Kbllr
+    </a> for 
+    <a href="https://kbllr.graphics" target="_blank">kbllr.graphics</a>
   <div>
 
-    <div class="pane" id="p--chActions">
+  <!-- UI: TWEAKPANE ------------>
 
-    <div class="overlay" id="tvLines"></div>
-      <!--   <div id="menuPanel">
-    <div id="startButton">
-        <button id="stButton">Click to Start</button>
-        <button id="swButton">Switch to Orbit Controls</button>
-    </div>
-    </div> -->
+  <div class="pane" id="p--chActions">
+
+  <!-- OVERLAY ------------------>
+
+  <div class="overlay" id="tvLines"></div>
+
+  <!--   <div id="menuPanel">
+  <div id="startButton">
+      <button id="stButton">Click to Start</button>
+      <button id="swButton">Switch to Orbit Controls</button>
+  </div>
+  </div> -->
+
 
       <script type="module" src="bundle.js"></script>
 </body>
