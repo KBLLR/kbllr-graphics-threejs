@@ -1,11 +1,12 @@
 console.clear()
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-// import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
-// import { DragControls } from 'three/examples/jsm/controls/DragControls'
+import { DragControls } from 'three/examples/jsm/controls/DragControls'
+import { MD2CharacterComplex } from 'three/examples/misc/MD2CharacterComplex.js';
+import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
-import {RectAreaLightUniformsLib} from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
-import {RectAreaLightHelper} from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
@@ -23,10 +24,10 @@ import {
   PredicationMode,
   RenderPass,
   ShaderPass,
-	SMAAPreset,
-	ACESFilmicToneMapping,
-	ColorDepthEffect,
-	TextureEffect,
+  SMAAPreset,
+  ACESFilmicToneMapping,
+  ColorDepthEffect,
+  TextureEffect,
   sRGBEncoding,
   MaskFunction,
   NoToneMapping,
@@ -40,7 +41,7 @@ import {
   kernelSize,
   LUTOperation,
   SelectiveBloomEffect,
-  FXAAEffect,	
+  FXAAEffect,
   VignetteEffect,
   VignetteTechnique,
   WebGlExtension,
@@ -57,48 +58,42 @@ import studio from "@theatre/studio"
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshBVH } from '../../node_modules/three-mesh-bvh/'
 // import {
-// 	generateEdges,
-// 	isLineAbovePlane,
-// 	isYProjectedTriangleDegenerate,
-// 	isLineTriangleEdge,
-// 	trimToBeneathTriPlane,
-// 	edgesToGeometry,
-// 	overlapsToLines,
-// 	getProjectedOverlaps,
-// 	isYProjectedLineDegenerate,
-// 	compressEdgeOverlaps,
+//  generateEdges,
+//  isLineAbovePlane,
+//  isYProjectedTriangleDegenerate,
+//  isLineTriangleEdge,
+//  trimToBeneathTriPlane,
+//  edgesToGeometry,
+//  overlapsToLines,
+//  getProjectedOverlaps,
+//  isYProjectedLineDegenerate,
+//  compressEdgeOverlaps,
 // } from '../../node_modules/three-mesh-bvh/example/utils/edgeUtils.js'
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 
-///////////////////////////////////////////////////
-// ✧ MENU PANEL FOR POINTER LOCK CONTROLS MODE
-///////////////////////////////////////////////
 
-
-// const menuPanel = document.getElementById('menuPanel') as HTMLDivElement
-// const startButton = document.getElementById('startButton') as HTMLInputElement
-// startButton.addEventListener(
-//     'click',
-//     function () {
-//         pointerControls.lock()
-//     },
-//     false
-// )
+//===================================================
+// ✧ CUSTOM CURSOR
+//===================================================
 
 
 
-////////////////////////////////////
-// ✧ CANVAS ✧ SCENES ✧ CONSTANTS///
-//////////////////////////////////
+//===================================================
+// ✧ CANVAS ✧ SCENES ✧ CONSTANTS
+//===================================================
 
+const canvas = document.querySelector("canvas")
 
-const canvas = document.querySelector("canvas");
 const scene = new THREE.Scene()
+
 const sizes = { width: window.innerWidth, height: window.innerHeight }
+
 const canvas_width = sizes.width
+
 const canvas_height = sizes.height
+
 const aspect = sizes.width / sizes.height
 
 
@@ -109,47 +104,55 @@ const aspect = sizes.width / sizes.height
 const textureLoader = new THREE.TextureLoader()
 const textureLoad = new RGBELoader()
 
-textureLoad.setPath('img/')
+textureLoad.setPath('/img/')
 
 const textureCube = textureLoad.load('photo_studio_01_1k.hdr', function(texture) {
-  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.mapping = THREE.EquirectangularReflectionMapping
 })
 
 
-scene.fog = new THREE.FogExp2( 0x000000, 0.8 )
+//===================================================
+// SCENE FOG & BACKGROUND
+//===================================================
 
-////////////////
-// ✧ CAMERA  //
-///////////////
+scene.fog = new THREE.Fog(0xffffff, 0.01, 1.5)
+// scene.fog = new THREE.FogExp2( 0xffffff, 5.5 )
+
+scene.background = new THREE.Color( 0xffffff )
 
 
-const camera = new THREE.PerspectiveCamera(50, aspect, 0.01, 20000)
-camera.position.x = 0
-camera.position.y = 0.1
-camera.position.z = 0.4
+//===================================================
+// ✧ CAMERA  
+//===================================================
+
+const camera = new THREE.PerspectiveCamera(45, aspect, 0.001, 20000)
+
+camera.position.x = -0.15
+camera.position.y = 0
+camera.position.z = 0
 camera.lookAt(new THREE.Vector3(0, 0, 0))
 
+scene.add(camera)
 
+//===================================================
 //-- ORTHOGRAPHIC CAMERA
 
-let orthoCamera
-{
-  const left = - 5
-  const right = 5
-  const top = 5
-  const bottom = -5
-  const near = 0.5
-  const far = 500
+// let orthoCamera {
+//   const left = -5
+//   const right = 5
+//   const top = 5
+//   const bottom = -5
+//   const near = 0.5
+//   const far = 500
 
-  orthoCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far)
-  orthoCamera.position.z = -1
-  orthoCamera.lookAt(new THREE.Vector3(0, 0, 0))
-}
+//   orthoCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far)
+//   orthoCamera.position.z = -1
+//   orthoCamera.lookAt(new THREE.Vector3(0, 0, 0))
+// }
 
-
-///////////////////////
-// ✧ RESPONSIVENESS //
-//////////////////////
+//===================================================
+// ✧ RESPONSIVENESS 
+//===================================================
 
 
 window.addEventListener('resize', () => {
@@ -167,14 +170,12 @@ window.addEventListener('resize', () => {
 })
 
 
-///   /////  ////// //
-// ✧ RENDERER  /// //
-///// ///   ///  //// 
-
-
+//===================================================
+// ✧ RENDERER  
+//===================================================
 
 const renderer = new THREE.WebGLRenderer({
-	canvas: canvas,
+  canvas: canvas,
   powerPreference: "high-performance",
   antialias: true,
   stencil: true,
@@ -183,7 +184,7 @@ const renderer = new THREE.WebGLRenderer({
 
 
 renderer.setSize(sizes.width, sizes.height)
-renderer.setClearColor(0xf5f5f5)
+renderer.setClearColor(0xffffff, 1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 renderer.physicallyCorrectLights = true
 renderer.shadowMap.enabled = true
@@ -192,14 +193,14 @@ renderer.outputEncoding = sRGBEncoding
 // renderer.shadowMap.type = THREE.VSMShadowMap
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = ACESFilmicToneMapping
-renderer.toneMappingExposure = 1
+renderer.toneMappingExposure = 1.2
 
 // document.body.appendChild(renderer.domElement)
 
 
-/////////////////
-// ✧ CONTROLS ///
-///////////////
+//===================================================
+// ✧ ORBIT CONTROLS 
+//===================================================
 
 
 const controls = new OrbitControls(camera, renderer.domElement)
@@ -211,45 +212,165 @@ controls.enableDamping = true
 controls.dampingFactor = 0.08
 controls.autoRotate = false
 controls.enableZoom = true
-controls.autoRotateSpeed = 1.2
+controls.autoRotateSpeed = 2
 controls.zoomSpeed = 1.5
 controls.panSpeed = 1
-controls.minDistance = 0.1
-controls.maxDistance = 55
+controls.minDistance = 0.05
+controls.maxDistance = 3
 controls.minPolarAngle = 0
 controls.maxPolarAngle = Math.PI / 2.1
 
 
-// / //// // ////////// ////
-// ✧ POINTER LOCK CONTROLS - FIRST PERSON VIEW ///
-///  ////////  /////// //
-
-// const pointerControls = new PointerLockControls(camera, renderer.domElement)
-// pointerControls.addEventListener('lock', () => (menuPanel.style.display = 'none'))
-// pointerControls.addEventListener('unlock', () => (menuPanel.style.display = 'block'))
-
-// const onKeyDown = function (event: KeyboardEvent) {
-// switch (event.code) {
-// case 'KeyW':
-//     pointerControls.moveForward(0.25)
-//     break
-// case 'KeyA':
-//     pointerControls.moveRight(-0.25)
-//     break
-// case 'KeyS':
-//     pointerControls.moveForward(-0.25)
-//     break
-// case 'KeyD':
-//     pointerControls.moveRight(0.25)
-//     break
-// }
-// }
-// document.addEventListener('keydown', onKeyDown, false)
+//===================================================
+// ✧ LIGHTS 
+//===================================================
 
 
-// / //// // ////////// ////
-// ✧ DRAG CONTROLS ///
-///  ////////  /////// //
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 2.61)
+hemiLight.position.set(0, 20, 0)
+scene.add(hemiLight)
+
+const light = new THREE.DirectionalLight( 0xffffff, 2.25 )
+light.position.set( 20, 45, 50 )
+
+light.castShadow = true
+light.shadow.mapSize.width = 1024
+light.shadow.mapSize.height = 512
+
+light.shadow.camera.near = 1
+light.shadow.camera.far = 1200
+
+light.shadow.camera.left = - 1
+light.shadow.camera.right = 1
+light.shadow.camera.top = 3
+light.shadow.camera.bottom = - 3
+
+scene.add( light );
+// scene.add( new THREE.CameraHelper( light.shadow.camera ) )
+
+
+//===================================================
+// ✧ GROUND 
+//===================================================
+
+
+const textureLoader = new THREE.TextureLoader()
+
+const gGeometry = new THREE.PlaneGeometry( 16, 16)
+
+const gMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: textureLoader.load( '/img/sciFi/base.png' )})
+gMaterial.roughnessMap =  textureLoader.load( '/img/sciFi/roughness.png' )
+gMaterial.metallicMap =  textureLoader.load( '/img/sciFi/metallic.png' )
+gMaterial.normalMap =  textureLoader.load( '/img/sciFi/normal.png' )
+
+const ground = new THREE.Mesh( gGeometry, gMaterial );
+ground.rotation.x = - Math.PI / 2
+ground.material.map.repeat.set( 64, 64 )
+ground.material.map.wrapS = THREE.RepeatWrapping
+ground.material.map.wrapT = THREE.RepeatWrapping
+ground.material.map.encoding = THREE.sRGBEncoding
+ground.receiveShadow = true;
+
+scene.add( ground )
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// ✧ GRID HELPER 
+///////////////
+
+const gridHelper = new THREE.GridHelper(40, 400)
+gridHelper.position.y = 0.001
+scene.add(gridHelper)
+
+// TWEAKPANE CHARACTER ACTIONS
+
+const pane = new Pane({ title: "Character Actions", container: document.getElementById('p--chActions'), expanded: false })
+pane.addButton({ title: 'Offended Iddle' })
+pane.addButton({ title: 'Neutral Iddle' })
+pane.addButton({ title: 'Happy Iddle' })
+pane.addButton({ title: 'Walking' })
+pane.addButton({ title: 'Standard Walking' })
+pane.addButton({ title: 'Running ' })
+pane.addButton({ title: 'Running 2' })
+pane.addButton({ title: 'Default' })
+
+// animationsFolder.addInput(PARAMS, 'Animations', {options: { default,}})
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Inner_KID 👦🏽    
+/////////////////
+
+const gltfLoader = new GLTFLoader()
+
+let mixer = null
+let allies
+
+let allie_1, allie_2, allie_3, allie_4, allie_5, allie_6
+
+gltfLoader.load('/models/theAllies/THE_ALLIES.glb', (gltf) => {
+
+  allies = gltf.scene
+  allies.position.set(0, 0, 0)
+  console.log(allies.children)
+
+  allie_1 = allies.children[0]
+  allie_2 = allies.children[1]
+  allie_3 = allies.children[2]
+  allie_4 = allies.children[3]
+  allie_5 = allies.children[4]
+  allie_6 = allies.children[5]
+
+  allie_1.position.set(0, 0, 0)
+  // allie_1.scale.set(0.025, 0.025, 0.025)
+
+  allie_2.position.set(0, 0, 0)
+  allie_2.scale.set(0.025, 0.025, 0.025)
+
+  allie_3.position.set(0, 0, -0.1)
+  allie_3.scale.set(0.025, 0.025, 0.025)
+
+  allie_4.position.set(0, 0, -0.05)
+  allie_4.scale.set(0.025, 0.025, 0.025)
+
+  allie_5.position.set(0, 0, 0.1)
+  allie_5.scale.set(0.025, 0.025, 0.025)
+
+  allie_6.position.set(0, 0, 0.05)
+  allie_6.scale.set(0.025, 0.025, 0.025)
+
+  allies.traverse(function(child) {
+    if (
+      child instanceof THREE.Mesh) {}
+  })
+
+  scene.add(allies)
+
+  mixer = new THREE.AnimationMixer(allies)
+  const action = mixer.clipAction(gltf.animations[0])
+  action.play()
+
+  const action1 = mixer.clipAction(gltf.animations[1])
+  action1.play()
+
+  const action2 = mixer.clipAction(gltf.animations[2])
+  action2.play()
+
+  const action3 = mixer.clipAction(gltf.animations[3])
+  action3.play()
+
+  const action4 = mixer.clipAction(gltf.animations[4])
+  action4.play()
+
+  const action5 = mixer.clipAction(gltf.animations[5])
+  action5.play()
+
+})
+
+
+////////////////////////////////////////////////////////////////////
+// ✧ CONTROLLER DRAG CHARACTER
+///////////////
 
 
 // const dragSphereGeo = new THREE.SphereGeometry()
@@ -281,10 +402,499 @@ controls.maxPolarAngle = Math.PI / 2.1
 // })
 
 
-// / //// // ////////// ////
-// ✧ TRANSFORM CONTROLS ///
-///  ////////  /////// //
+////////////////////////////////////////////////////////////////////
+// ✧ CONTROLLER CHARACTER
+///////////////
 
+const params {
+  decceleration: new THREE.Vector3(-0.0005, -0.0001, -5.0),
+  acceleration: new THREE.Vector3(1, 0.25, 50.0),
+  velocity: new THREE.Vector3(0, 0, 0),
+}
+
+const animations = []
+
+const target = fbx
+const mixer = new THREE.AnimationMixer(target)
+
+const clip = target.animations[0]
+const action = mixer.clipAction(clip)
+
+const animationName = ''
+
+animations[animationName] = {
+    clip: clip,
+    action: action,
+  }
+
+
+const _OnLoad = (string ='player@neutralIdle.fbx', animations =[]) => {
+  const clip = animations[0]
+  const action = mixer.clipAction(clip)
+
+const input = new BasicCharacterControllerInput()
+const loaderFBX = new FBXLoader()
+const loader = loaderFBX.setPath('/models/player/')
+
+
+loader.load('player@walking.fbx', (a) => { onLoad('walk', a); })
+loader.load('player@standardWalk.fbx', (a) => { onLoad('standard walk', a); })
+loader.load('player@running.fbx', (a) => { onLoad('run', a); })
+loader.load('player@running2.fbx', (a) => { onLoad('run2', a); })
+loader.load('player@happyIdle.fbx', (a) => { onLoad('happy idle', a); })
+loader.load('player@neutralIdle.fbx', (a) => { onLoad('neutral idle', a); })
+loader.load('player@offensiveIdle.fbx', (a) => { onLoad('offensive idle', a); })
+
+const manager = new THREE.LoadingManager()
+
+const onLoad 
+const manager.onLoad = () => {stateMachine.SetState('neutral idle')}
+
+
+
+const getAnimations() => { return animations }
+
+const keys = [{
+  forward: false,
+  backward: false,
+  left: false,
+  right: false,
+  space: false,
+  shift: false,
+}]
+
+const stateMachine = new CharacterFSM(new BasicCharacterControllerProxy(animations))
+
+loaderFBX.load(path, 'innerKid.fbx', (target) => {
+    target.scale.setScalar(0.1)
+
+    target.traverse(c => { c.castShadow = true })
+
+    scene.add(target) 
+})
+  
+
+  Update(timeInSeconds) {
+    if (!this._target) {
+      return;
+    }
+
+    this._stateMachine.Update(timeInSeconds, this._input);
+
+    const velocity = this._velocity;
+    const frameDecceleration = new THREE.Vector3(
+      velocity.x * this._decceleration.x,
+      velocity.y * this._decceleration.y,
+      velocity.z * this._decceleration.z
+    );
+    frameDecceleration.multiplyScalar(timeInSeconds);
+    frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
+      Math.abs(frameDecceleration.z), Math.abs(velocity.z));
+
+    velocity.add(frameDecceleration);
+
+    const controlObject = this._target;
+    const _Q = new THREE.Quaternion();
+    const _A = new THREE.Vector3();
+    const _R = controlObject.quaternion.clone();
+
+    const acc = this._acceleration.clone();
+    if (this._input._keys.shift) {
+      acc.multiplyScalar(2.0);
+    }
+
+    if (this._stateMachine._currentState.Name == 'dance') {
+      acc.multiplyScalar(0.0);
+    }
+
+    if (this._input._keys.forward) {
+      velocity.z += acc.z * timeInSeconds;
+    }
+    if (this._input._keys.backward) {
+      velocity.z -= acc.z * timeInSeconds;
+    }
+    if (this._input._keys.left) {
+      _A.set(0, 1, 0);
+      _Q.setFromAxisAngle(_A, 4.0 * Math.PI * timeInSeconds * this._acceleration.y);
+      _R.multiply(_Q);
+    }
+    if (this._input._keys.right) {
+      _A.set(0, 1, 0);
+      _Q.setFromAxisAngle(_A, 4.0 * -Math.PI * timeInSeconds * this._acceleration.y);
+      _R.multiply(_Q);
+    }
+
+    controlObject.quaternion.copy(_R)
+
+    const oldPosition = new THREE.Vector3()
+    oldPosition.copy(controlObject.position)
+
+    const forward = new THREE.Vector3(0, 0, 1)
+    forward.applyQuaternion(controlObject.quaternion)
+    forward.normalize();
+
+    const sideways = new THREE.Vector3(1, 0, 0)
+    sideways.applyQuaternion(controlObject.quaternion)
+    sideways.normalize();
+
+    sideways.multiplyScalar(velocity.x * timeInSeconds)
+    forward.multiplyScalar(velocity.z * timeInSeconds)
+
+    controlObject.position.add(forward)
+    controlObject.position.add(sideways)
+
+    oldPosition.copy(controlObject.position)
+
+    if (this._mixer) {
+      this._mixer.update(timeInSeconds)
+    }
+  }
+}
+
+const BasicCharacterControllerInput =>() {
+
+   
+    document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
+    document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
+  }
+
+  _onKeyDown(event) {
+    switch (event.keyCode) {
+      case 87: // w
+        this._keys.forward = true;
+        break;
+      case 65: // a
+        this._keys.left = true;
+        break;
+      case 83: // s
+        this._keys.backward = true;
+        break;
+      case 68: // d
+        this._keys.right = true;
+        break;
+      case 32: // SPACE
+        this._keys.space = true;
+        break;
+      case 16: // SHIFT
+        this._keys.shift = true;
+        break;
+    }
+  }
+
+  _onKeyUp(event) {
+    switch (event.keyCode) {
+      case 87: // w
+        this._keys.forward = false;
+        break;
+      case 65: // a
+        this._keys.left = false;
+        break;
+      case 83: // s
+        this._keys.backward = false;
+        break;
+      case 68: // d
+        this._keys.right = false;
+        break;
+      case 32: // SPACE
+        this._keys.space = false;
+        break;
+      case 16: // SHIFT
+        this._keys.shift = false;
+        break;
+    }
+  }
+}
+
+
+class FiniteStateMachine {
+  constructor() {
+    this._states = {};
+    this._currentState = null;
+  }
+
+  _AddState(name, type) {
+    this._states[name] = type;
+  }
+
+  SetState(name) {
+    const prevState = this._currentState;
+
+    if (prevState) {
+      if (prevState.Name == name) {
+        return;
+      }
+      prevState.Exit();
+    }
+
+    const state = new this._states[name](this);
+
+    this._currentState = state;
+    state.Enter(prevState);
+  }
+
+  Update(timeElapsed, input) {
+    if (this._currentState) {
+      this._currentState.Update(timeElapsed, input);
+    }
+  }
+};
+
+
+class CharacterFSM extends FiniteStateMachine {
+  constructor(proxy) {
+    super();
+    this._proxy = proxy;
+    this._Init();
+  }
+
+  _Init() {
+    AddState('idle', IdleState)
+    AddState('walk', WalkState)
+    AddState('run', RunState)
+    AddState('dance', DanceState)
+  }
+};
+
+
+class State {
+  constructor(parent) {
+    this._parent = parent
+  }
+
+  Enter() {}
+  Exit() {}
+  Update() {}
+}
+
+
+class DanceState extends State {
+  constructor(parent) {
+    super(parent)
+
+    this._FinishedCallback = () => {
+      this._Finished()
+    }
+  }
+
+  get Name() {
+    return 'happy idle';
+  }
+
+  Enter(prevState) {
+    const curAction = this._parent._proxy._animations['dance'].action;
+    const mixer = curAction.getMixer();
+    mixer.addEventListener('finished', this._FinishedCallback);
+
+    if (prevState) {
+      const prevAction = this._parent._proxy._animations[prevState.Name].action;
+
+      curAction.reset();
+      curAction.setLoop(THREE.LoopOnce, 1);
+      curAction.clampWhenFinished = true;
+      curAction.crossFadeFrom(prevAction, 0.2, true);
+      curAction.play();
+    } else {
+      curAction.play();
+    }
+  }
+
+  _Finished() {
+    this._Cleanup();
+    this._parent.SetState('idle');
+  }
+
+  _Cleanup() {
+    const action = this._parent._proxy._animations['dance'].action;
+
+    action.getMixer().removeEventListener('finished', this._CleanupCallback);
+  }
+
+  Exit() {
+    this._Cleanup();
+  }
+
+  Update(_) {}
+};
+
+
+class WalkState extends State {
+  constructor(parent) {
+    super(parent);
+  }
+
+  get Name() {
+    return 'walk';
+  }
+
+  Enter(prevState) {
+    const curAction = this._parent._proxy._animations['walk'].action;
+    if (prevState) {
+      const prevAction = this._parent._proxy._animations[prevState.Name].action;
+
+      curAction.enabled = true;
+
+      if (prevState.Name == 'run') {
+        const ratio = curAction.getClip().duration / prevAction.getClip().duration;
+        curAction.time = prevAction.time * ratio;
+      } else {
+        curAction.time = 0.0;
+        curAction.setEffectiveTimeScale(1.0);
+        curAction.setEffectiveWeight(1.0);
+      }
+
+      curAction.crossFadeFrom(prevAction, 0.5, true);
+      curAction.play();
+    } else {
+      curAction.play();
+    }
+  }
+
+  Exit() {}
+
+  Update(timeElapsed, input) {
+    if (input._keys.forward || input._keys.backward) {
+      if (input._keys.shift) {
+        this._parent.SetState('run');
+      }
+      return;
+    }
+
+    this._parent.SetState('idle');
+  }
+};
+
+
+class RunState extends State {
+  constructor(parent) {
+    super(parent);
+  }
+
+  get Name() {
+    return 'run';
+  }
+
+  Enter(prevState) {
+    const curAction = this._parent._proxy._animations['run'].action;
+    if (prevState) {
+      const prevAction = this._parent._proxy._animations[prevState.Name].action;
+
+      curAction.enabled = true;
+
+      if (prevState.Name == 'walk') {
+        const ratio = curAction.getClip().duration / prevAction.getClip().duration;
+        curAction.time = prevAction.time * ratio;
+      } else {
+        curAction.time = 0.0;
+        curAction.setEffectiveTimeScale(1.0);
+        curAction.setEffectiveWeight(1.0);
+      }
+
+      curAction.crossFadeFrom(prevAction, 0.5, true);
+      curAction.play();
+    } else {
+      curAction.play();
+    }
+  }
+
+  Exit() {}
+
+  Update(timeElapsed, input) {
+    if (input._keys.forward || input._keys.backward) {
+      if (!input._keys.shift) {
+        this._parent.SetState('walk');
+      }
+      return;
+    }
+
+    this._parent.SetState('idle');
+  }
+};
+
+
+class IdleState extends State {
+  constructor(parent) {
+    super(parent);
+  }
+
+  get Name() {
+    return 'idle';
+  }
+
+  Enter(prevState) {
+    const idleAction = this._parent._proxy._animations['idle'].action;
+    if (prevState) {
+      const prevAction = this._parent._proxy._animations[prevState.Name].action;
+      idleAction.time = 0.0;
+      idleAction.enabled = true;
+      idleAction.setEffectiveTimeScale(1.0);
+      idleAction.setEffectiveWeight(1.0);
+      idleAction.crossFadeFrom(prevAction, 0.5, true);
+      idleAction.play();
+    } else {
+      idleAction.play();
+    }
+  }
+
+  Exit() {}
+
+  Update(_, input) {
+    if (input._keys.forward || input._keys.backward) {
+      this._parent.SetState('walk')
+    } else if (input._keys.space) {
+      this._parent.SetState('dance')
+    }
+  }
+}
+
+
+
+const LoadAnimatedModel() => {
+  const params = {
+    camera: camera,
+    scene: scene,
+  }
+  const controlsCharacter = new BasicCharacterController(params)
+}
+
+
+const loader = new FBXLoader()
+const path = '/models/player/'
+const LoadAnimatedModelAndPlay(path, modelFile, animFile, offset) => {
+  loader.setPath(path)
+  loader.load(modelFile, (fbx) => {
+    fbx.scale.setScalar(0.1);
+    fbx.traverse(c => {
+      c.castShadow = true;
+    })
+    fbx.position.copy(offset);
+
+    const anim = new FBXLoader();
+    anim.setPath(path);
+    anim.load(animFile, (anim) => {
+      const m = new THREE.AnimationMixer(fbx);
+      mixers.push(m);
+      const idle = m.clipAction(anim.animations[0]);
+      idle.play();
+    })
+
+    scene.add(fbx)
+  })
+}
+
+const loader = new GLTFLoader()
+
+loader.load('/models/player@twearking.glb', (gltf) => {
+  gltf.scene.traverse(c => {
+    c.castShadow = true
+  })
+  scene.add(gltf.scene)
+})
+
+
+
+////////////////////////////////////////////////////////////////////
+// ✧ CONTROLLER CHARACTER TRANSFORM
+///////////////
 
 const transformControls = new TransformControls(camera, renderer.domElement)
 // controls.enabled = !event.value
@@ -292,138 +902,30 @@ const transformControls = new TransformControls(camera, renderer.domElement)
 // transformControls.setMode('rotate')
 // scene.add(transformControls)
 
-window.addEventListener('keydown', function (event) {
-switch (event.code) {
-case 'KeyG':
-    transformControls.setMode('translate')
-    break
-case 'KeyR':
-    transformControls.setMode('rotate')
-    break
-case 'KeyT':
-    transformControls.setMode('scale')
-    break
-}
+window.addEventListener('keydown', function(event) {
+  switch (event.code) {
+    case 'KeyG':
+      transformControls.setMode('translate')
+      break
+    case 'KeyR':
+      transformControls.setMode('rotate')
+      break
+    case 'KeyT':
+      transformControls.setMode('scale')
+      break
+  }
 })
-
-
-/////////////////
-// ✧ LIGHTS ////
-///////////////
-
-RectAreaLightUniformsLib.init()
-
-
-const color = 0xFFFFFF
-const color2 = 0xFF0000
-const intensity = 5
-const width = 1
-const height = 1
-const light = new THREE.RectAreaLight(color, intensity, width, height);
-const light2 = new THREE.RectAreaLight(color2, intensity, width, height);
-light.position.set(0, 0, -0.25)
-light2.position.set(0, 0, 0.26)
-light.rotation.x = THREE.MathUtils.degToRad(-180)
-light2.rotation.x = THREE.MathUtils.degToRad(-90)
-light2.rotation.y = THREE.MathUtils.degToRad(-180)
-scene.add(light, light2)
- 
-const helper = new RectAreaLightHelper(light);
-const helper2 = new RectAreaLightHelper(light2);
-light.add(helper, helper2);
-
-
-
-/////////////////
-// ✧ GRID HELPER ////
-///////////////
-
-// const gridHelper = new THREE.GridHelper(50, 400)
-// gridHelper.position.y = 0.01
-// scene.add(gridHelper)
-
-
-/////////////////////////////////////////////////////////////////////////////
-// LOADERS  
-//
-
-const fbxLoader = new FBXLoader()
-const gltfLoader = new GLTFLoader()
-
-/////////////////////////////////////////////////////////////////////////////
-// Inner_KID 👦🏽 * Inner_KID 👦🏽 * Inner_KID 👦🏽 * Inner_KID 👦🏽   
-////////////////////////////////////////////////////////////////////////////
-
-
-let kidMixer;
-let kid2Mixer;
-let kidMaterial;
-let kid;
-
-fbxLoader.load(
-  'models/innerKid/animations/walking.fbx', (object) => {
-    kid = object
-    kidMixer = new THREE.AnimationMixer(kid)
-    const action = kidMixer.clipAction(kid.animations[0])
-    action.play()
-
-    kidMaterial = new THREE.MeshPhysicalMaterial({
-      map: textureLoader.load("models/innerKid/tex/skin002/map.png"),
-      metalness: 1.1,
-      metalnessMap: textureLoader.load("models/fbx/curiousKid/tex/skin002/metalnessMap.png"),
-      roughnessMap: textureLoader.load("models/fbx/curiousKid/tex/skin002/roughnessMap.png"),
-      roughness: 4.5,
-      // envMap: g_texture("neon", 4),
-      envMapIntensity: 1,
-      reflectivity: 0.2,
-    })
-
-    kid.traverse(function(object) {
-      if (object.isMesh) {
-        object.material = kidMaterial;
-        object.castShadow = true;
-        object.receiveShadow = true;
-      }
-    });
-
-   	scene.add(kid)
-
-    kid.scale.set(.0014, .0014, .0014)
-    kid.position.set(0, -0.001, 0)
-    kid.rotation.set(0, 0, 0)
-    kid.addEventListener("click", (event) => {
-      event.target.material.color.set(0xff0000);
-      document.body.style.cursor = "pointer";
-    });
-  });
-
-
-//--- PLANE ----------------------------------------
-
-const geoFloor = new THREE.PlaneGeometry( 100, 100 )
-const matFloor = new THREE.MeshPhongMaterial();
-matFloor.color.set(0xf5f5f5)
-matFloor.side =  THREE.DoubleSide
-const planeMesh = new THREE.Mesh( geoFloor, matFloor );
-planeMesh.rotation.x = - Math.PI * 0.5;
-planeMesh.receiveShadow = false
-planeMesh.position.set( 0, -0.01, 0)
-scene.add(planeMesh)
 
 
 ////////////////////////////////////////////////////////////////////
 // ✧ STATS
 ///////////////
 
-// const stats = Stats()
-// document.body.appendChild(stats.dom)
+const stats = Stats()
+document.body.appendChild(stats.dom)
 
 
 // -- RENDERING
-
-function render() {
-  renderer.render(scene, camera)
-}
 
 const clock = new THREE.Clock()
 let previousTime = 0
@@ -431,27 +933,25 @@ let previousTime = 0
 function animate() {
   requestAnimationFrame(animate)
 
-//   if (webcam.readyState === webcam.HAVE_ENOUGH_DATA) {
-//   canvasCtx.drawImage(webcam as CanvasImageSource, 0, 0, webcamCanvas.width, webcamCanvas.height)
-//   if (webcamTexture2D) webcamTexture2D.needsUpdate = true
-// }
-
   const elapsedTime = clock.getElapsedTime()
   const deltaTime = elapsedTime - previousTime
   previousTime = elapsedTime
 
 
-  if (kidMixer) { kidMixer.update(deltaTime) }
-  if (kid2Mixer) { kid2Mixer.update(deltaTime) }
-
   controls.update()
 
-  scene.background = new THREE.Color(0x000000)
 
-  requestAnimationFrame(render)
+  if (mixer) { mixer.update(deltaTime) }
 
-  // stats.update()
+  render()
 
+
+  stats.update()
+
+}
+
+function render() {
+  renderer.render(scene, camera)
 }
 
 // -- Ω

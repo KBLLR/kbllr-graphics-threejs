@@ -2,42 +2,18 @@
 <html lang="en">
 
 <head>
-  <title>KBΓΓR✧Graphics</title>
+  <title>Character Configurator</title>
   <meta name="apple-mobile-web-app-title" content="KBLLR" />
-  <meta name="description" content="VOL 01.Portfolio KBLLR" />
+  <meta name="description" content="Configurator Player" />
   <meta name="viewport" id="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta property="og:title" content="✧ Project001// Anja ♘" />
+  <meta property="og:title" content="Customise your character to visit kbllr Portfolio" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.kbllr.graphics" />
-  <meta property="og:image" content="https://htdi.community/favicon.svg" />
-  <meta property="og:description" content="Artwork from Creative Developer and Technical Artist, David Caballero" />
+  <meta property="og:url" content="https://www.kbllr.graphics/character-configurator" />
+  <meta property="og:image" content="favicon.svg" />
+  <meta property="og:description" content="Select your character, customise it and get ready to explore the artwork from KBLLR" />
   <style type="text/css">
-  :root {
-    --tp-base-background-color: hsla(230, 0%, 43.75%, 0.1);
-    --tp-base-shadow-color: hsla(83, 100%, 50%, 0.11.0);
-    --tp-button-background-color: hsla(230, 2%, 0%, 0.2);
-    --tp-button-background-color-active: hsla(85, 100%, 47%, 1.00);
-    --tp-button-background-color-focus: hsla(85, 8%, 9%, 1.00);
-    --tp-button-background-color-hover: hsla(224.38, 75%, 18.75%, 0.5);
-    --tp-button-foreground-color: hsla(230, 0%, 72%, 1.00);
-    --tp-container-background-color: hsla(230, 1%, 14%, 1);
-    --tp-container-background-color-active: hsla(83, 100%, 50%, 1.00);
-    --tp-container-background-color-focus: hsla(0, 0%, 0%, 0.8);
-    --tp-container-background-color-hover: hsla(22.438, 87.5%, 56.25%, 0.8);
-    --tp-container-foreground-color: hsla(230, 4%, 73%, 1.00);
-    --tp-groove-foreground-color: hsla(230, 20%, 8%, 1.00);
-    --tp-input-background-color: hsla(83, 100%, 50%, 0.71);
-    --tp-input-background-color-active: hsla(246.81, 31.25%, 18.75%, 0.2);
-    --tp-input-background-color-focus: hsla(230, 28%, 18%, 1.00);
-    --tp-input-background-color-hover: hsla(269.25, 37.5%, 37%, 0.5);
-    --tp-input-foreground-color: hsla(230, 0%, 0%, 1.00);
-    --tp-label-foreground-color: hsla(83, 100%, 50%, 1.00);
-    --tp-monitor-background-color: hsla(230, 20%, 8%, 0.26);
-    --tp-monitor-foreground-color: hsla(83, 100%, 50%, 1.00);
-  }
-
   html {
     height: 100%;
     width: 100%;
@@ -50,7 +26,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-kerning: auto;
-    background-color: white;
+    background-color: color(srgb-linear 1 1 1);
   }
 
   body {
@@ -77,64 +53,17 @@
     height: 100vh;
   }
 
-
-  #brandLogo {
-    position: fixed;
-    z-index: 0;
-    top: 0;
-    left: 0%;
-    padding: max(20px, 40px);
-    margin: min(8px, 14px);
-    pointer-events: none;
-    background-color: color(srgb-linear 0 0 0);
-    mix-blend-mode: difference;
-  }
-
   #logo {
     position: fixed;
     z-index: 1000;
     pointer-events: none;
-    left: 2%;
-    top: 2%;
-    max-width: 25%;
+    right: 2%;
+    bottom: 2%;
+    max-width: 20%;
     background-color: color(srgb-linear 0 0 0);
     mix-blend-mode: difference;
   }
 
-  .actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    z-index: 1000;
-    bottom: 2%;
-    right: 2%;
-    padding-top: 5%;
-    overflow-y: scroll;
-    scroll-behavior: smooth;
-    scroll-padding: 0;
-    width: 25%;
-    gap: 8px;
-
-  }
-
-  #c--Render,
-  #c--Socials,
-  #c--PARAMS,
-  #c--Geometries,
-  #c--Helpers,
-  #c--Scene,
-  #c--Settings,
-  #c--Interval,
-  #c--FPS,
-  #c--Scale,
-  #c--Camera,
-  #c--Bezier,
-  #c--Buttons,
-  #c--RadioG {
-    width: 100%;
-  }
 
   .overlay {
     display: flex;
@@ -150,7 +79,7 @@
     opacity: 1;
   }
 
- /*  #menuPanel {
+  /*  #menuPanel {
     position: absolute;
     z-index: 1000;
     background-color: rgba(255, 255, 255, 0.5);
@@ -182,7 +111,7 @@
     z-index: 1000;
     bottom: 2%;
     left: 2%;
-    color: rgba(255, 255, 255, 1.0);
+    color: color(srgb-linear 0.01435 0.01435 0.01435);
   }
 
   </style>
@@ -190,45 +119,30 @@
 
 <body>
   <!-- Cursor -->
-  <div id="custom-cursor"></div>
+  <div class="cursor">
+    <div class="cursor-ball"></div>
+  </div>
 
   <!-- Canvas Web GL ------------>
   <canvas class="webgl" id="canvas"></canvas>
 
-  <img src="./img/logo.png" id="logo">
-
-  <div class="actions">
-    <div class="tp-container" id="c--Render"></div>
-    <div class="tp-container" id="c--Socials"></div>
-    <div class="tp-container" id="c--Settings"></div>
-    <div class="tp-container" id="c--PARAMS"></div>
-    <div class="tp-container" id="c--Geometries"></div>
-    <div class="tp-container" id="c--Scene"></div>
-    <div class="tp-container" id="c--Helpers"></div>
-    <div class="tp-container" id="c--Interval"></div>
-    <div class="tp-container" id="c--Scale"></div>
-    <div class="tp-container" id="c--FPS"></div>
-    <div class="tp-container" id="c--Bezier"></div>
-    <div class="tp-container" id="c--Camera"></div>
-    <div class="tp-container" id="c--Buttons"></div>
-    <div class="tp-container" id="c--RadioG"></div>
-  </div>
+  <img src="./img/logo.png" id="logo" data-link>
 
   <div class="credits">
-    Images by: 
-    <a href="https://unsplash.com/@anniespratt?utm_source=your_app_name&utm_medium=referral">Annie Spratt</a> on <a href="https://unsplash.com/?utm_source=your_app_name&utm_medium=referral">Unsplash</a><div>
+    Character Configurator by: <a href="https://instagram.com/kbllr.graphics">David Caballero</a> for <a href="https://kbllr.graphics">kbllr.graphics</a>
+  <div>
 
-  <div class="overlay" id="tvLines"></div>
+    <div class="pane" id="p--chActions">
 
-<!--   <div id="menuPanel">
+    <div class="overlay" id="tvLines"></div>
+      <!--   <div id="menuPanel">
     <div id="startButton">
         <button id="stButton">Click to Start</button>
         <button id="swButton">Switch to Orbit Controls</button>
     </div>
- </div> -->
+    </div> -->
 
-
-  <script type="module" src="bundle.js"></script>
+      <script type="module" src="bundle.js"></script>
 </body>
 
 </html>
