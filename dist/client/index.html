@@ -26,7 +26,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-kerning: auto;
-    background-color: color(srgb-linear 1 1 1);
+    background-color: color(srgb-linear 0.00516 0.00516 0.00516);
   }
 
   body {
@@ -58,10 +58,17 @@
     z-index: 1000;
     pointer-events: none;
     right: 2%;
-    bottom: 2%;
+    bottom: 4%;
     max-width: 20%;
     background-color: color(srgb-linear 0 0 0);
-    mix-blend-mode: difference;
+    /* mix-blend-mode: difference; */
+  }
+
+  .pane {
+    position: fixed;
+    width: 40%;
+    bottom: 2%;
+    left: 2%;
   }
 
 
@@ -103,14 +110,14 @@
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAECAYAAABP2FU6AAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDAgNzkuMTYwNDUxLCAyMDE3LzA1LzA2LTAxOjA4OjIxICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+LUNEtwAAABBJREFUCJljYGBg8GViQAEABQIAUMdse+oAAAAASUVORK5CYII=");
     mix-blend-mode: normal;
     pointer-events: none;
-    display: none;
+    /* display: none; */
   }
 
   .credits {
     position: fixed;
     z-index: 1000;
     bottom: 2%;
-    left: 2%;
+    right: 2%;
     color: color(srgb-linear 0.01435 0.01435 0.01435);
   }
 
