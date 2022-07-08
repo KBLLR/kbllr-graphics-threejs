@@ -13,7 +13,10 @@
   <meta property="og:url" content="https://www.kbllr.graphics/character-configurator" />
   <meta property="og:image" content="favicon.svg" />
   <meta property="og:description" content="Select your character, customise it and get ready to explore the artwork from KBLLR" />
+
   <style type="text/css">
+  @import url("https://rsms.me/inter/inter.css");
+
   html {
     height: 100%;
     width: 100%;
@@ -22,6 +25,7 @@
     background-color: color(srgb-linear 0.76815 0.92158 1 / 0.5);
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: color(srgb-linear 0 0 0 / 0);
+    font-family: "Inter", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -37,8 +41,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
     font-family: "Pirulen";
     font-size: 100%;
     line-height: 1.2;
@@ -64,12 +68,12 @@
     mix-blend-mode: difference;
   }
 
-  .pane {
+  /* .pane {
     position: fixed;
     width: 24%;
     top: 2%;
     right: 2%;
-  }
+  } */
 
 
   .overlay {
@@ -124,6 +128,8 @@
     font-family: Pirulen Regular ;
   }
 
+
+
   </style>
 </head>
 
@@ -142,12 +148,6 @@
 
   <img src="./img/logo.png" id="logo" data-link>
 
-  <div class="blured-wrapper">
-    <div class="blured-circle"></div>
-    <div class="blured-circle"></div>
-    <div class="blured-circle"></div>
-  </div>
-
   <!-- UI: Credits ------------>
 
   <div class="credits">
@@ -160,11 +160,13 @@
 
   <!-- UI: TWEAKPANE ------------>
 
-  <div class="pane" id="p--chActions">
+  <!-- <div class="pane" id="p--chActions"> -->
 
   <!-- OVERLAY ------------------>
 
   <div class="overlay" id="tvLines"></div>
+
+  <!-- START FIRST PERSON VIEW ------------------>
 
   <!--   <div id="menuPanel">
   <div id="startButton">

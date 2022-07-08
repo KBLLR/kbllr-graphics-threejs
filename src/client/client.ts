@@ -76,12 +76,15 @@ import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUt
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 
-
+//===================================================
+// ✧ REFFERENCE LINKS
+//===================================================
+//-[i]-> https://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline
+//-[i]-> https://en.wikipedia.org/wiki/KISS_principle
+//-[i]-> https://webglfundamentals.org/webgl/lessons/webgl-fundamentals.html
 //===================================================
 // ✧ CUSTOM CURSOR
 //===================================================
-
-
 
 //===================================================
 // ✧ CANVAS ✧ SCENES ✧ CONSTANTS
@@ -112,11 +115,11 @@ const textureLoad = new RGBELoader()
 // SCENE FOG & BACKGROUND
 //===================================================
 
-scene.fog = new THREE.Fog(0x0000ff, 0.1, 14)
+scene.fog = new THREE.Fog(0xffffff, 0.1, 14)
 
 //scene.fog = new THREE.FogExp2( 0xffffff, 1.5 )
 
-scene.background = new THREE.Color(0x0000ff)
+scene.background = new THREE.Color(0xffffff)
 
 
 //===================================================
@@ -125,9 +128,9 @@ scene.background = new THREE.Color(0x0000ff)
 
 const camera = new THREE.PerspectiveCamera(45, aspect, 0.001, 20000)
 
-camera.position.x = 14
+camera.position.x = 0
 camera.position.y = 24
-camera.position.z = 14
+camera.position.z = 0
 camera.lookAt(new THREE.Vector3(0, 0, 0))
 
 scene.add(camera)
@@ -153,8 +156,6 @@ cameraControls.maxPolarAngle = Math.PI / 2.1
 
 //===================================================
 // CATMULLROM
-//
-//-[i]-> https://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline
 
 let u = 0.2 //-- range[0, 1]
 let t
@@ -180,7 +181,6 @@ const curveObject = new THREE.Line( gPoints, mPoints )
 
 //===================================================
 // GYROSCOPE
-
 
 // const gyro = new Gyroscope()
 // gyro.add(camera)
@@ -229,7 +229,6 @@ renderer.toneMappingExposure = 1.9
 
 //===================================================
 // ✧ FX 
-
 
 // const anaglyphFX = new AnaglyphEffect( renderer, sizes.width, sizes.height  )
 
@@ -442,10 +441,8 @@ window.addEventListener('resize', () => {
 //===================================================
 
 const tl = gsap.timeline()
-const duration = 8
+const duration = 4
 const ease = 'linear'
-const easeOut = 'ease out'
-const easeIn = 'ease in'
 let animationIsFinished = false
 
 
@@ -455,11 +452,11 @@ function cameraAnimation() {
     animationIsFinished = true
 
     tl.to(camera.position, {
-      x: 14,
-      y: 14,
-      z: 14,
+      x: 7,
+      y: 7,
+      z: 7,
       duration,
-      easeIn
+      ease
     })
 
     .to(camera.position, {
@@ -474,11 +471,11 @@ function cameraAnimation() {
     },)
 
     .to(camera.position, {
-      x: 0.05,
+      x: 0.03,
       y: 0.05,
-      z: 0.05,
+      z: 0.03,
       duration,
-      easeOut,
+      ease,
       onUpdate: function() {
         camera.lookAt(0, 0, 0)
       }
@@ -489,18 +486,17 @@ function cameraAnimation() {
       y: 1,
       z: 1,
       duration: 10,
-      easeIn,
+      ease,
       })
   }
 }
 
 window.addEventListener('mousedown', cameraAnimation)
 
-//
-//
 cameraControls.addEventListener('start', () => console.log("Controls start event"))
 cameraControls.addEventListener('end', () => console.log("Controls end event"))
-//
+
+
 let mouseX, mouseY
 //
 if (window.DeviceOrientationEvent) {
@@ -526,15 +522,15 @@ function deviceOrientationHandler(tiltX, tiltY) {
 //===================================================
 
 
-const pane = new Pane({ title: "Animations", container: document.getElementById('p--chActions'), expanded: false })
-pane.addButton({ title: 'Offended Iddle' })
-pane.addButton({ title: 'Neutral Iddle' })
-pane.addButton({ title: 'Happy Iddle' })
-pane.addButton({ title: 'Walking' })
-pane.addButton({ title: 'Standard Walking' })
-pane.addButton({ title: 'Running ' })
-pane.addButton({ title: 'Running 2' })
-pane.addButton({ title: 'Default' })
+// const pane = new Pane({ title: "Animations", container: document.getElementById('p--chActions'), expanded: false })
+// pane.addButton({ title: 'Offended Iddle' })
+// pane.addButton({ title: 'Neutral Iddle' })
+// pane.addButton({ title: 'Happy Iddle' })
+// pane.addButton({ title: 'Walking' })
+// pane.addButton({ title: 'Standard Walking' })
+// pane.addButton({ title: 'Running ' })
+// pane.addButton({ title: 'Running 2' })
+// pane.addButton({ title: 'Default' })
 
 
 //===================================================
@@ -544,8 +540,6 @@ pane.addButton({ title: 'Default' })
 const gltfLoader = new GLTFLoader()
 
 let mixer = null
-let mixer2 = null
-let mixer3 = null
 
 let allies
 
