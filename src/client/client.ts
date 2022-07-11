@@ -110,16 +110,26 @@ const aspect = sizes.width / sizes.height
 const textureLoader = new THREE.TextureLoader()
 const textureLoad = new RGBELoader()
 
+const loader = new THREE.CubeTextureLoader();
+const texture = loader.load([
+    '/img/level-4/px.png',
+    '/img/level-4/nx.png',
+    '/img/level-4/py.png',
+    '/img/level-4/ny.png',
+    '/img/level-4/pz.png',
+    '/img/level-4/nz.png',
+]);
+scene.background = texture;
 
 //===================================================
 // SCENE FOG & BACKGROUND
 //===================================================
 
-scene.fog = new THREE.Fog(0xffffff, 0.1, 14)
+scene.fog = new THREE.Fog(0xffffff, 0.1, 10)
 
 //scene.fog = new THREE.FogExp2( 0xffffff, 1.5 )
 
-scene.background = new THREE.Color(0xffffff)
+// scene.background = new THREE.Color(0xffffff)
 
 
 //===================================================
@@ -266,24 +276,24 @@ light.shadow.mapSize.height = 1024
 // ✧ GROUND 
 //===================================================
 
-const gGeometry = new THREE.PlaneGeometry(1024, 1024, 100, 100)
+const gGeometry = new THREE.PlaneGeometry(3, 3, 100, 100)
 
 const gMaterial = new THREE.MeshPhysicalMaterial({
 
-  map: textureLoader.load("/img/terrazzo/Terrazzo010_2K_Color.png"),
+  map: textureLoader.load("/img/level-4/nx.png"),
   color: new THREE.Color('white'),
   emissive: new THREE.Color('black'),
   emissiveIntensity: 1,
   transmission: 1,
+  transparent: true,
+  opacity: 0.5,
   ior: 1.3,
   // emissiveMap: textureLoader.load('/img/terrazzo/Terrazzo_2K_Emission.png'),
-  displacementMap: textureLoader.load("/img/terrazzo/Terrazzo_2K_Displacement.png"),
-  displacementScale: 0.5,
-  roughnessMap: textureLoader.load("/img/terrazzo/Terrazzo010_2K_Roughness.png"),
+  roughnessMap: textureLoader.load("/img/level-4/nx.png"),
   roughness: 3.2,
-  metalnessMap: textureLoader.load("/img/terrazzo/Terrazzo010_2K_Metalness.png"),
+  metalnessMap: textureLoader.load("/img/level-4/nx.png"),
   metalness: 0.2,
-  normalMap: textureLoader.load("/img/terrazzo/Terrazzo010_2K_NormalGL.png"),
+  normalMap: textureLoader.load("/img/level-4/nx.png"),
   normalScale: new THREE.Vector2(3, 3),
   fog: true
 })
@@ -291,7 +301,7 @@ const gMaterial = new THREE.MeshPhysicalMaterial({
 
 const ground = new THREE.Mesh(gGeometry, gMaterial)
 ground.rotation.x = -Math.PI / 2
-ground.material.map.repeat.set(2048, 2048)
+ground.material.map.repeat.set(128, 128)
 ground.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy()
 ground.material.map.magFilter = THREE.NearestFilter
 ground.material.map.minFilter = THREE.LinearMipmapLinearFilter
@@ -491,12 +501,12 @@ function cameraAnimation() {
   }
 }
 
-window.addEventListener('mousedown', cameraAnimation)
+// window.addEventListener('mousedown', cameraAnimation)
+window.addEventListener('DOMContentLoaded', cameraAnimation)
 
 cameraControls.addEventListener('start', () => console.log("Controls start event"))
 cameraControls.addEventListener('end', () => console.log("Controls end event"))
-
-
+//
 let mouseX, mouseY
 //
 if (window.DeviceOrientationEvent) {
@@ -581,7 +591,9 @@ gltfLoader.load('/models/theAllies/THE_ALLIES.glb', (gltf) => {
 
   allies.traverse(function(child) {
     if (
-      child instanceof THREE.Mesh) {}
+      child instanceof THREE.Mesh) {
+      child.castShadow = true;
+    }
   })
 
   scene.add(allies)
