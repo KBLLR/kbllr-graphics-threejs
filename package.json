@@ -2,7 +2,7 @@
   "name": "kbllr_interactive_portfolio",
   "version": "1.0.0",
   "description": "",
-  "main": "bundle.js",
+  "main": "index.html",
   "scripts": {
     "build": "webpack --config ./src/client/webpack.prod.js",
     "start": "node ./dist/server/server.js",
@@ -34,6 +34,7 @@
     "@tweakpane/plugin-essentials": "^0.1.4",
     "contentful-management": "^10.6.3",
     "express": "^4.18.1",
+    "gsap": "^3.10.4",
     "three-gpu-pathtracer": "^0.0.4",
     "three-mesh-bvh": "^0.5.14",
     "ts-loader": "^9.3.0",
