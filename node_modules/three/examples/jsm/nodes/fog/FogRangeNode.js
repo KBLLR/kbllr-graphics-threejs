@@ -1,5 +1,7 @@
 import FogNode from './FogNode.js';
-import { smoothstep, negate, positionView } from '../ShaderNode.js';
+import { smoothstep } from '../math/MathNode.js';
+import { addNodeClass } from '../core/Node.js';
+import { addNodeElement, nodeProxy } from '../shadernode/ShaderNode.js';
 
 class FogRangeNode extends FogNode {
 
@@ -7,21 +9,27 @@ class FogRangeNode extends FogNode {
 
 		super( colorNode );
 
+		this.isFogRangeNode = true;
+
 		this.nearNode = nearNode;
 		this.farNode = farNode;
 
 	}
 
-	generate( builder ) {
+	setup( builder ) {
 
-		this.factorNode = smoothstep( this.nearNode, this.farNode, negate( positionView.z ) );
+		const viewZ = this.getViewZNode( builder );
 
-		return super.generate( builder );
+		return smoothstep( this.nearNode, this.farNode, viewZ );
 
 	}
 
 }
 
-FogRangeNode.prototype.isFogRangeNode = true;
-
 export default FogRangeNode;
+
+export const rangeFog = nodeProxy( FogRangeNode );
+
+addNodeElement( 'rangeFog', rangeFog );
+
+addNodeClass( 'FogRangeNode', FogRangeNode );
