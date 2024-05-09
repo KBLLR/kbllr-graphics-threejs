@@ -2,12 +2,15 @@ import { TangentSpaceNormalMap } from '../constants.js';
 import { Material } from './Material.js';
 import { Vector2 } from '../math/Vector2.js';
 import { Color } from '../math/Color.js';
+import { Euler } from '../math/Euler.js';
 
 class MeshStandardMaterial extends Material {
 
 	constructor( parameters ) {
 
 		super();
+
+		this.isMeshStandardMaterial = true;
 
 		this.defines = { 'STANDARD': '' };
 
@@ -47,6 +50,7 @@ class MeshStandardMaterial extends Material {
 		this.alphaMap = null;
 
 		this.envMap = null;
+		this.envMapRotation = new Euler();
 		this.envMapIntensity = 1.0;
 
 		this.wireframe = false;
@@ -55,6 +59,8 @@ class MeshStandardMaterial extends Material {
 		this.wireframeLinejoin = 'round';
 
 		this.flatShading = false;
+
+		this.fog = true;
 
 		this.setValues( parameters );
 
@@ -100,6 +106,7 @@ class MeshStandardMaterial extends Material {
 		this.alphaMap = source.alphaMap;
 
 		this.envMap = source.envMap;
+		this.envMapRotation.copy( source.envMapRotation );
 		this.envMapIntensity = source.envMapIntensity;
 
 		this.wireframe = source.wireframe;
@@ -109,12 +116,12 @@ class MeshStandardMaterial extends Material {
 
 		this.flatShading = source.flatShading;
 
+		this.fog = source.fog;
+
 		return this;
 
 	}
 
 }
-
-MeshStandardMaterial.prototype.isMeshStandardMaterial = true;
 
 export { MeshStandardMaterial };

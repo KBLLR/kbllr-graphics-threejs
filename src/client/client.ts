@@ -50,7 +50,7 @@ import {
   WebGlExtension,
   BlendFunction,
   OverrideMaterialManager
-} from '../../node_modules/postprocessing/build/postprocessing.esm.js'
+} from '../../node_modules/postprocessing/build/postprocessing.min.js'
 import { Pane } from 'tweakpane'
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials'
 import { ButtonProps, TabParams } from '@tweakpane/core'
@@ -72,7 +72,7 @@ import { MeshBVH } from '../../node_modules/three-mesh-bvh/'
 //  isYProjectedLineDegenerate,
 //  compressEdgeOverlaps,
 // } from '../../node_modules/three-mesh-bvh/example/utils/edgeUtils.js'
-import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 //===================================================
@@ -221,9 +221,8 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height)
 renderer.setClearColor(0x000000, 1)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
-renderer.physicallyCorrectLights = true
 renderer.shadowMap.enabled = true
-renderer.outputEncoding = THREE.sRGBEncoding
+renderer.outputColorSpace = THREE.SRGBColorSpace
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 1.9
@@ -301,7 +300,7 @@ ground.material.map.minFilter = THREE.LinearMipmapLinearFilter
 ground.material.map.wrapS = THREE.RepeatWrapping
 ground.material.map.wrapT = THREE.RepeatWrapping
 ground.material.map.type = THREE.HalfFloatType
-ground.material.map.encoding = THREE.sRGBEncoding
+ground.material.map.colorSpace = THREE.SRGBColorSpace
 ground.receiveShadow = true
 
 scene.add(ground)
@@ -679,7 +678,7 @@ window.addEventListener('keydown', function(event) {
 // ✧ STATS
 ///////////////
 
-const stats = Stats()
+const stats = new Stats()
 document.body.appendChild(stats.dom)
 
 

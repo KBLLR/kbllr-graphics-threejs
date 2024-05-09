@@ -1,4 +1,6 @@
-import Node from '../core/Node.js';
+import Node, { addNodeClass } from '../core/Node.js';
+import { positionView } from '../accessors/PositionNode.js';
+import { addNodeElement, nodeProxy } from '../shadernode/ShaderNode.js';
 
 class FogNode extends Node {
 
@@ -6,19 +8,41 @@ class FogNode extends Node {
 
 		super( 'float' );
 
+		this.isFogNode = true;
+
 		this.colorNode = colorNode;
 		this.factorNode = factorNode;
 
 	}
 
-	generate( builder ) {
+	getViewZNode( builder ) {
 
-		return this.factorNode.build( builder, 'float' );
+		let viewZ;
+
+		const getViewZ = builder.context.getViewZ;
+
+		if ( getViewZ !== undefined ) {
+
+			viewZ = getViewZ( this );
+
+		}
+
+		return ( viewZ || positionView.z ).negate();
+
+	}
+
+	setup() {
+
+		return this.factorNode;
 
 	}
 
 }
 
-FogNode.prototype.isFogNode = true;
-
 export default FogNode;
+
+export const fog = nodeProxy( FogNode );
+
+addNodeElement( 'fog', fog );
+
+addNodeClass( 'FogNode', FogNode );
