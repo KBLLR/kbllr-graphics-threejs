@@ -2,62 +2,10 @@ console.clear()
 import * as THREE from 'three'
 import gsap from 'gsap'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { DragControls } from 'three/examples/jsm/controls/DragControls'
-import { MD2CharacterComplex } from 'three/examples/jsm/misc/MD2CharacterComplex.js'
-import { Gyroscope } from 'three/examples/jsm/misc/Gyroscope.js'
-import { AnaglyphEffect } from 'three/examples/jsm/effects/AnaglyphEffect.js'
-import { BokehShader, BokehDepthShader } from 'three/examples/jsm/shaders/BokehShader2.js'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
-import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
-import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
-import { Water } from 'three/examples/jsm/objects/Water2.js'
-import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
-import { WebGLRenderer } from 'three'
-import {
-  EffectComposer,
-  EffectPass,
-  CopyMaterial,
-  SMAAEffect,
-  SMAAImageLoader,
-  NoiseEffect,
-  PredicationMode,
-  RenderPass,
-  ShaderPass,
-  SMAAPreset,
-  ACESFilmicToneMapping,
-  ColorDepthEffect,
-  TextureEffect,
-  sRGBEncoding,
-  MaskFunction,
-  NoToneMapping,
-  ToneMappingMode,
-  VSMShadowMap,
-  BloomEffect,
-  ColorChannel,
-  DepthTestStrategy,
-  DepthOfFieldEffect,
-  EdgeDetectionMode,
-  kernelSize,
-  LUTOperation,
-  SelectiveBloomEffect,
-  FXAAEffect,
-  VignetteEffect,
-  VignetteTechnique,
-  WebGlExtension,
-  BlendFunction,
-  OverrideMaterialManager
-} from '../../node_modules/postprocessing/build/postprocessing.min.js'
-import { Pane } from 'tweakpane'
-import * as EssentialsPlugin from '@tweakpane/plugin-essentials'
-import { ButtonProps, TabParams } from '@tweakpane/core'
-import { FolderParams } from 'tweakpane'
-import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
-import { getProject } from "@theatre/core"
-import studio from "@theatre/studio"
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 //===================================================
 // ✧ CUSTOM CURSOR
@@ -102,7 +50,7 @@ scene.background = texture;
 // SCENE FOG & BACKGROUND
 //===================================================
 
-scene.fog = new THREE.Fog(0xffffff, 0.1, 10)
+scene.fog = new THREE.Fog(0xffffff, 0.1, 6)
 
 //scene.fog = new THREE.FogExp2( 0xffffff, 1.5 )
 
@@ -256,22 +204,22 @@ const gGeometry = new THREE.PlaneGeometry(3, 3, 100, 100)
 
 const gMaterial = new THREE.MeshPhysicalMaterial({
 
-  map: textureLoader.load("/img/level-4/nx.png"),
-  color: new THREE.Color('white'),
-  emissive: new THREE.Color('black'),
+  //map: textureLoader.load("/img/level-4/nx.png"),
+  color: new THREE.Color('0x808080'),
+  emissive: new THREE.Color('0x000'),
   emissiveIntensity: 1,
   transmission: 1,
   transparent: true,
-  opacity: 0.5,
-  ior: 1.3,
+  opacity: 1,
+  ior: 1.9,
   // emissiveMap: textureLoader.load('/img/terrazzo/Terrazzo_2K_Emission.png'),
-  roughnessMap: textureLoader.load("/img/level-4/nx.png"),
+  //roughnessMap: textureLoader.load("/img/level-4/nx.png"),
   roughness: 3.2,
-  metalnessMap: textureLoader.load("/img/level-4/nx.png"),
+  //metalnessMap: textureLoader.load("/img/level-4/nx.png"),
   metalness: 0.2,
-  normalMap: textureLoader.load("/img/level-4/nx.png"),
-  normalScale: new THREE.Vector2(3, 3),
-  fog: true
+  //normalMap: textureLoader.load("/img/level-4/nx.png"),
+  //normalScale: new THREE.Vector2(3, 3),
+  fog: false
 })
 
 
@@ -293,9 +241,9 @@ scene.add(ground)
 // ✧ GRID HELPER 
 //===================================================
 //
-// const gridHelper = new THREE.GridHelper(40, 400)
-// gridHelper.position.y = 0.001
-// scene.add(gridHelper)
+const gridHelper = new THREE.GridHelper(40, 400)
+gridHelper.position.y = 0.001
+scene.add(gridHelper)
 //
 //
 //===================================================
