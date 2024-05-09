@@ -17,7 +17,6 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.12.11",
     "@types/three": "^0.164.0",
-    "@use-gesture/vanilla": "^10.3.1",
     "css-loader": "^7.1.1",
     "css-minimizer-webpack-plugin": "^7.0.0",
     "mini-css-extract-plugin": "^2.9.0",
@@ -33,10 +32,8 @@
     "@theatre/core": "^0.7.1",
     "@tweakpane/plugin-essentials": "^0.2.1",
     "@vercel/postgres": "^0.8.0",
-    "contentful-management": "^11.25.3",
     "express": "^4.19.2",
     "gsap": "^3.12.5",
-    "three-mesh-bvh": "^0.7.4",
     "ts-loader": "^9.5.1",
     "v-tweakpane": "^0.3.2"
   }

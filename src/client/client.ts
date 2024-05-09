@@ -59,22 +59,6 @@ import { PaneConfig } from 'tweakpane/dist/types/pane/pane-config'
 import { getProject } from "@theatre/core"
 import studio from "@theatre/studio"
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { MeshBVH } from '../../node_modules/three-mesh-bvh/'
-// import {
-//  generateEdges,
-//  isLineAbovePlane,
-//  isYProjectedTriangleDegenerate,
-//  isLineTriangleEdge,
-//  trimToBeneathTriPlane,
-//  edgesToGeometry,
-//  overlapsToLines,
-//  getProjectedOverlaps,
-//  isYProjectedLineDegenerate,
-//  compressEdgeOverlaps,
-// } from '../../node_modules/three-mesh-bvh/example/utils/edgeUtils.js'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-
 //===================================================
 // ✧ CUSTOM CURSOR
 //===================================================
