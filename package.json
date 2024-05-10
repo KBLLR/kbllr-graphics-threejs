@@ -4,22 +4,17 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "start": "node server.js",
+    "start": "node public/server.js",
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "KBΓΓR",
   "license": "ISC",
   "devDependencies": {
-    "@theatre/studio": "^0.7.1",
-    "@tweakpane/core": "^2.0.3",
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.12.11",
-    "@types/three": "^0.164.0",
+    "node": "^22.1.0",
+    "three": "^0.164.0",
     "nodemon": "^3.1.0",
-    "postprocessing": "^6.35.4",
-    "tweakpane": "^4.0.3",
-    "typescript": "^5.4.5"
+    "postprocessing": "^6.35.4"
   },
   "dependencies": {
     "@theatre/core": "^0.7.1",
@@ -27,6 +22,9 @@
     "@vercel/postgres": "^0.8.0",
     "express": "^4.19.2",
     "gsap": "^3.12.5",
-    "v-tweakpane": "^0.3.2"
+    "tweakpane": "^4.0.3",
+    "v-tweakpane": "^0.3.2",
+    "theatre/studio": "^0.7.1",
+    "tweakpane/core": "^2.0.3"
   }
 }
