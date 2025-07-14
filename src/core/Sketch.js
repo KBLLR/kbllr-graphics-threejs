@@ -1,6 +1,6 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Pane } from 'tweakpane';
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { Pane } from "tweakpane";
 
 /**
  * Base Sketch Class
@@ -15,7 +15,7 @@ export class Sketch {
       enableTweakpane: true,
       antialias: true,
       pixelRatio: Math.min(window.devicePixelRatio, 2),
-      ...options
+      ...options,
     };
 
     // Core Three.js components
@@ -65,16 +65,17 @@ export class Sketch {
         this.setupControls();
       }
 
-      if (this.options.enableTweakpane) {
-        this.setupTweakpane();
-      }
-
       if (this.options.showStats) {
         this.setupStats();
       }
 
       // Child class setup
       await this.setup();
+
+      // Setup Tweakpane after child class setup so it can access initialized properties
+      if (this.options.enableTweakpane) {
+        this.setupTweakpane();
+      }
 
       // Event listeners
       this.addEventListeners();
@@ -84,9 +85,8 @@ export class Sketch {
 
       // Start animation
       this.start();
-
     } catch (error) {
-      console.error('Failed to initialize sketch:', error);
+      console.error("Failed to initialize sketch:", error);
       throw error;
     }
   }
@@ -98,7 +98,7 @@ export class Sketch {
     this.renderer = new THREE.WebGLRenderer({
       antialias: this.options.antialias,
       alpha: true,
-      powerPreference: 'high-performance'
+      powerPreference: "high-performance",
     });
 
     this.renderer.setSize(this.width, this.height);
@@ -122,12 +122,7 @@ export class Sketch {
    */
   setupCamera() {
     const aspect = this.width / this.height;
-    this.camera = new THREE.PerspectiveCamera(
-      75,
-      aspect,
-      0.1,
-      100
-    );
+    this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 100);
     this.camera.position.set(0, 0, 5);
   }
 
@@ -146,25 +141,27 @@ export class Sketch {
   setupTweakpane() {
     this.pane = new Pane({
       title: this.constructor.name,
-      expanded: true
+      expanded: true,
     });
 
     // Add default controls
     const generalFolder = this.pane.addFolder({
-      title: 'General',
-      expanded: false
+      title: "General",
+      expanded: false,
     });
 
     // Add play/pause control
-    generalFolder.addButton({
-      title: this.isRunning ? 'Pause' : 'Play'
-    }).on('click', () => {
-      if (this.isRunning) {
-        this.pause();
-      } else {
-        this.start();
-      }
-    });
+    generalFolder
+      .addButton({
+        title: this.isRunning ? "Pause" : "Play",
+      })
+      .on("click", () => {
+        if (this.isRunning) {
+          this.pause();
+        } else {
+          this.start();
+        }
+      });
 
     // Let child classes add their own controls
     this.setupGUI(this.pane);
@@ -182,10 +179,10 @@ export class Sketch {
    * Add event listeners
    */
   addEventListeners() {
-    window.addEventListener('resize', this.handleResize);
+    window.addEventListener("resize", this.handleResize);
 
     // Visibility change
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         this.pause();
       } else {
@@ -198,7 +195,7 @@ export class Sketch {
    * Remove event listeners
    */
   removeEventListeners() {
-    window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener("resize", this.handleResize);
   }
 
   /**
@@ -345,14 +342,14 @@ export class Sketch {
     // Dispose material
     if (obj.material) {
       if (Array.isArray(obj.material)) {
-        obj.material.forEach(material => this.disposeMaterial(material));
+        obj.material.forEach((material) => this.disposeMaterial(material));
       } else {
         this.disposeMaterial(obj.material);
       }
     }
 
     // Dispose textures
-    if (obj.dispose && typeof obj.dispose === 'function') {
+    if (obj.dispose && typeof obj.dispose === "function") {
       obj.dispose();
     }
 
@@ -372,7 +369,7 @@ export class Sketch {
     if (!material) return;
 
     // Dispose textures
-    Object.keys(material).forEach(key => {
+    Object.keys(material).forEach((key) => {
       const value = material[key];
       if (value && value.isTexture) {
         value.dispose();
@@ -433,12 +430,7 @@ export class Sketch {
    */
   loadTexture(url) {
     return new Promise((resolve, reject) => {
-      new THREE.TextureLoader().load(
-        url,
-        resolve,
-        undefined,
-        reject
-      );
+      new THREE.TextureLoader().load(url, resolve, undefined, reject);
     });
   }
 
@@ -447,12 +439,7 @@ export class Sketch {
    */
   loadCubeTexture(urls) {
     return new Promise((resolve, reject) => {
-      new THREE.CubeTextureLoader().load(
-        urls,
-        resolve,
-        undefined,
-        reject
-      );
+      new THREE.CubeTextureLoader().load(urls, resolve, undefined, reject);
     });
   }
 }
