@@ -33,6 +33,9 @@ class SketchGallery {
       // Create UI structure
       this.createUI();
 
+      // Create placeholder directories if needed
+      this.ensurePlaceholders();
+
       // Initialize sketch manager
       this.sketchManager = new SketchManager({
         container: this.elements.sketchContainer,
@@ -103,8 +106,15 @@ class SketchGallery {
         <span></span>
       </button>
 
+      <div class="sketch-header">
+        <img src="/img/logo.png" class="top-logo" alt="Logo">
+        <div class="sketch-subtitle">
+          <h2 class="subtitle-title"></h2>
+          <p class="subtitle-description"></p>
+        </div>
+      </div>
+
       <div class="sketch-container" id="sketch-container"></div>
-      <img src="/img/logo.png" class="corner-logo" alt="Logo">
     `;
 
     document.body.appendChild(container);
@@ -119,6 +129,10 @@ class SketchGallery {
     this.elements.categoryFilter = container.querySelector(".category-select");
     this.elements.searchInput = container.querySelector(".search-input");
     this.elements.currentSketchInfo = container.querySelector(".info-value");
+    this.elements.subtitleTitle = container.querySelector(".subtitle-title");
+    this.elements.subtitleDescription = container.querySelector(
+      ".subtitle-description",
+    );
 
     // Add styles
     this.addStyles();
@@ -203,13 +217,13 @@ class SketchGallery {
     card.dataset.category = sketch.category;
     card.dataset.tags = sketch.tags.join(",");
 
+    // Create a placeholder thumbnail if no image exists
+    const thumbnailUrl =
+      sketch.thumbnail || `/img/placeholders/${sketch.category}.jpg`;
+
     card.innerHTML = `
       <div class="sketch-thumbnail">
-        ${
-          sketch.thumbnail
-            ? `<img src="${sketch.thumbnail}" alt="${sketch.name}" loading="lazy">`
-            : `<div class="thumbnail-placeholder">${sketch.name.charAt(0)}</div>`
-        }
+        ${`<img src="${thumbnailUrl}" alt="${sketch.name}" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholders/default.jpg';">`}
       </div>
       <div class="sketch-info">
         <h3 class="sketch-title">${sketch.name}</h3>
@@ -317,6 +331,10 @@ class SketchGallery {
     if (sketchConfig) {
       this.elements.currentSketchInfo.textContent = sketchConfig.name;
       document.title = `${sketchConfig.name} - Three.js Sketches`;
+
+      // Update the subtitle with current sketch details
+      this.elements.subtitleTitle.textContent = sketchConfig.name;
+      this.elements.subtitleDescription.textContent = sketchConfig.description;
     }
   }
 
@@ -360,6 +378,53 @@ class SketchGallery {
     setTimeout(() => {
       errorEl.remove();
     }, 5000);
+  }
+
+  /**
+   * Ensure placeholder thumbnails exist
+   */
+  ensurePlaceholders() {
+    // Create placeholder images in memory for categories
+    const categories = [
+      { id: "animation", color: "#4a9eff" },
+      { id: "shaders", color: "#ff4a4a" },
+      { id: "particles", color: "#4aff4a" },
+      { id: "geometry", color: "#ff4aff" },
+      { id: "lighting", color: "#ffff4a" },
+      { id: "interaction", color: "#4affff" },
+      { id: "default", color: "#aaaaaa" },
+    ];
+
+    // Add placeholders to DOM temporarily to handle fallbacks
+    // They will be loaded from URLs, but this provides a backup
+    const placeHolderContainer = document.createElement("div");
+    placeHolderContainer.style.display = "none";
+    document.body.appendChild(placeHolderContainer);
+
+    categories.forEach((cat) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 300;
+      canvas.height = 200;
+      const ctx = canvas.getContext("2d");
+
+      // Draw background
+      ctx.fillStyle = cat.color;
+      ctx.fillRect(0, 0, 300, 200);
+
+      // Draw text
+      ctx.fillStyle = "white";
+      ctx.font = "bold 24px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cat.id.toUpperCase(), 150, 100);
+
+      // Convert to data URL
+      const img = document.createElement("img");
+      img.src = canvas.toDataURL("image/jpeg");
+      img.className = "placeholder-img";
+      img.dataset.category = cat.id;
+      placeHolderContainer.appendChild(img);
+    });
   }
 
   /**
@@ -574,27 +639,49 @@ class SketchGallery {
         transform: rotate(-45deg) translate(5px, -5px);
       }
 
-      .corner-logo {
+      .sketch-header {
         position: fixed;
-        bottom: 1rem;
-        right: 1rem;
-        height: 40px; /* Same height as menu toggle */
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 8px;
         z-index: 1001;
+        pointer-events: none;
+      }
+
+      .top-logo {
+        height: 30px;
         mix-blend-mode: difference;
-        opacity: 0.8;
-        transition: all 0.3s ease;
-        pointer-events: none; /* Allows clicking through the logo */
+        opacity: 0.9;
+        margin-bottom: 4px;
       }
 
-      .corner-logo:hover {
-        opacity: 1;
+      .sketch-subtitle {
+        text-align: center;
+        color: white;
+        mix-blend-mode: difference;
+        padding: 4px 12px;
+        border-radius: 4px;
+        margin-top: 4px;
+        max-width: 80%;
+        font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
       }
 
-      /* Adjust logo position when menu is open on desktop */
-      @media (min-width: 768px) {
-        .menu-open .corner-logo {
-          right: calc(320px + 1rem); /* Adjust for menu width */
-        }
+      .subtitle-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+      }
+
+      .subtitle-description {
+        margin: 4px 0 0 0;
+        font-size: 0.8rem;
+        opacity: 0.9;
+        letter-spacing: 0.02em;
       }
 
       .sketch-container {
