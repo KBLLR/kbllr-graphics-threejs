@@ -15,10 +15,18 @@ export default defineConfig(({ mode }) => {
       assetsDir: "assets",
       sourcemap: true,
       rollupOptions: {
+        treeshake: false,
         output: {
-          manualChunks: {
-            three: ["three"],
-            gsap: ["gsap"],
+          manualChunks: (id) => {
+            if (id.includes("node_modules/three")) {
+              return "three";
+            }
+            if (id.includes("node_modules/gsap")) {
+              return "gsap";
+            }
+            if (id.includes("node_modules/")) {
+              return "vendor";
+            }
           },
         },
       },
