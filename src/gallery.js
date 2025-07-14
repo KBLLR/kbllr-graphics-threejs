@@ -104,6 +104,7 @@ class SketchGallery {
       </button>
 
       <div class="sketch-container" id="sketch-container"></div>
+      <img src="/img/logo.png" class="corner-logo" alt="Logo">
     `;
 
     document.body.appendChild(container);
@@ -571,6 +572,29 @@ class SketchGallery {
 
       .menu-toggle.active span:nth-child(3) {
         transform: rotate(-45deg) translate(5px, -5px);
+      }
+
+      .corner-logo {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        height: 40px; /* Same height as menu toggle */
+        z-index: 1001;
+        mix-blend-mode: difference;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+        pointer-events: none; /* Allows clicking through the logo */
+      }
+
+      .corner-logo:hover {
+        opacity: 1;
+      }
+
+      /* Adjust logo position when menu is open on desktop */
+      @media (min-width: 768px) {
+        .menu-open .corner-logo {
+          right: calc(320px + 1rem); /* Adjust for menu width */
+        }
       }
 
       .sketch-container {
