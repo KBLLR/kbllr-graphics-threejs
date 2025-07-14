@@ -93,7 +93,7 @@ export default class CameraTravellingIntro extends Sketch {
       environment: {
         background: true,
         backgroundIntensity: 0.7,
-        backgroundBlurriness: 0.2,
+        backgroundBlurriness: 0,
         environmentIntensity: 1.0,
         toneMappingExposure: 1.2,
       },
