@@ -150,11 +150,10 @@ export default class CharacterAnimationSketch extends Sketch {
     });
 
     // Setup default three-point lighting
-    this.lightingSystem.createLight("key", {
-      type: "directional",
+    this.lightingSystem.createDirectionalLight({
       color: 0xfff3e0,
       intensity: 2.4,
-      position: { x: 1, y: 4, z: 2 },
+      position: new THREE.Vector3(1, 4, 2),
       castShadow: true,
       shadowConfig: {
         camera: {
@@ -170,24 +169,21 @@ export default class CharacterAnimationSketch extends Sketch {
       },
     });
 
-    this.lightingSystem.createLight("fill", {
-      type: "directional",
+    this.lightingSystem.createDirectionalLight({
       color: 0xe3f2fd,
       intensity: 0.6,
-      position: { x: -2, y: 2, z: -1 },
+      position: new THREE.Vector3(-2, 2, -1),
       castShadow: false,
     });
 
-    this.lightingSystem.createLight("rim", {
-      type: "directional",
+    this.lightingSystem.createDirectionalLight({
       color: 0xffffff,
       intensity: 0.8,
-      position: { x: -1, y: 3, z: -4 },
+      position: new THREE.Vector3(-1, 3, -4),
       castShadow: false,
     });
 
-    this.lightingSystem.createLight("ambient", {
-      type: "ambient",
+    this.lightingSystem.createAmbientLight({
       color: 0xffffff,
       intensity: 0.6,
     });
