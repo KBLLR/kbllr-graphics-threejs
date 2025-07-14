@@ -14,8 +14,10 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "three": "^0.177.0",
+    "@theatre/core": "^0.7.2",
+    "@theatre/studio": "^0.7.2",
     "gsap": "^3.12.5",
+    "three": "^0.177.0",
     "tweakpane": "^4.0.0"
   }
 }

@@ -1,0 +1,45 @@
+ .god__container {
+  /* border: 4px solid pink; */
+  max-width: 30vw;
+ }
+
+ .god__body {
+ width: 368px;
+ height:  380px;
+ border-radius: 100%;
+ background: hsla(227, 100%, 82%, 0.8);
+ background-blend-mode: multiply;
+ box-shadow: 
+ inset -2.5vmin -2.5vmin 9.5vmin hsla(0, 0%, 100%, 0.8), 
+ inset 0 5vmin 25vmin hsla(179.5, 18.75%, 50%, 0.8), 
+ inset 10vmin 5vmin 25vmin hsla(58, 100%, 50%, 1), 
+ inset 10vmin -5vmin 25vmin hsla(356, 100%, 50%, 1), 
+ inset -5vmin -20vmin 25vmin hsla(299, 63%, 72%, 1);
+ animation: 6s linear infinite normal both hueShift;
+}
+ @keyframes hueShift {
+     100% {
+         filter: hue-rotate(360deg);
+    }
+}
+
+.god__eye {
+    position: relative;
+    padding: 4px;
+    max-width: 40%;
+}
+
+.god__body::after {
+     content: '';
+     position: absolute;
+     top: 120%;
+     left: 2%;
+     width: 100%;
+     height: 15%;
+     border-radius: 50%;
+     background-image: radial-gradient(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.0) 60%);
+     filter: blur(2px);
+}
+
+
+ 
