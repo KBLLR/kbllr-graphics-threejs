@@ -1,171 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Character Configurator</title>
-  <meta name="apple-mobile-web-app-title" content="KBLLR">
-  <meta name="description" content="Configurator Player">
-  <meta name="viewport" id="viewport" content="width=device-width,initial-scale=1.0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta property="og:title" content="Customise your character to visit kbllr Portfolio">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.kbllr.graphics">
-  <meta property="og:image" content="favicon.svg">
-  <meta property="og:description" content="Select your character, customise it and get ready to explore the artwork from KBLLR">
+    <head>
+        <meta charset="utf-8" />
+        <title>KBLLR Graphics - Interactive Portfolio</title>
+        <meta name="apple-mobile-web-app-title" content="KBLLR" />
+        <meta
+            name="description"
+            content="Interactive 3D Portfolio - Character Configurator"
+        />
+        <meta
+            name="viewport"
+            id="viewport"
+            content="width=device-width,initial-scale=1.0"
+        />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <meta
+            property="og:title"
+            content="Customise your character to visit KBLLR Portfolio"
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.kbllr.graphics" />
+        <meta property="og:image" content="favicon.svg" />
+        <meta
+            property="og:description"
+            content="Select your character, customise it and explore the artwork from KBLLR"
+        />
 
-  <style>
-  @import url("https://rsms.me/inter/inter.css");
+        <link rel="stylesheet" href="/src/style.css" />
+    </head>
 
-  html {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    background: color(srgb-linear 0.76815 0.92158 1 / 0.5);
-    -webkit-text-size-adjust: 100%;
-    font-family: "Inter", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-kerning: auto;
-    background: color(srgb-linear 0.00516 0.00516 0.00516);
-  }
+    <body>
+        <!-- Canvas WebGL -->
+        <canvas class="webgl" id="canvas"></canvas>
 
-  body {
-    height: 100%;
-    width: 100%;
-    overflow: scroll;
-    scroll-behavior: smooth;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-    font-family: "Pirulen";
-    font-size: 100%;
-    line-height: 1.2;
-  }
+        <!-- UI: Logo -->
+        <img
+            title="KBLLR Graphics"
+            src="./img/logo.png"
+            id="logo"
+            data-link
+            alt="KBLLR Graphics Logo"
+        />
 
-  canvas.webgl {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 0;
-    width: 100vw;
-    height: 100vh;
-  }
+        <!-- UI: Credits -->
+        <div class="credits">
+            The Allies:
+            <a href="https://instagram.com/kbllr.graphics" target="_blank">
+                by David Kbllr
+            </a>
+            for
+            <a href="https://kbllr.graphics" target="_blank">kbllr.graphics</a>
+        </div>
 
-  #logo {
-    position: fixed;
-    z-index: 1000;
-    pointer-events: none;
-    left: 6%;
-    bottom: 3%;
-    max-width: 20%;
-    background: color(srgb-linear 0 0 0);
-    mix-blend-mode: difference;
-  }
+        <!-- UI: Tweakpane Container -->
+        <div class="pane" id="p--chActions"></div>
 
-  .pane {
-    position: fixed;
-    width: 24%;
-    top: 2%;
-    right: 2%;
-  }
+        <!-- Overlay Effect -->
+        <div class="overlay" id="tvLines"></div>
 
-
-  .overlay {
-    display: flex;
-    z-index: 999;
-    flex-direction: row;
-    justify-content: center;
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    opacity: 0;
-  }
-
-   #menuPanel {
-    position: absolute;
-    z-index: 1000;
-    background-color: rgba(255, 255, 255, 0.5);
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    height: 100%;
-  }
-
-  #startButton {
-    height: 50px;
-    width: 200px;
-    margin: -25px -100px;
-    position: relative;
-    top: 50%;
-    left: 50%;
-    font-size: 32px;
-  }
-
-  #tvLines {
-    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAECAYAAABP2FU6AAABS2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDAgNzkuMTYwNDUxLCAyMDE3LzA1LzA2LTAxOjA4OjIxICAgICAgICAiPgogPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIi8+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgo8P3hwYWNrZXQgZW5kPSJyIj8+LUNEtwAAABBJREFUCJljYGBg8GViQAEABQIAUMdse+oAAAAASUVORK5CYII=");
-    mix-blend-mode: normal;
-    pointer-events: none;
-    /* display: none; */
-  }
-
-  .credits {
-    position: fixed;
-    z-index: 1000;
-    bottom: 3%;
-    right: 6%;
-    font-size: 0.8em;
-    color: rgb(4, 4, 4);
-    text-decoration: none;
-    font-family: Pirulen Regular ;
-  }
-  </style>
-</head>
-
-<body>
-  <!-- Canvas Web GL ------------>
-  <canvas class="webgl" id="canvas"></canvas>
-  <!-- UI: LOGO ------------>
-
-  <img title="logo" src="./img/logo.png" id="logo" data-link>
-
-  <!-- UI: Credits ------------>
-
-  <div class="credits">
-    The Allies: 
-    <a href="https://instagram.com/kbllr.graphics" target="_blank">
-    by David Kbllr
-    </a> for 
-    <a href="https://kbllr.graphics" target="_blank">kbllr.graphics</a>
-  <div>
-
-  <!-- UI: TWEAKPANE ------------>
-
-  <div class="pane" id="p--chActions">
-
-  <!-- OVERLAY ------------------>
-
-  <div class="overlay" id="tvLines"></div>
-
-  <!-- START FIRST PERSON VIEW ------------------>
-
-  <div id="menuPanel">
-  <div id="startButton">
-      <button id="stButton">Click to Start</button>
-      <button id="swButton">Switch to Orbit Controls</button>
-  </div>
-  </div>
-
-
-      <script type="module" src="app.js"></script>
-      <script type="module" src="server.js"></script>
-</body>
-
+        <script type="module" src="/src/main.js"></script>
+    </body>
 </html>
