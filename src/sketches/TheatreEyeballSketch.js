@@ -1,8 +1,11 @@
 import { Sketch } from "@core/Sketch.js";
 import * as THREE from "three";
-import * as core from "@theatre/core";
-import { types as t } from "@theatre/core";
-import studio from "@theatre/studio";
+// Import Theatre.js conditionally to avoid build issues
+let core;
+let t;
+let studio;
+
+// We'll initialize these during setup if they're available
 
 /**
  * Theatre.js Eyeball Sketch
@@ -55,8 +58,8 @@ export default class TheatreEyeballSketch extends Sketch {
     // Set background
     this.scene.background = new THREE.Color(0x0a0a0a);
 
-    // Initialize Theatre.js
-    this.setupTheatre();
+    // Initialize Theatre.js (with fallback if not available)
+    await this.setupTheatre();
 
     // Create eye container with SVG
     this.createEyeElement();
@@ -71,74 +74,200 @@ export default class TheatreEyeballSketch extends Sketch {
   /**
    * Setup Theatre.js
    */
-  setupTheatre() {
-    // Initialize Theatre Studio
-    studio.initialize();
 
-    // Show Theatre.js UI by default (can be toggled with Alt+\)
-    studio.ui.restore();
 
-    // Create the project and sheet
-    this.theatre.project = core.getProject("Eyeball Animation");
-    this.theatre.sheet = this.theatre.project.sheet("Scene");
-    this.theatre.animation = this.theatre.sheet.sequence;
-    this.theatre.animation.position = 0;
+  /**
+   * Setup Theatre.js
+   */
+  async setupTheatre() {
+    try {
+      // Dynamic imports for Theatre.js to avoid build issues
+      try {
+        const coreModule = await import('@theatre/core');
+        const studioModule = await import('@theatre/studio');
+
+        // Assign to our variables
+        core = coreModule;
+        t = coreModule.types;
+        studio = studioModule.default;
+
+        // Initialize only in development or if studio is available
+        if (typeof studio !== 'undefined') {
+          studio.initialize();
+          studio.ui.restore();
+        }
+
+        // Create the project and sheet
+        this.theatre.project = core.getProject("Eyeball Animation");
+        this.theatre.sheet = this.theatre.project.sheet("Scene");
+        this.theatre.animation = this.theatre.sheet.sequence;
+        this.theatre.animation.position = 0;
+      } catch (importError) {
+        console.warn("Theatre.js could not be imported. Using fallback mode:", importError);
+        // Create a simple fallback for Theatre.js
+        this.setupFallbackTheatre();
+        return;
+      }
 
     // Initialize Theatre.js object for the eyeball
     try {
       // Create the eyeball object with properties
-      this.theatre.eyeball = this.theatre.sheet.object("Eyeball", {
-        position: t.compound({
-          x: t.number(0, {
-            range: [-60, 60],
-            label: "Horizontal",
+      // Only create the Theatre.js object if t is available
+      if (t) {
+        this.theatre.eyeball = this.theatre.sheet.object("Eyeball", {
+          position: t.compound({
+            x: t.number(0, {
+              range: [-60, 60],
+              label: "Horizontal",
+            }),
+            y: t.number(0, {
+              range: [-70, 70],
+              label: "Vertical",
+            }),
           }),
-          y: t.number(0, {
-            range: [-70, 70],
-            label: "Vertical",
+          stretch: t.compound({
+            x: t.number(1, {
+              range: [0.5, 2],
+              label: "ScaleX",
+            }),
+            y: t.number(1, {
+              range: [0.5, 2],
+              label: "ScaleY",
+            }),
           }),
-        }),
-        stretch: t.compound({
-          x: t.number(1, {
-            range: [0.5, 2],
-            label: "ScaleX",
+          light: t.stringLiteral(
+            "green",
+            {
+              green: "Green",
+              red: "Red",
+              yellow: "Yellow",
+            },
+            { as: "switch" },
+          ),
+          pupil: t.compound({
+            x: t.number(0, {
+              range: [-10, 10],
+              label: "PupilX",
+            }),
+            y: t.number(0, {
+              range: [-10, 10],
+              label: "PupilY",
+            }),
+            size: t.number(8, {
+              range: [3, 15],
+              label: "Size",
+            }),
           }),
-          y: t.number(1, {
-            range: [0.5, 2],
-            label: "ScaleY",
+          blink: t.number(0, {
+            range: [0, 1],
+            label: "Blink",
           }),
-        }),
-        light: t.stringLiteral(
-          "green",
-          {
-            green: "Green",
-            red: "Red",
-            yellow: "Yellow",
-          },
-          { as: "switch" },
-        ),
-        pupil: t.compound({
-          x: t.number(0, {
-            range: [-10, 10],
-            label: "PupilX",
-          }),
-          y: t.number(0, {
-            range: [-10, 10],
-            label: "PupilY",
-          }),
-          size: t.number(8, {
-            range: [3, 15],
-            label: "Size",
-          }),
-        }),
-        blink: t.number(0, {
-          range: [0, 1],
-          label: "Blink",
-        }),
-      });
+        });
+      } else {
+        this.setupFallbackTheatre();
+      }
       console.log("Theatre.js eyeball object created:", this.theatre.eyeball);
     } catch (error) {
       console.error("Failed to create Theatre.js object:", error);
+      // Continue with basic functionality even if Theatre.js fails
+      this.setupFallbackTheatre();
+    }
+  }
+
+  /**
+   * Setup fallback when Theatre.js is not available
+   */
+  setupFallbackTheatre() {
+    console.log("Setting up fallback for Theatre.js");
+    // Create a simple object that mimics the Theatre.js object structure
+    this.theatre.eyeball = {
+      value: {
+        position: { x: 0, y: 0 },
+        stretch: { x: 1, y: 1 },
+        light: "green",
+        pupil: { x: 0, y: 0, size: 8 },
+        blink: 0
+      }
+    };
+
+    // Add simple animation controls
+    const controls = document.createElement('div');
+    controls.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    `;
+    controls.innerHTML = `
+      <div>Theatre.js Fallback Controls</div>
+      <button id="btn-blink">Blink</button>
+      <button id="btn-surprise">Surprised</button>
+      <button id="btn-sleepy">Sleepy</button>
+      <div>
+        <label>Light: </label>
+        <select id="light-color">
+          <option value="green">Green</option>
+          <option value="red">Red</option>
+          <option value="yellow">Yellow</option>
+        </select>
+      </div>
+    `;
+
+    document.body.appendChild(controls);
+
+    // Add event listeners
+    document.getElementById('btn-blink').addEventListener('click', () => this.blink());
+    document.getElementById('btn-surprise').addEventListener('click', () => this.playSequence('surprised'));
+    document.getElementById('btn-sleepy').addEventListener('click', () => this.playSequence('sleepy'));
+    document.getElementById('light-color').addEventListener('change', (e) => {
+      this.theatre.eyeball.value.light = e.target.value;
+      this.updateLightColor(e.target.value);
+    });
+  }
+
+  /**
+   * Update the light color directly (for fallback mode)
+   */
+  updateLightColor(color) {
+    const bodyElement = this.eyeContainer.querySelector(".god__body");
+    if (!bodyElement) return;
+
+    switch (color) {
+      case "red":
+        bodyElement.style.boxShadow = `
+          inset -2.5vmin -2.5vmin 9.5vmin hsla(0, 0%, 100%, 0.8),
+          inset 0 5vmin 25vmin hsla(0, 75%, 50%, 0.8),
+          inset 10vmin 5vmin 25vmin hsla(0, 100%, 50%, 1),
+          inset 10vmin -5vmin 25vmin hsla(0, 100%, 50%, 1),
+          inset -5vmin -20vmin 25vmin hsla(0, 63%, 72%, 1)
+        `;
+        break;
+      case "yellow":
+        bodyElement.style.boxShadow = `
+          inset -2.5vmin -2.5vmin 9.5vmin hsla(0, 0%, 100%, 0.8),
+          inset 0 5vmin 25vmin hsla(60, 75%, 50%, 0.8),
+          inset 10vmin 5vmin 25vmin hsla(60, 100%, 50%, 1),
+          inset 10vmin -5vmin 25vmin hsla(60, 100%, 50%, 1),
+          inset -5vmin -20vmin 25vmin hsla(60, 63%, 72%, 1)
+        `;
+        break;
+      default: // green
+        bodyElement.style.boxShadow = `
+          inset -2.5vmin -2.5vmin 9.5vmin hsla(0, 0%, 100%, 0.8),
+          inset 0 5vmin 25vmin hsla(120, 75%, 50%, 0.8),
+          inset 10vmin 5vmin 25vmin hsla(120, 100%, 50%, 1),
+          inset 10vmin -5vmin 25vmin hsla(120, 100%, 50%, 1),
+          inset -5vmin -20vmin 25vmin hsla(120, 63%, 72%, 1)
+        `;
+        break;
     }
   }
 
@@ -406,7 +535,7 @@ export default class TheatreEyeballSketch extends Sketch {
         -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
       // Update Theatre.js values if lookAtMouse is enabled
-      if (this.eyeState.lookAtMouse && this.theatre.eyeball) {
+      if (this.eyeState.lookAtMouse && this.theatre.eyeball && this.theatre.eyeball.value) {
         const maxOffset = 10;
         const offsetX = THREE.MathUtils.clamp(
           this.mousePosition.x * maxOffset,
@@ -420,9 +549,18 @@ export default class TheatreEyeballSketch extends Sketch {
         );
 
         // Update pupil position directly
-        if (this.theatre.eyeball.value) {
-          this.theatre.eyeball.value.pupil.x = offsetX;
-          this.theatre.eyeball.value.pupil.y = offsetY;
+        this.theatre.eyeball.value.pupil.x = offsetX;
+        this.theatre.eyeball.value.pupil.y = offsetY;
+
+        // Update pupil position in the DOM directly for fallback mode
+        const pupil = this.eyeSvg?.querySelector("#eye-long-center");
+        if (pupil) {
+          const transform = pupil.getAttribute("transform") || "";
+          const newTransform = transform.replace(
+            /translate\([^)]+\)/,
+            `translate(${offsetX}, ${offsetY})`,
+          );
+          pupil.setAttribute("transform", newTransform);
         }
       }
     });
@@ -444,11 +582,40 @@ export default class TheatreEyeballSketch extends Sketch {
         // Blink closed
         this.theatre.eyeball.value.blink = 1;
 
+        // Apply blink effect directly to DOM for fallback mode
+        const topLid = this.eyeSvg?.querySelector("#eye-long-path1");
+        if (topLid) {
+          const closedScale = `matrix(1.00508, 0, 0, ${-2.41206 * 0.1}, -1.04, 174.05)`;
+          topLid.setAttribute("transform", closedScale);
+        }
+
         setTimeout(() => {
           // Blink open
           this.theatre.eyeball.value.blink = 0;
+
+          // Reset DOM element for fallback mode
+          if (topLid) {
+            topLid.setAttribute(
+              "transform",
+              "matrix(1.00508, 0, 0, -2.41206, -1.04, 174.05)",
+            );
+          }
         }, duration * 500);
       }, 10);
+    } else {
+      // Fallback blink directly with DOM
+      const topLid = this.eyeSvg?.querySelector("#eye-long-path1");
+      if (topLid) {
+        const closedScale = `matrix(1.00508, 0, 0, ${-2.41206 * 0.1}, -1.04, 174.05)`;
+        topLid.setAttribute("transform", closedScale);
+
+        setTimeout(() => {
+          topLid.setAttribute(
+            "transform",
+            "matrix(1.00508, 0, 0, -2.41206, -1.04, 174.05)",
+          );
+        }, 300);
+      }
     }
   }
 
@@ -488,7 +655,7 @@ export default class TheatreEyeballSketch extends Sketch {
   setupGUI(pane) {
     // No Tweakpane implementation - using Theatre.js Studio instead
 
-    // Set up keyboard shortcut hint
+    // Show appropriate hint based on Theatre.js availability
     const hintElement = document.createElement("div");
     hintElement.style.cssText = `
       position: fixed;
@@ -502,7 +669,13 @@ export default class TheatreEyeballSketch extends Sketch {
       font-size: 12px;
       z-index: 1000;
     `;
-    hintElement.textContent = "Press Alt+\\ to toggle Theatre.js Studio";
+
+    if (typeof studio !== 'undefined' && studio) {
+      hintElement.textContent = "Press Alt+\\ to toggle Theatre.js Studio";
+    } else {
+      hintElement.textContent = "Theatre.js not available - using fallback controls";
+    }
+
     document.body.appendChild(hintElement);
 
     // Auto-remove hint after 5 seconds
@@ -518,14 +691,30 @@ export default class TheatreEyeballSketch extends Sketch {
   playSequence(name) {
     if (!this.theatre.eyeball || !this.theatre.eyeball.value) return;
 
+    // Store reference to SVG elements for direct manipulation in fallback mode
+    const iris = this.eyeSvg?.querySelector("#eye-long-iris");
+    const pupil = this.eyeSvg?.querySelector("#eye-long-center");
+
     switch (name) {
       case "suspicious":
         // Suspicious look - half-closed eye
         this.theatre.eyeball.value.stretch.y = 0.5;
 
+        // Direct DOM manipulation for fallback mode
+        if (this.eyeElement) {
+          const currentTransform = this.eyeElement.style.transform || '';
+          this.eyeElement.style.transform = currentTransform.replace(/scaleY\([^)]+\)/, 'scaleY(0.5)');
+        }
+
         // Return to normal after delay
         setTimeout(() => {
           this.theatre.eyeball.value.stretch.y = 1;
+
+          // Reset DOM for fallback mode
+          if (this.eyeElement) {
+            const currentTransform = this.eyeElement.style.transform || '';
+            this.eyeElement.style.transform = currentTransform.replace(/scaleY\([^)]+\)/, 'scaleY(1)');
+          }
         }, 1000);
         break;
 
@@ -535,11 +724,31 @@ export default class TheatreEyeballSketch extends Sketch {
         this.theatre.eyeball.value.stretch.y = 1.5;
         this.theatre.eyeball.value.pupil.size = 4;
 
+        // Direct DOM manipulation for fallback mode
+        if (this.eyeElement) {
+          this.eyeElement.style.transform = `scaleX(1.5) scaleY(1.5)`;
+        }
+
+        // Make pupil smaller in fallback mode
+        if (iris) {
+          iris.setAttribute("r", "8");
+        }
+
         // Return to normal after delay
         setTimeout(() => {
           this.theatre.eyeball.value.stretch.x = 1;
           this.theatre.eyeball.value.stretch.y = 1;
           this.theatre.eyeball.value.pupil.size = 8;
+
+          // Reset DOM for fallback mode
+          if (this.eyeElement) {
+            this.eyeElement.style.transform = `scaleX(1) scaleY(1)`;
+          }
+
+          // Reset pupil size in fallback mode
+          if (iris) {
+            iris.setAttribute("r", "12.803");
+          }
         }, 800);
         break;
 
@@ -594,6 +803,16 @@ export default class TheatreEyeballSketch extends Sketch {
     if (this.eyeContainer) {
       this.eyeContainer.remove();
     }
+
+    // Remove fallback controls if they exist
+    const fallbackControls = document.querySelector('div:contains("Theatre.js Fallback Controls")');
+    if (fallbackControls) {
+      fallbackControls.remove();
+    }
+
+    // Remove any hints
+    const hints = document.querySelectorAll('div:contains("Theatre.js")');
+    hints.forEach(hint => hint.remove());
 
     // Clear references
     this.eyeContainer = null;

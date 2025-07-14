@@ -260,12 +260,12 @@ export class CubeMapLoader {
 
       // Enable texture compression if supported
       if (this.sceneManager.renderer.capabilities.isWebGL2) {
-        texture.encoding = THREE.sRGBEncoding;
+        texture.colorSpace = THREE.SRGBColorSpace;
       }
     } else {
       // Use safe defaults when renderer is not available
       texture.anisotropy = 4;
-      texture.encoding = THREE.sRGBEncoding;
+      texture.colorSpace = THREE.SRGBColorSpace;
     }
   }
 

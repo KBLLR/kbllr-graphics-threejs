@@ -100,7 +100,7 @@ export class TerrazzoMaterial extends BaseMaterial {
       map: {
         url: `${this.textureBasePath}Terrazzo010_2K_Color.png`,
         options: {
-          encoding: THREE.sRGBEncoding,
+          colorSpace: THREE.SRGBColorSpace,
           wrapS: THREE.RepeatWrapping,
           wrapT: THREE.RepeatWrapping,
         },

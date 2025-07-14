@@ -50,7 +50,9 @@ export class SimpleCubeMapLoader {
 
     // Load default cube map only
     if (this.config.defaultCubeMap && this.config.defaultCubeMap !== "none") {
-      console.log(`[SimpleCubeMapLoader] Loading default: ${this.config.defaultCubeMap}`);
+      console.log(
+        `[SimpleCubeMapLoader] Loading default: ${this.config.defaultCubeMap}`,
+      );
       this.loadCubeMap(this.config.defaultCubeMap);
     }
   }
@@ -77,8 +79,13 @@ export class SimpleCubeMapLoader {
     }
 
     // Don't reload if already current
-    if (this.currentCubeMap === cubeMapId && this.loadedCubeMaps.has(cubeMapId)) {
-      console.log(`[SimpleCubeMapLoader] Already loaded and active: ${cubeMapId}`);
+    if (
+      this.currentCubeMap === cubeMapId &&
+      this.loadedCubeMaps.has(cubeMapId)
+    ) {
+      console.log(
+        `[SimpleCubeMapLoader] Already loaded and active: ${cubeMapId}`,
+      );
       return this.loadedCubeMaps.get(cubeMapId);
     }
 
@@ -107,7 +114,7 @@ export class SimpleCubeMapLoader {
 
     // Build file paths
     const urls = definition.files.map(
-      (file) => `${this.config.basePath}${definition.path}/${file}`
+      (file) => `${this.config.basePath}${definition.path}/${file}`,
     );
 
     this.isLoading = true;
@@ -129,9 +136,12 @@ export class SimpleCubeMapLoader {
           },
           undefined,
           (error) => {
-            console.error(`[SimpleCubeMapLoader] Failed to load ${cubeMapId}:`, error);
+            console.error(
+              `[SimpleCubeMapLoader] Failed to load ${cubeMapId}:`,
+              error,
+            );
             reject(error);
-          }
+          },
         );
       });
 
@@ -154,13 +164,14 @@ export class SimpleCubeMapLoader {
 
     // Set safe defaults for anisotropy
     if (this.sceneManager.renderer?.capabilities) {
-      const maxAnisotropy = this.sceneManager.renderer.capabilities.getMaxAnisotropy();
+      const maxAnisotropy =
+        this.sceneManager.renderer.capabilities.getMaxAnisotropy();
       texture.anisotropy = Math.min(4, maxAnisotropy);
     } else {
       texture.anisotropy = 4;
     }
 
-    texture.encoding = THREE.sRGBEncoding;
+    texture.colorSpace = THREE.SRGBColorSpace;
   }
 
   /**

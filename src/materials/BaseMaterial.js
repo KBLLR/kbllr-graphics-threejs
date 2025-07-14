@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * Base Material Class
@@ -6,14 +6,14 @@ import * as THREE from 'three';
  */
 export class BaseMaterial {
   constructor(options = {}) {
-    this.name = options.name || 'BaseMaterial';
-    this.type = options.type || 'MeshPhysicalMaterial';
+    this.name = options.name || "BaseMaterial";
+    this.type = options.type || "MeshPhysicalMaterial";
     this.textureLoader = new THREE.TextureLoader();
     this.textures = {};
     this.material = null;
     this.config = {
       ...this.getDefaultConfig(),
-      ...options.config
+      ...options.config,
     };
 
     this._createMaterial();
@@ -50,13 +50,13 @@ export class BaseMaterial {
    */
   _getMaterialClass() {
     const materialMap = {
-      'MeshBasicMaterial': THREE.MeshBasicMaterial,
-      'MeshStandardMaterial': THREE.MeshStandardMaterial,
-      'MeshPhysicalMaterial': THREE.MeshPhysicalMaterial,
-      'MeshPhongMaterial': THREE.MeshPhongMaterial,
-      'MeshLambertMaterial': THREE.MeshLambertMaterial,
-      'MeshToonMaterial': THREE.MeshToonMaterial,
-      'ShaderMaterial': THREE.ShaderMaterial,
+      MeshBasicMaterial: THREE.MeshBasicMaterial,
+      MeshStandardMaterial: THREE.MeshStandardMaterial,
+      MeshPhysicalMaterial: THREE.MeshPhysicalMaterial,
+      MeshPhongMaterial: THREE.MeshPhongMaterial,
+      MeshLambertMaterial: THREE.MeshLambertMaterial,
+      MeshToonMaterial: THREE.MeshToonMaterial,
+      ShaderMaterial: THREE.ShaderMaterial,
     };
 
     return materialMap[this.type] || THREE.MeshPhysicalMaterial;
@@ -73,10 +73,13 @@ export class BaseMaterial {
           // Apply texture options
           if (options.wrapS) texture.wrapS = options.wrapS;
           if (options.wrapT) texture.wrapT = options.wrapT;
-          if (options.repeat) texture.repeat.set(options.repeat.x, options.repeat.y);
-          if (options.offset) texture.offset.set(options.offset.x, options.offset.y);
+          if (options.repeat)
+            texture.repeat.set(options.repeat.x, options.repeat.y);
+          if (options.offset)
+            texture.offset.set(options.offset.x, options.offset.y);
           if (options.rotation) texture.rotation = options.rotation;
-          if (options.center) texture.center.set(options.center.x, options.center.y);
+          if (options.center)
+            texture.center.set(options.center.x, options.center.y);
           if (options.magFilter) texture.magFilter = options.magFilter;
           if (options.minFilter) texture.minFilter = options.minFilter;
           if (options.anisotropy) texture.anisotropy = options.anisotropy;
@@ -84,8 +87,8 @@ export class BaseMaterial {
           // Default to sRGB for color textures
           if (options.encoding !== undefined) {
             texture.encoding = options.encoding;
-          } else if (textureKey === 'map' || textureKey === 'emissiveMap') {
-            texture.encoding = THREE.sRGBEncoding;
+          } else if (textureKey === "map" || textureKey === "emissiveMap") {
+            texture.colorSpace = THREE.SRGBColorSpace;
           }
 
           texture.needsUpdate = true;
@@ -102,7 +105,7 @@ export class BaseMaterial {
         (error) => {
           console.error(`Failed to load texture ${url}:`, error);
           reject(error);
-        }
+        },
       );
     });
   }
@@ -115,9 +118,7 @@ export class BaseMaterial {
 
     for (const [key, config] of Object.entries(textureMap)) {
       if (config && config.url) {
-        promises.push(
-          this.loadTexture(config.url, key, config.options || {})
-        );
+        promises.push(this.loadTexture(config.url, key, config.options || {}));
       }
     }
 
@@ -198,7 +199,7 @@ export class BaseMaterial {
     const cloned = new this.constructor({
       name: `${this.name}_clone`,
       type: this.type,
-      config: { ...this.config }
+      config: { ...this.config },
     });
 
     cloned.material = clonedMaterial;
@@ -215,7 +216,7 @@ export class BaseMaterial {
       name: this.name,
       type: this.type,
       config: { ...this.config },
-      textures: {}
+      textures: {},
     };
 
     // Store texture URLs for recreation
@@ -242,7 +243,7 @@ export class BaseMaterial {
     const material = new this({
       name: data.name,
       type: data.type,
-      config: data.config
+      config: data.config,
     });
 
     // Load textures
@@ -256,7 +257,7 @@ export class BaseMaterial {
             rotation: textureData.rotation,
             wrapS: textureData.wrapS,
             wrapT: textureData.wrapT,
-          })
+          }),
         );
       }
       await Promise.all(texturePromises);

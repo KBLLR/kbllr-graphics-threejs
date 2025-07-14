@@ -155,7 +155,7 @@ export class SpottyMetalMaterial extends BaseMaterial {
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.encoding = THREE.sRGBEncoding;
+    texture.colorSpace = THREE.SRGBColorSpace;
     return texture;
   }
 
