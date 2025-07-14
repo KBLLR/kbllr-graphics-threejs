@@ -13,10 +13,11 @@ import { SimpleCubeMapLoader } from "@systems/SimpleCubeMapLoader.js";
 import * as helpers from "@utils/helpers.js";
 
 /**
- * Character Animation Sketch
- * Exploring character animations and scene composition with Three.js
+ * Camera Travelling Intro Sketch
+ * Cinematic camera movements along CatmullRom spline curves with dynamic scene transitions
+ * Features customizable path visualization and look-ahead targeting
  */
-export default class CharacterAnimationSketch extends Sketch {
+export default class CameraTravellingIntro extends Sketch {
   constructor(options = {}) {
     super({
       ...options,
@@ -54,10 +55,15 @@ export default class CharacterAnimationSketch extends Sketch {
 
     // Camera animation
     this.cameraAnimation = {
-      enabled: false,
-      radius: 5,
-      height: 2,
+      enabled: true,
       speed: 0.5,
+      progress: 0,
+      lookAhead: true,
+      curve: null,
+      points: [],
+      loopMode: true,
+      autoStart: true,
+      pathVisible: true,
     };
 
     // Loaders
@@ -72,26 +78,29 @@ export default class CharacterAnimationSketch extends Sketch {
     // Initialize scene manager
     this.sceneManager = new SceneManager({
       fog: {
-        enabled: false,
-        color: 0xffffff,
-        near: 0.1,
-        far: 6,
+        enabled: true,
+        color: 0x000000,
+        near: 1,
+        far: 30,
       },
       grid: {
-        enabled: false,
+        enabled: true,
         size: 40,
-        divisions: 400,
+        divisions: 40,
         color1: 0x444444,
         color2: 0x222222,
       },
       environment: {
         background: true,
-        backgroundIntensity: 1.0,
-        backgroundBlurriness: 0.0,
+        backgroundIntensity: 0.7,
+        backgroundBlurriness: 0.2,
         environmentIntensity: 1.0,
-        toneMappingExposure: 1.9,
+        toneMappingExposure: 1.2,
       },
     });
+
+    // Create camera path
+    this.createCameraPath();
 
     // Replace base scene with managed scene
     this.scene = this.sceneManager.getScene();
@@ -468,8 +477,44 @@ export default class CharacterAnimationSketch extends Sketch {
   }
 
   /**
-   * Update method
+   * Create camera path with spline curve
    */
+  createCameraPath() {
+    // Define control points for the camera path
+    this.cameraAnimation.points = [
+      new THREE.Vector3(0, 3, 10),
+      new THREE.Vector3(8, 4, 8),
+      new THREE.Vector3(10, 2, 0),
+      new THREE.Vector3(8, 2, -8),
+      new THREE.Vector3(0, 3, -10),
+      new THREE.Vector3(-8, 5, -8),
+      new THREE.Vector3(-10, 2, 0),
+      new THREE.Vector3(-8, 1, 8),
+      new THREE.Vector3(0, 3, 10), // Close the loop
+    ];
+
+    // Create smooth curve from points
+    this.cameraAnimation.curve = new THREE.CatmullRomCurve3(
+      this.cameraAnimation.points,
+      this.cameraAnimation.loopMode,
+      "centripetal",
+    );
+
+    // Visualize path if enabled
+    if (this.cameraAnimation.pathVisible) {
+      const points = this.cameraAnimation.curve.getPoints(100);
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.5,
+      });
+
+      const curveObject = new THREE.Line(geometry, material);
+      this.scene.add(curveObject);
+    }
+  }
+
   update(deltaTime, elapsedTime) {
     // Update mixer
     if (this.mixer) {
@@ -486,13 +531,39 @@ export default class CharacterAnimationSketch extends Sketch {
       this.sceneManager.update(deltaTime, elapsedTime);
     }
 
-    // Camera animation
-    if (this.cameraAnimation.enabled && this.theAllies) {
-      const angle = elapsedTime * this.cameraAnimation.speed;
-      this.camera.position.x = Math.cos(angle) * this.cameraAnimation.radius;
-      this.camera.position.y = this.cameraAnimation.height;
-      this.camera.position.z = Math.sin(angle) * this.cameraAnimation.radius;
-      this.camera.lookAt(this.theAllies.position);
+    // Camera animation along spline curve
+    if (this.cameraAnimation.enabled && this.cameraAnimation.curve) {
+      // Increment progress based on speed
+      this.cameraAnimation.progress +=
+        deltaTime * this.cameraAnimation.speed * 0.1;
+
+      // Ensure progress stays in 0-1 range for loop
+      if (this.cameraAnimation.progress > 1) {
+        this.cameraAnimation.progress = this.cameraAnimation.loopMode
+          ? this.cameraAnimation.progress % 1
+          : 1;
+      }
+
+      // Get current position on curve
+      const position = this.cameraAnimation.curve.getPointAt(
+        this.cameraAnimation.progress,
+      );
+
+      // Set camera position
+      this.camera.position.copy(position);
+
+      // Get direction by sampling slightly ahead on curve
+      if (this.cameraAnimation.lookAhead) {
+        const lookAtProgress = (this.cameraAnimation.progress + 0.01) % 1;
+        const target = this.cameraAnimation.curve.getPointAt(lookAtProgress);
+        this.camera.lookAt(target);
+      } else if (this.theAllies) {
+        // Look at character if not looking ahead
+        this.camera.lookAt(this.theAllies.position);
+      } else {
+        // Default look at center
+        this.camera.lookAt(0, 0, 0);
+      }
     }
   }
 
@@ -520,9 +591,56 @@ export default class CharacterAnimationSketch extends Sketch {
    * Setup animation controls
    */
   setupAnimationControls(pane) {
-    const animFolder = pane.addFolder({
-      title: "Animations",
+    // Camera movement controls
+    const cameraFolder = pane.addFolder({
+      title: "Camera Path",
       expanded: true,
+    });
+
+    cameraFolder.addBinding(this.cameraAnimation, "enabled", {
+      label: "Enabled",
+    });
+
+    cameraFolder.addBinding(this.cameraAnimation, "speed", {
+      label: "Speed",
+      min: 0.1,
+      max: 2.0,
+      step: 0.1,
+    });
+
+    cameraFolder.addBinding(this.cameraAnimation, "lookAhead", {
+      label: "Look Ahead",
+    });
+
+    cameraFolder
+      .addBinding(this.cameraAnimation, "pathVisible", {
+        label: "Show Path",
+      })
+      .on("change", (e) => {
+        // Toggle path visibility
+        const pathLine = this.scene.children.find(
+          (child) => child.isLine && child.material.color.getHex() === 0x00ffff,
+        );
+
+        if (pathLine) {
+          pathLine.visible = e.value;
+        }
+      });
+
+    cameraFolder
+      .addButton({
+        title: "Reset Camera",
+      })
+      .on("click", () => {
+        this.cameraAnimation.progress = 0;
+        const position = this.cameraAnimation.curve.getPointAt(0);
+        this.camera.position.copy(position);
+      });
+
+    // Character animation controls
+    const animationFolder = pane.addFolder({
+      title: "Character Animation",
+      expanded: false,
     });
 
     // Create animation controls
