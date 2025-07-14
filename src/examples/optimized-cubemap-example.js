@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { CubeMapLoader } from "../systems/CubeMapLoader.js";
-import { PerformanceMonitor } from "../debug/PerformanceMonitor.js";
+import { CubeMapLoader } from "@systems/CubeMapLoader.js";
+import { PerformanceMonitor } from "@debug/PerformanceMonitor.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 /**
@@ -68,7 +68,7 @@ class OptimizedCubeMapExample {
       75,
       window.innerWidth / window.innerHeight,
       0.1,
-      100
+      100,
     );
     this.camera.position.set(0, 2, 5);
     this.camera.lookAt(0, 0, 0);
@@ -308,7 +308,8 @@ class OptimizedCubeMapExample {
 
     // Preload toggle
     const preloadLabel = document.createElement("label");
-    preloadLabel.style.cssText = "display: flex; align-items: center; margin-bottom: 5px;";
+    preloadLabel.style.cssText =
+      "display: flex; align-items: center; margin-bottom: 5px;";
     const preloadCheckbox = document.createElement("input");
     preloadCheckbox.type = "checkbox";
     preloadCheckbox.checked = this.cubeMapLoader.config.enablePreload;
@@ -323,7 +324,8 @@ class OptimizedCubeMapExample {
 
     // Cache toggle
     const cacheLabel = document.createElement("label");
-    cacheLabel.style.cssText = "display: flex; align-items: center; margin-bottom: 5px;";
+    cacheLabel.style.cssText =
+      "display: flex; align-items: center; margin-bottom: 5px;";
     const cacheCheckbox = document.createElement("input");
     cacheCheckbox.type = "checkbox";
     cacheCheckbox.checked = this.cubeMapLoader.config.enableCache;
@@ -374,7 +376,8 @@ class OptimizedCubeMapExample {
 
     // Instructions
     const instructions = document.createElement("div");
-    instructions.style.cssText = "margin-top: 15px; font-size: 12px; color: #888;";
+    instructions.style.cssText =
+      "margin-top: 15px; font-size: 12px; color: #888;";
     instructions.innerHTML = `
       <strong>Controls:</strong><br>
       • Mouse: Rotate camera<br>
@@ -396,7 +399,7 @@ class OptimizedCubeMapExample {
     try {
       // Load the default environment
       await this.cubeMapLoader.loadCubeMapAsync(
-        this.cubeMapLoader.config.defaultCubeMap
+        this.cubeMapLoader.config.defaultCubeMap,
       );
       console.log("Initial environment loaded");
     } catch (error) {
@@ -411,10 +414,13 @@ class OptimizedCubeMapExample {
       "level-2": { intensity: 0.8, exposure: 1.2 }, // Cloudy
       "level-3": { intensity: 0.6, exposure: 1.5 }, // Sunset
       "level-4": { intensity: 0.3, exposure: 2.0 }, // Night
-      "none": { intensity: 0.0, exposure: 1.0 },
+      none: { intensity: 0.0, exposure: 1.0 },
     };
 
-    const settings = environmentSettings[mapId] || { intensity: 1.0, exposure: 1.0 };
+    const settings = environmentSettings[mapId] || {
+      intensity: 1.0,
+      exposure: 1.0,
+    };
 
     // Update renderer tone mapping
     this.renderer.toneMappingExposure = settings.exposure;

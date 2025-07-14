@@ -1,5 +1,5 @@
-import { EventEmitter } from "./EventEmitter.js";
-import { sketchRegistry } from "../sketches/index.js";
+import { EventEmitter } from "@core/EventEmitter.js";
+import { sketchRegistry } from "@sketches/index.js";
 
 /**
  * SketchManager - Manages loading and switching between sketches

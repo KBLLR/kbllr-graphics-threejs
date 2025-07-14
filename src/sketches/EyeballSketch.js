@@ -1,5 +1,5 @@
-import { Sketch } from '../core/Sketch.js';
-import * as THREE from 'three';
+import { Sketch } from "@core/Sketch.js";
+import * as THREE from "three";
 
 /**
  * Eyeball Sketch
@@ -21,7 +21,7 @@ export default class EyeballSketch extends Sketch {
       blinkSpeed: 1,
       lookAtMouse: true,
       autoAnimate: false,
-      lightColor: 'green',
+      lightColor: "green",
     };
 
     // Animation properties
@@ -62,12 +62,12 @@ export default class EyeballSketch extends Sketch {
     const frustumSize = 10;
 
     this.camera = new THREE.OrthographicCamera(
-      frustumSize * aspect / -2,
-      frustumSize * aspect / 2,
+      (frustumSize * aspect) / -2,
+      (frustumSize * aspect) / 2,
       frustumSize / 2,
       frustumSize / -2,
       0.1,
-      100
+      100,
     );
 
     this.camera.position.set(0, 0, 10);
@@ -79,8 +79,8 @@ export default class EyeballSketch extends Sketch {
    */
   createEyeElement() {
     // Create container div
-    this.eyeContainer = document.createElement('div');
-    this.eyeContainer.className = 'eye-container';
+    this.eyeContainer = document.createElement("div");
+    this.eyeContainer.className = "eye-container";
     this.eyeContainer.style.cssText = `
       position: absolute;
       top: 50%;
@@ -129,10 +129,10 @@ export default class EyeballSketch extends Sketch {
     `;
 
     this.container.appendChild(this.eyeContainer);
-    this.eyeElement = this.eyeContainer.querySelector('#eye-svg');
+    this.eyeElement = this.eyeContainer.querySelector("#eye-svg");
 
     // Add click handler
-    this.eyeElement.addEventListener('click', () => {
+    this.eyeElement.addEventListener("click", () => {
       this.blink();
     });
   }
@@ -152,7 +152,10 @@ export default class EyeballSketch extends Sketch {
       positions[i + 2] = (Math.random() - 0.5) * 10 - 5;
     }
 
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3),
+    );
 
     const particlesMaterial = new THREE.PointsMaterial({
       size: 0.05,
@@ -174,10 +177,11 @@ export default class EyeballSketch extends Sketch {
    * Setup mouse tracking
    */
   setupMouseTracking() {
-    this.container.addEventListener('mousemove', (event) => {
+    this.container.addEventListener("mousemove", (event) => {
       const rect = this.container.getBoundingClientRect();
       this.mousePosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      this.mousePosition.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      this.mousePosition.y =
+        -((event.clientY - rect.top) / rect.height) * 2 + 1;
     });
   }
 
@@ -188,21 +192,21 @@ export default class EyeballSketch extends Sketch {
     if (this.isBlinking) return;
     this.isBlinking = true;
 
-    const topLid = this.eyeElement.querySelector('#top-lid');
-    const bottomLid = this.eyeElement.querySelector('#bottom-lid');
+    const topLid = this.eyeElement.querySelector("#top-lid");
+    const bottomLid = this.eyeElement.querySelector("#bottom-lid");
 
     // Close eye
     topLid.style.transition = `opacity ${100 / this.eyeState.blinkSpeed}ms ease-in`;
     bottomLid.style.transition = `opacity ${100 / this.eyeState.blinkSpeed}ms ease-in`;
-    topLid.style.opacity = '1';
-    bottomLid.style.opacity = '1';
+    topLid.style.opacity = "1";
+    bottomLid.style.opacity = "1";
 
     // Open eye
     setTimeout(() => {
       topLid.style.transition = `opacity ${100 / this.eyeState.blinkSpeed}ms ease-out`;
       bottomLid.style.transition = `opacity ${100 / this.eyeState.blinkSpeed}ms ease-out`;
-      topLid.style.opacity = '0';
-      bottomLid.style.opacity = '0';
+      topLid.style.opacity = "0";
+      bottomLid.style.opacity = "0";
 
       setTimeout(() => {
         this.isBlinking = false;
@@ -224,12 +228,12 @@ export default class EyeballSketch extends Sketch {
     const offsetY = THREE.MathUtils.clamp(y * maxOffset, -maxOffset, maxOffset);
 
     // Apply movement
-    iris.setAttribute('cx', 52 + offsetX);
-    iris.setAttribute('cy', 52 + offsetY);
-    pupil.setAttribute('cx', 52 + offsetX);
-    pupil.setAttribute('cy', 52 + offsetY);
-    highlight.setAttribute('cx', 45 + offsetX * 0.7);
-    highlight.setAttribute('cy', 45 + offsetY * 0.7);
+    iris.setAttribute("cx", 52 + offsetX);
+    iris.setAttribute("cy", 52 + offsetY);
+    pupil.setAttribute("cx", 52 + offsetX);
+    pupil.setAttribute("cy", 52 + offsetY);
+    highlight.setAttribute("cx", 45 + offsetX * 0.7);
+    highlight.setAttribute("cy", 45 + offsetY * 0.7);
   }
 
   /**
@@ -262,8 +266,7 @@ export default class EyeballSketch extends Sketch {
 
     // Update eye container transform
     if (this.eyeContainer) {
-      this.eyeContainer.style.transform =
-        `translate(-50%, -50%) translate(${this.eyeState.position.x}px, ${this.eyeState.position.y}px) scaleX(${this.eyeState.scale.x}) scaleY(${this.eyeState.scale.y})`;
+      this.eyeContainer.style.transform = `translate(-50%, -50%) translate(${this.eyeState.position.x}px, ${this.eyeState.position.y}px) scaleX(${this.eyeState.scale.x}) scaleY(${this.eyeState.scale.y})`;
     }
   }
 
@@ -273,35 +276,35 @@ export default class EyeballSketch extends Sketch {
   setupGUI(pane) {
     // Eye Controls
     const eyeFolder = pane.addFolder({
-      title: 'Eye Controls',
+      title: "Eye Controls",
       expanded: true,
     });
 
     // Position
-    eyeFolder.addBinding(this.eyeState.position, 'x', {
-      label: 'Position X',
+    eyeFolder.addBinding(this.eyeState.position, "x", {
+      label: "Position X",
       min: -100,
       max: 100,
       step: 1,
     });
 
-    eyeFolder.addBinding(this.eyeState.position, 'y', {
-      label: 'Position Y',
+    eyeFolder.addBinding(this.eyeState.position, "y", {
+      label: "Position Y",
       min: -100,
       max: 100,
       step: 1,
     });
 
     // Scale
-    eyeFolder.addBinding(this.eyeState.scale, 'x', {
-      label: 'Scale X',
+    eyeFolder.addBinding(this.eyeState.scale, "x", {
+      label: "Scale X",
       min: 0.5,
       max: 2,
       step: 0.01,
     });
 
-    eyeFolder.addBinding(this.eyeState.scale, 'y', {
-      label: 'Scale Y',
+    eyeFolder.addBinding(this.eyeState.scale, "y", {
+      label: "Scale Y",
       min: 0.5,
       max: 2,
       step: 0.01,
@@ -309,78 +312,88 @@ export default class EyeballSketch extends Sketch {
 
     // Behavior
     const behaviorFolder = pane.addFolder({
-      title: 'Behavior',
+      title: "Behavior",
       expanded: true,
     });
 
-    behaviorFolder.addBinding(this.eyeState, 'lookAtMouse', {
-      label: 'Follow Mouse',
+    behaviorFolder.addBinding(this.eyeState, "lookAtMouse", {
+      label: "Follow Mouse",
     });
 
-    behaviorFolder.addBinding(this.eyeState, 'autoAnimate', {
-      label: 'Auto Animate',
+    behaviorFolder.addBinding(this.eyeState, "autoAnimate", {
+      label: "Auto Animate",
     });
 
-    behaviorFolder.addBinding(this.eyeState, 'blinkSpeed', {
-      label: 'Blink Speed',
+    behaviorFolder.addBinding(this.eyeState, "blinkSpeed", {
+      label: "Blink Speed",
       min: 0.5,
       max: 2,
       step: 0.1,
     });
 
     // Actions
-    behaviorFolder.addButton({
-      title: 'Blink',
-    }).on('click', () => {
-      this.blink();
-    });
+    behaviorFolder
+      .addButton({
+        title: "Blink",
+      })
+      .on("click", () => {
+        this.blink();
+      });
 
-    behaviorFolder.addButton({
-      title: 'Random Look',
-    }).on('click', () => {
-      const x = (Math.random() - 0.5) * 2;
-      const y = (Math.random() - 0.5) * 2;
-      this.updateEyeLookAt(x, y);
-    });
+    behaviorFolder
+      .addButton({
+        title: "Random Look",
+      })
+      .on("click", () => {
+        const x = (Math.random() - 0.5) * 2;
+        const y = (Math.random() - 0.5) * 2;
+        this.updateEyeLookAt(x, y);
+      });
 
     // Animation sequences
     const animFolder = pane.addFolder({
-      title: 'Animations',
+      title: "Animations",
       expanded: false,
     });
 
-    animFolder.addButton({
-      title: 'Suspicious Look',
-    }).on('click', () => {
-      this.playSequence('suspicious');
-    });
+    animFolder
+      .addButton({
+        title: "Suspicious Look",
+      })
+      .on("click", () => {
+        this.playSequence("suspicious");
+      });
 
-    animFolder.addButton({
-      title: 'Surprised',
-    }).on('click', () => {
-      this.playSequence('surprised');
-    });
+    animFolder
+      .addButton({
+        title: "Surprised",
+      })
+      .on("click", () => {
+        this.playSequence("surprised");
+      });
 
-    animFolder.addButton({
-      title: 'Sleepy',
-    }).on('click', () => {
-      this.playSequence('sleepy');
-    });
+    animFolder
+      .addButton({
+        title: "Sleepy",
+      })
+      .on("click", () => {
+        this.playSequence("sleepy");
+      });
   }
 
   /**
    * Play animation sequence
    */
   playSequence(name) {
-    switch(name) {
-      case 'suspicious':
+    switch (name) {
+      case "suspicious":
         this.eyeState.scale.y = 0.5;
         setTimeout(() => {
           this.eyeState.scale.y = 1;
         }, 1000);
         break;
 
-      case 'surprised':
+      case "surprised":
         this.eyeState.scale.x = 1.5;
         this.eyeState.scale.y = 1.5;
         setTimeout(() => {
@@ -389,7 +402,7 @@ export default class EyeballSketch extends Sketch {
         }, 800);
         break;
 
-      case 'sleepy':
+      case "sleepy":
         let blinkCount = 0;
         const sleepyBlink = setInterval(() => {
           this.blink();
@@ -414,8 +427,8 @@ export default class EyeballSketch extends Sketch {
     const aspect = width / height;
     const frustumSize = 10;
 
-    this.camera.left = frustumSize * aspect / -2;
-    this.camera.right = frustumSize * aspect / 2;
+    this.camera.left = (frustumSize * aspect) / -2;
+    this.camera.right = (frustumSize * aspect) / 2;
     this.camera.top = frustumSize / 2;
     this.camera.bottom = frustumSize / -2;
 

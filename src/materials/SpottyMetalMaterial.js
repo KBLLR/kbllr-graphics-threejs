@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { BaseMaterial } from "./BaseMaterial.js";
+import { BaseMaterial } from "@materials/BaseMaterial.js";
 
 /**
  * Spotty Metal Material

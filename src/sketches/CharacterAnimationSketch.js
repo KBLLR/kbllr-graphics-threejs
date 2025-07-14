@@ -1,15 +1,16 @@
-import { Sketch } from "../core/Sketch.js";
+import { Sketch } from "@core/Sketch.js";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { SceneManager } from "../components/SceneManager.js";
-import { ParticleSystem } from "../systems/ParticleSystem.js";
-import { MaterialManager } from "../systems/MaterialManager.js";
-import { LightingSystem } from "../systems/LightingSystem.js";
-import { SimpleCubeMapLoader } from "../systems/SimpleCubeMapLoader.js";
-import * as helpers from "../utils/helpers.js";
+import { SceneManager } from "@components/SceneManager.js";
+import { ParticleSystem } from "@systems/ParticleSystem.js";
+import { MaterialManager } from "@systems/MaterialManager.js";
+import { LightingSystem } from "@systems/LightingSystem.js";
+import { CubeMapLoader } from "@systems/CubeMapLoader.js";
+import { SimpleCubeMapLoader } from "@systems/SimpleCubeMapLoader.js";
+import * as helpers from "@utils/helpers.js";
 
 /**
  * Character Animation Sketch
@@ -37,6 +38,8 @@ export default class CharacterAnimationSketch extends Sketch {
     this.actions = {};
     this.currentAnimationIndex = 0;
     this.animationNames = [];
+    this.isPlayingSequence = false;
+    this.finishedHandler = null;
 
     // Controls
     this.transformControls = null;
@@ -133,7 +136,9 @@ export default class CharacterAnimationSketch extends Sketch {
    */
   setupCubeMapLoader() {
     this.cubeMapLoader = new SimpleCubeMapLoader(this.sceneManager, {
+      basePath: "/img/",
       defaultCubeMap: "level-1",
+      enablePreload: false,
       enableCache: true,
     });
 
@@ -279,7 +284,7 @@ export default class CharacterAnimationSketch extends Sketch {
         this.controls.target.copy(target.position);
       }
     });
-    this.scene.add(this.transformControls);
+    // TransformControls are attached to objects, not added to scene directly
   }
 
   /**
@@ -298,7 +303,7 @@ export default class CharacterAnimationSketch extends Sketch {
     try {
       const gltf = await new Promise((resolve, reject) => {
         this.gltfLoader.load(
-          "/gltf/theAllies/theAllies.glb",
+          "./models/theAllies.glb",
           resolve,
           (progress) => {
             console.log(
@@ -327,6 +332,16 @@ export default class CharacterAnimationSketch extends Sketch {
           this.actions[animName] = action;
           this.animationNames.push(animName);
         });
+
+        // Set up a single event listener for animation finished
+        this.finishedHandler = (e) => {
+          if (this.isPlayingSequence && e.action) {
+            this.currentAnimationIndex =
+              (this.currentAnimationIndex + 1) % this.animationNames.length;
+            this.playNextAnimation();
+          }
+        };
+        this.mixer.addEventListener("finished", this.finishedHandler);
       }
     } catch (error) {
       console.error("Failed to load models:", error);
@@ -394,6 +409,7 @@ export default class CharacterAnimationSketch extends Sketch {
 
     // Start playing all animations in sequence
     if (this.animationNames.length > 0) {
+      this.isPlayingSequence = true;
       this.playNextAnimation();
     }
 
@@ -422,13 +438,6 @@ export default class CharacterAnimationSketch extends Sketch {
       action.clampWhenFinished = true;
       action.play();
 
-      // Set up for next animation
-      this.mixer.addEventListener("finished", () => {
-        this.currentAnimationIndex =
-          (this.currentAnimationIndex + 1) % this.animationNames.length;
-        this.playNextAnimation();
-      });
-
       console.log(`Playing animation: ${animName}`);
     }
   }
@@ -455,6 +464,7 @@ export default class CharacterAnimationSketch extends Sketch {
     action.play();
 
     this.animationState.currentAction = name;
+    this.isPlayingSequence = false; // Stop sequence when manually playing
   }
 
   /**
@@ -533,6 +543,7 @@ export default class CharacterAnimationSketch extends Sketch {
       })
       .on("click", () => {
         this.currentAnimationIndex = 0;
+        this.isPlayingSequence = true;
         this.playNextAnimation();
       });
 
@@ -1019,6 +1030,9 @@ export default class CharacterAnimationSketch extends Sketch {
 
     // Dispose animation mixer
     if (this.mixer) {
+      if (this.finishedHandler) {
+        this.mixer.removeEventListener("finished", this.finishedHandler);
+      }
       this.mixer.stopAllAction();
       this.mixer.uncacheRoot(this.mixer.getRoot());
     }

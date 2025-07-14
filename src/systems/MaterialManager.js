@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { BaseMaterial } from "../materials/BaseMaterial.js";
-import { SpottyMetalMaterial } from "../materials/SpottyMetalMaterial.js";
-import { TerrazzoMaterial } from "../materials/TerrazzoMaterial.js";
+import { BaseMaterial } from "@materials/BaseMaterial.js";
+import { SpottyMetalMaterial } from "@materials/SpottyMetalMaterial.js";
+import { TerrazzoMaterial } from "@materials/TerrazzoMaterial.js";
 
 /**
  * Material Manager

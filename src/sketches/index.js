@@ -4,13 +4,13 @@
  */
 
 // Import all sketches
-import CharacterAnimationSketch from './CharacterAnimationSketch.js';
-import EyeballSketch from './EyeballSketch.js';
+import CharacterSketch from "./CharacterSketch.js";
+import EyeballSketch from "./EyeballSketch.js";
 
 // Export sketch registry
 export const sketchRegistry = {
-  'character-animation': CharacterAnimationSketch,
-  'eyeball-theater': EyeballSketch,
+  "character-animation": CharacterSketch,
+  "eyeball-theater": EyeballSketch,
   // Add new sketches here as you create them
   // 'shader-exploration': ShaderSketch,
   // 'particle-flow': ParticleFlowSketch,
@@ -21,20 +21,20 @@ export const sketchRegistry = {
 // Export metadata for gallery
 export const sketchMetadata = [
   {
-    id: 'character-animation',
-    name: 'Character Animation',
-    description: 'Interactive character animations with particle effects',
-    thumbnail: '/img/thumbnails/character-animation.jpg',
-    category: 'animation',
-    tags: ['character', 'animation', 'particles', 'interactive'],
+    id: "character-animation",
+    name: "Character Animation",
+    description: "Interactive character animations with particle effects",
+    thumbnail: "/img/thumbnails/character-animation.jpg",
+    category: "animation",
+    tags: ["character", "animation", "particles", "interactive"],
   },
   {
-    id: 'eyeball-theater',
-    name: 'Eyeball Theater',
-    description: 'Animated SVG eye with Theatre.js integration',
-    thumbnail: '/img/thumbnails/eyeball.jpg',
-    category: 'animation',
-    tags: ['svg', 'theater', 'animation', '2d'],
+    id: "eyeball-theater",
+    name: "Eyeball Theater",
+    description: "Animated SVG eye with Theatre.js integration",
+    thumbnail: "/img/thumbnails/eyeball.jpg",
+    category: "animation",
+    tags: ["svg", "theater", "animation", "2d"],
   },
   // Future sketches (commented out until implemented)
   /*

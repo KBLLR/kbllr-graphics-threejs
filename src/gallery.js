@@ -1,6 +1,6 @@
 import "./style.css";
-import { SketchManager } from "./core/SketchManager.js";
-import { sketchMetadata } from "./sketches/index.js";
+import { SketchManager } from "@core/SketchManager.js";
+import { sketchMetadata } from "@sketches/index.js";
 
 /**
  * Main Gallery Application
@@ -544,13 +544,14 @@ class SketchGallery {
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        z-index: 1001;
+        z-index: 1002;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         gap: 4px;
         transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       }
 
       .menu-toggle span {
@@ -604,7 +605,13 @@ class SketchGallery {
 
       @media (min-width: 768px) {
         .menu-toggle {
-          left: 340px;
+          left: 1rem;
+          opacity: 0.8;
+        }
+
+        .menu-toggle:hover {
+          opacity: 1;
+          background: #2a2a2a;
         }
 
         .menu-open .menu-toggle {
@@ -612,10 +619,19 @@ class SketchGallery {
         }
 
         .gallery-menu {
+          transform: translateX(-100%);
+        }
+
+        .menu-open .gallery-menu {
           transform: translateX(0);
         }
 
         .sketch-container {
+          left: 0;
+          width: 100%;
+        }
+
+        .menu-open .sketch-container {
           left: 320px;
           width: calc(100% - 320px);
         }
