@@ -6,14 +6,14 @@
 // Import all sketches
 import CharacterSketch from "./CharacterSketch.js";
 import EyeballSketch from "./EyeballSketch.js";
-import TheatreEyeballSketch from "./TheatreEyeballSketch.js";
+import SimpleEyeballSketch from "./SimpleEyeballSketch.js";
 import CameraTravellingIntro from "./CameraTravellingIntro.js";
 
 // Export sketch registry
 export const sketchRegistry = {
   "character-animation": CharacterSketch,
   "eyeball-theater": EyeballSketch,
-  "theatre-eyeball": TheatreEyeballSketch,
+  "theatre-eyeball": SimpleEyeballSketch,
   "camera-travelling": CameraTravellingIntro,
   // Add new sketches here as you create them
   // 'shader-exploration': ShaderSketch,
@@ -50,12 +50,12 @@ export const sketchMetadata = [
   },
   {
     id: "theatre-eyeball",
-    name: "Theatre.js Eyeball",
+    name: "Eyeball Animation",
     description:
-      "SVG eye animation powered by Theatre.js with interactive controls",
+      "SVG eye animation with glowing effects and interactive controls",
     thumbnail: "/img/thumbnails/theatre-eyeball.jpg",
     category: "animation",
-    tags: ["svg", "theatre", "animation", "interactive"],
+    tags: ["svg", "animation", "interactive", "particles"],
   },
   // Future sketches (commented out until implemented)
   /*
