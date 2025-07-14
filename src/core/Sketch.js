@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Pane } from "tweakpane";
+import { PerformanceMonitor } from "@debug/PerformanceMonitor.js";
 
 /**
  * Base Sketch Class
@@ -27,6 +28,7 @@ export class Sketch {
     // UI
     this.pane = null;
     this.stats = null;
+    this.performanceMonitor = null;
 
     // State
     this.isInitialized = false;
@@ -67,6 +69,7 @@ export class Sketch {
 
       if (this.options.showStats) {
         this.setupStats();
+        this.setupPerformanceMonitor();
       }
 
       // Child class setup
@@ -166,6 +169,17 @@ export class Sketch {
         }
       });
 
+    // Add performance monitor toggle
+    if (this.performanceMonitor) {
+      generalFolder
+        .addButton({
+          title: "Toggle Performance Monitor",
+        })
+        .on("click", () => {
+          this.performanceMonitor.toggle();
+        });
+    }
+
     // Let child classes add their own controls
     this.setupGUI(this.pane);
   }
@@ -176,6 +190,21 @@ export class Sketch {
   setupStats() {
     // Implement stats if needed
     // Could use Stats.js or custom implementation
+  }
+
+  /**
+   * Setup performance monitor
+   */
+  setupPerformanceMonitor() {
+    this.performanceMonitor = new PerformanceMonitor({
+      enabled: true,
+      showFPS: true,
+      showMemory: true,
+      showTextures: true,
+    });
+
+    // Set position to bottom right
+    this.performanceMonitor.setPosition("bottom-right");
   }
 
   /**
@@ -251,6 +280,11 @@ export class Sketch {
     // Render
     this.render();
 
+    // Update performance monitor
+    if (this.performanceMonitor) {
+      this.performanceMonitor.update(this.renderer);
+    }
+
     if (this.stats) {
       this.stats.end();
     }
@@ -307,6 +341,11 @@ export class Sketch {
     // Dispose Tweakpane
     if (this.pane) {
       this.pane.dispose();
+    }
+
+    // Dispose performance monitor
+    if (this.performanceMonitor) {
+      this.performanceMonitor.dispose();
     }
 
     // Call child class cleanup
