@@ -699,16 +699,14 @@ export default class CameraTravellingIntro extends Sketch {
       label: "Enable",
     });
 
-    characterCameraFolder.addBinding(this.cameraAnimation, "radius", {
-      min: 1,
-      max: 10,
-      step: 0.1,
+    characterCameraFolder.addBinding(this.cameraAnimation, "progress", {
+      min: 0,
+      max: 1,
+      step: 0.01,
     });
 
-    characterCameraFolder.addBinding(this.cameraAnimation, "height", {
-      min: 0,
-      max: 5,
-      step: 0.1,
+    characterCameraFolder.addBinding(this.cameraAnimation, "lookAhead", {
+      label: "Look Ahead",
     });
 
     characterCameraFolder.addBinding(this.cameraAnimation, "speed", {
