@@ -1,8 +1,8 @@
 import { Sketch } from "@core/Sketch.js";
 import * as THREE from "three";
-import * as core from '@theatre/core';
+import * as core from "@theatre/core";
 import { types as t } from "@theatre/core";
-import studio from '@theatre/studio';
+import studio from "@theatre/studio";
 
 /**
  * Theatre.js Eyeball Sketch
@@ -73,7 +73,7 @@ export default class TheatreEyeballSketch extends Sketch {
    */
   setupTheatre() {
     // Only initialize Studio in development mode
-    if (import.meta.env?.MODE === 'development') {
+    if (import.meta.env?.MODE === "development") {
       studio.initialize();
     }
 
@@ -86,56 +86,62 @@ export default class TheatreEyeballSketch extends Sketch {
     this.theatre.animation = this.theatre.sheet.sequence;
     this.theatre.animation.position = 0;
 
-    // Create the eyeball object with properties
-    this.theatre.eyeball = this.theatre.sheet.object("Eyeball", {
-      position: t.compound({
-        x: t.number(0, {
-          range: [-60, 60],
-          label: "Horizontal"
+    // Initialize Theatre.js object for the eyeball
+    try {
+      // Create the eyeball object with properties
+      this.theatre.eyeball = this.theatre.sheet.object("Eyeball", {
+        position: t.compound({
+          x: t.number(0, {
+            range: [-60, 60],
+            label: "Horizontal",
+          }),
+          y: t.number(0, {
+            range: [-70, 70],
+            label: "Vertical",
+          }),
         }),
-        y: t.number(0, {
-          range: [-70, 70],
-          label: "Vertical"
-        })
-      }),
-      stretch: t.compound({
-        x: t.number(1, {
-          range: [0.5, 2],
-          label: "ScaleX"
+        stretch: t.compound({
+          x: t.number(1, {
+            range: [0.5, 2],
+            label: "ScaleX",
+          }),
+          y: t.number(1, {
+            range: [0.5, 2],
+            label: "ScaleY",
+          }),
         }),
-        y: t.number(1, {
-          range: [0.5, 2],
-          label: "ScaleY"
-        })
-      }),
-      light: t.stringLiteral(
-        "green",
-        {
-          green: "Green",
-          red: "Red",
-          yellow: "Yellow",
-        },
-        {as: "switch"}
-      ),
-      pupil: t.compound({
-        x: t.number(0, {
-          range: [-10, 10],
-          label: "PupilX"
+        light: t.stringLiteral(
+          "green",
+          {
+            green: "Green",
+            red: "Red",
+            yellow: "Yellow",
+          },
+          { as: "switch" },
+        ),
+        pupil: t.compound({
+          x: t.number(0, {
+            range: [-10, 10],
+            label: "PupilX",
+          }),
+          y: t.number(0, {
+            range: [-10, 10],
+            label: "PupilY",
+          }),
+          size: t.number(8, {
+            range: [3, 15],
+            label: "Size",
+          }),
         }),
-        y: t.number(0, {
-          range: [-10, 10],
-          label: "PupilY"
+        blink: t.number(0, {
+          range: [0, 1],
+          label: "Blink",
         }),
-        size: t.number(8, {
-          range: [3, 15],
-          label: "Size"
-        })
-      }),
-      blink: t.number(0, {
-        range: [0, 1],
-        label: "Blink"
-      })
-    });
+      });
+      console.log("Theatre.js eyeball object created:", this.theatre.eyeball);
+    } catch (error) {
+      console.error("Failed to create Theatre.js object:", error);
+    }
   }
 
   /**
@@ -246,7 +252,7 @@ export default class TheatreEyeballSketch extends Sketch {
     `;
 
     // Add keyframes for the hue-shift animation
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       @keyframes hueShift {
         100% {
@@ -263,7 +269,7 @@ export default class TheatreEyeballSketch extends Sketch {
 
     // Store references
     this.eyeElement = eyeInner;
-    this.eyeSvg = eyeInner.querySelector('svg');
+    this.eyeSvg = eyeInner.querySelector("svg");
 
     // Add Theatre.js control
     this.setupTheatreControl();
@@ -285,10 +291,10 @@ export default class TheatreEyeballSketch extends Sketch {
       this.eyeElement.style.transform = `scaleX(${values.stretch.x}) scaleY(${values.stretch.y})`;
 
       // Update light color
-      const bodyElement = this.eyeContainer.querySelector('.god__body');
+      const bodyElement = this.eyeContainer.querySelector(".god__body");
       if (bodyElement) {
-        switch(values.light) {
-          case 'red':
+        switch (values.light) {
+          case "red":
             bodyElement.style.boxShadow = `
               inset -2.5vmin -2.5vmin 9.5vmin hsla(0, 0%, 100%, 0.8),
               inset 0 5vmin 25vmin hsla(0, 75%, 50%, 0.8),
@@ -297,7 +303,7 @@ export default class TheatreEyeballSketch extends Sketch {
               inset -5vmin -20vmin 25vmin hsla(0, 63%, 72%, 1)
             `;
             break;
-          case 'yellow':
+          case "yellow":
             bodyElement.style.boxShadow = `
               inset -2.5vmin -2.5vmin 9.5vmin hsla(0, 0%, 100%, 0.8),
               inset 0 5vmin 25vmin hsla(60, 75%, 50%, 0.8),
@@ -319,32 +325,38 @@ export default class TheatreEyeballSketch extends Sketch {
       }
 
       // Update pupil
-      const iris = this.eyeSvg.querySelector('#eye-long-iris');
-      const pupil = this.eyeSvg.querySelector('#eye-long-center');
-      const highlight = this.eyeSvg.querySelector('#eye-long-hl');
+      const iris = this.eyeSvg.querySelector("#eye-long-iris");
+      const pupil = this.eyeSvg.querySelector("#eye-long-center");
+      const highlight = this.eyeSvg.querySelector("#eye-long-hl");
 
       if (iris && pupil) {
         // Set pupil position
-        const transform = pupil.getAttribute('transform') || '';
-        const newTransform = transform.replace(/translate\([^)]+\)/, `translate(${values.pupil.x}, ${values.pupil.y})`);
-        pupil.setAttribute('transform', newTransform);
+        const transform = pupil.getAttribute("transform") || "";
+        const newTransform = transform.replace(
+          /translate\([^)]+\)/,
+          `translate(${values.pupil.x}, ${values.pupil.y})`,
+        );
+        pupil.setAttribute("transform", newTransform);
       }
 
       // Handle blinking
-      const topLid = this.eyeSvg.querySelector('#eye-long-path1');
+      const topLid = this.eyeSvg.querySelector("#eye-long-path1");
       if (topLid) {
         if (values.blink > 0.5) {
           const blinkValue = (values.blink - 0.5) * 2; // 0-1 range
           const scale = `matrix(1.00508, 0, 0, ${-2.41206 * (1 - blinkValue)}, -1.04, 174.05)`;
-          topLid.setAttribute('transform', scale);
+          topLid.setAttribute("transform", scale);
         } else {
-          topLid.setAttribute('transform', 'matrix(1.00508, 0, 0, -2.41206, -1.04, 174.05)');
+          topLid.setAttribute(
+            "transform",
+            "matrix(1.00508, 0, 0, -2.41206, -1.04, 174.05)",
+          );
         }
       }
     });
 
     // Click on eye to play animation
-    this.eyeContainer.addEventListener('click', () => {
+    this.eyeContainer.addEventListener("click", () => {
       this.theatre.animation.play({ range: [0, 5] });
     });
   }
@@ -392,20 +404,28 @@ export default class TheatreEyeballSketch extends Sketch {
     this.container.addEventListener("mousemove", (event) => {
       const rect = this.container.getBoundingClientRect();
       this.mousePosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      this.mousePosition.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      this.mousePosition.y =
+        -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
       // Update Theatre.js values if lookAtMouse is enabled
       if (this.eyeState.lookAtMouse && this.theatre.eyeball) {
         const maxOffset = 10;
-        const offsetX = THREE.MathUtils.clamp(this.mousePosition.x * maxOffset, -maxOffset, maxOffset);
-        const offsetY = THREE.MathUtils.clamp(this.mousePosition.y * maxOffset, -maxOffset, maxOffset);
+        const offsetX = THREE.MathUtils.clamp(
+          this.mousePosition.x * maxOffset,
+          -maxOffset,
+          maxOffset,
+        );
+        const offsetY = THREE.MathUtils.clamp(
+          this.mousePosition.y * maxOffset,
+          -maxOffset,
+          maxOffset,
+        );
 
-        this.theatre.eyeball.set({
-          pupil: {
-            x: offsetX,
-            y: offsetY
-          }
-        });
+        // Update pupil position directly
+        if (this.theatre.eyeball.value) {
+          this.theatre.eyeball.value.pupil.x = offsetX;
+          this.theatre.eyeball.value.pupil.y = offsetY;
+        }
       }
     });
   }
@@ -414,31 +434,23 @@ export default class TheatreEyeballSketch extends Sketch {
    * Blink animation
    */
   blink() {
-    if (this.theatre.eyeball) {
-      // Use Theatre.js to animate blink
+    if (this.theatre.eyeball && this.theatre.eyeball.value) {
+      // Use simple animation for blinking
       const duration = 0.3;
-      this.theatre.sheet.sequence.attachAudio().play({
-        range: [0, duration],
-        iterations: 1,
-        direction: 'normal',
-        onReady: () => {
-          // Set up blink animation
-          this.theatre.eyeball.set({ blink: 0 });
-        },
-        onStart: () => {
-          // Blink starts
-          this.theatre.eyeball.animate(
-            { blink: 1 },
-            { duration: duration / 2 }
-          ).then(() => {
-            // Blink ends
-            this.theatre.eyeball.animate(
-              { blink: 0 },
-              { duration: duration / 2 }
-            );
-          });
-        }
-      });
+
+      // Set initial state
+      this.theatre.eyeball.value.blink = 0;
+
+      // Create a simple timeout-based animation
+      setTimeout(() => {
+        // Blink closed
+        this.theatre.eyeball.value.blink = 1;
+
+        setTimeout(() => {
+          // Blink open
+          this.theatre.eyeball.value.blink = 0;
+        }, duration * 500);
+      }, 10);
     }
   }
 
@@ -461,8 +473,8 @@ export default class TheatreEyeballSketch extends Sketch {
       this.theatre.eyeball.set({
         pupil: {
           x: x,
-          y: y
-        }
+          y: y,
+        },
       });
 
       // Occasional blink
@@ -524,13 +536,16 @@ export default class TheatreEyeballSketch extends Sketch {
       .addBlade({
         view: "list",
         label: "Light Color",
-        options: Object.entries(colorOptions).map(([text, value]) => ({ text, value })),
+        options: Object.entries(colorOptions).map(([text, value]) => ({
+          text,
+          value,
+        })),
         value: this.eyeState.lightColor,
       })
       .on("change", (ev) => {
         this.eyeState.lightColor = ev.value;
-        if (this.theatre.eyeball) {
-          this.theatre.eyeball.set({ light: ev.value });
+        if (this.theatre.eyeball && this.theatre.eyeball.value) {
+          this.theatre.eyeball.value.light = ev.value;
         }
       });
 
@@ -569,41 +584,31 @@ export default class TheatreEyeballSketch extends Sketch {
    * Play animation sequence
    */
   playSequence(name) {
-    if (!this.theatre.eyeball) return;
+    if (!this.theatre.eyeball || !this.theatre.eyeball.value) return;
 
     switch (name) {
       case "suspicious":
-        this.theatre.eyeball.animate(
-          { stretch: { y: 0.5 } },
-          { duration: 0.5 }
-        ).then(() => {
-          setTimeout(() => {
-            this.theatre.eyeball.animate(
-              { stretch: { y: 1 } },
-              { duration: 0.5 }
-            );
-          }, 1000);
-        });
+        // Suspicious look - half-closed eye
+        this.theatre.eyeball.value.stretch.y = 0.5;
+
+        // Return to normal after delay
+        setTimeout(() => {
+          this.theatre.eyeball.value.stretch.y = 1;
+        }, 1000);
         break;
 
       case "surprised":
-        this.theatre.eyeball.animate(
-          {
-            stretch: { x: 1.5, y: 1.5 },
-            pupil: { size: 4 }
-          },
-          { duration: 0.2 }
-        ).then(() => {
-          setTimeout(() => {
-            this.theatre.eyeball.animate(
-              {
-                stretch: { x: 1, y: 1 },
-                pupil: { size: 8 }
-              },
-              { duration: 0.5 }
-            );
-          }, 800);
-        });
+        // Surprised look - wide open eye
+        this.theatre.eyeball.value.stretch.x = 1.5;
+        this.theatre.eyeball.value.stretch.y = 1.5;
+        this.theatre.eyeball.value.pupil.size = 4;
+
+        // Return to normal after delay
+        setTimeout(() => {
+          this.theatre.eyeball.value.stretch.x = 1;
+          this.theatre.eyeball.value.stretch.y = 1;
+          this.theatre.eyeball.value.pupil.size = 8;
+        }, 800);
         break;
 
       case "sleepy":
@@ -614,17 +619,13 @@ export default class TheatreEyeballSketch extends Sketch {
           setTimeout(() => {
             this.blink();
             setTimeout(() => {
-              this.theatre.eyeball.animate(
-                { stretch: { y: 0.3 } },
-                { duration: 0.5 }
-              ).then(() => {
-                setTimeout(() => {
-                  this.theatre.eyeball.animate(
-                    { stretch: { y: 1 } },
-                    { duration: 0.5 }
-                  );
-                }, 2000);
-              });
+              // Half-closed sleepy eye
+              this.theatre.eyeball.value.stretch.y = 0.3;
+
+              // Return to normal after delay
+              setTimeout(() => {
+                this.theatre.eyeball.value.stretch.y = 1;
+              }, 2000);
             }, 500);
           }, 500);
         }, 500);
