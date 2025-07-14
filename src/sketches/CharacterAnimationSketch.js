@@ -32,10 +32,11 @@ export default class CharacterAnimationSketch extends Sketch {
 
     // Models
     this.models = {};
-    this.characters = []; // Array to hold all character instances
-    this.mixers = new Map(); // One mixer per character
-    this.actions = new Map(); // Actions per character
-    this.currentAnimations = new Map(); // Current animation per character
+    this.theAllies = null;
+    this.mixer = null;
+    this.actions = {};
+    this.currentAnimationIndex = 0;
+    this.animationNames = [];
 
     // Controls
     this.transformControls = null;
@@ -294,143 +295,41 @@ export default class CharacterAnimationSketch extends Sketch {
    * Load models
    */
   async loadModels() {
-    // Arrange characters in a circle
-    const radius = 2.5;
-    const characterCount = 3;
-
-    const characterConfigs = [
-      {
-        path: "/gltf/theAllies/theAllies.glb",
-        name: "theAllies",
-        position: new THREE.Vector3(
-          Math.cos(0 * ((2 * Math.PI) / characterCount)) * radius,
-          0,
-          Math.sin(0 * ((2 * Math.PI) / characterCount)) * radius,
-        ),
-        scale: 0.5,
-      },
-      {
-        path: "/gltf/piya/PIYA.fbx",
-        name: "piya",
-        position: new THREE.Vector3(
-          Math.cos(1 * ((2 * Math.PI) / characterCount)) * radius,
-          0,
-          Math.sin(1 * ((2 * Math.PI) / characterCount)) * radius,
-        ),
-        scale: 0.003, // Much smaller scale for Piya
-        animations: ["/gltf/piya/Walking.fbx", "/gltf/piya/Thankful.fbx"],
-      },
-      {
-        path: "/gltf/player/innerKid.fbx",
-        name: "player",
-        position: new THREE.Vector3(
-          Math.cos(2 * ((2 * Math.PI) / characterCount)) * radius,
-          0,
-          Math.sin(2 * ((2 * Math.PI) / characterCount)) * radius,
-        ),
-        scale: 0.01,
-        animations: [
-          "/gltf/player/player@happyIdle.fbx",
-          "/gltf/player/player@neutralIdle.fbx",
-          "/gltf/player/player@walking.fbx",
-        ],
-      },
-    ];
-
-    for (const config of characterConfigs) {
-      try {
-        console.log(`Loading ${config.name}...`);
-
-        // Load main model
-        const gltf = await new Promise((resolve, reject) => {
-          const loader = config.path.endsWith(".fbx")
-            ? this.fbxLoader
-            : this.gltfLoader;
-          loader.load(
-            config.path,
-            resolve,
-            (progress) => {
-              if (progress.total) {
-                console.log(
-                  `${config.name} loading: ${((progress.loaded / progress.total) * 100).toFixed(2)}%`,
-                );
-              }
-            },
-            reject,
-          );
-        });
-
-        const character = gltf.scene || gltf;
-        character.name = config.name;
-        this.models[config.name] = character;
-
-        // Create mixer for this character
-        const mixer = new THREE.AnimationMixer(character);
-        this.mixers.set(config.name, mixer);
-
-        // Store character actions
-        const characterActions = {};
-
-        // Load animations from the model file
-        if (gltf.animations && gltf.animations.length > 0) {
-          console.log(
-            `${config.name} embedded animations:`,
-            gltf.animations.map((clip) => clip.name),
-          );
-          gltf.animations.forEach((clip, index) => {
-            const action = mixer.clipAction(clip);
-            // Give animations better names
-            const animName = this.getAnimationName(
-              clip.name,
-              index,
-              config.name,
+    try {
+      const gltf = await new Promise((resolve, reject) => {
+        this.gltfLoader.load(
+          "/gltf/theAllies/theAllies.glb",
+          resolve,
+          (progress) => {
+            console.log(
+              "Loading progress:",
+              (progress.loaded / progress.total) * 100 + "%",
             );
-            characterActions[animName] = action;
-          });
-        }
+          },
+          reject,
+        );
+      });
 
-        // Load additional animation files if specified
-        if (config.animations) {
-          for (const animPath of config.animations) {
-            try {
-              const animGltf = await new Promise((resolve, reject) => {
-                const loader = animPath.endsWith(".fbx")
-                  ? this.fbxLoader
-                  : this.gltfLoader;
-                loader.load(animPath, resolve, undefined, reject);
-              });
+      this.theAllies = gltf.scene;
+      this.models.theAllies = this.theAllies;
 
-              if (animGltf.animations && animGltf.animations.length > 0) {
-                const animName = animPath
-                  .split("/")
-                  .pop()
-                  .replace(/\.(fbx|glb)$/i, "");
-                const clip = animGltf.animations[0];
-                clip.name = animName;
-                const action = mixer.clipAction(clip, character);
-                characterActions[animName] = action;
-                console.log(`Loaded animation: ${animName} for ${config.name}`);
-              }
-            } catch (error) {
-              console.warn(`Failed to load animation ${animPath}:`, error);
-            }
-          }
-        }
+      // Store animations
+      if (gltf.animations && gltf.animations.length > 0) {
+        console.log(
+          "Available animations:",
+          gltf.animations.map((clip) => clip.name),
+        );
+        this.mixer = new THREE.AnimationMixer(this.theAllies);
 
-        this.actions.set(config.name, characterActions);
-
-        // Store character data
-        this.characters.push({
-          name: config.name,
-          model: character,
-          position: config.position,
-          scale: config.scale,
-          mixer: mixer,
-          actions: characterActions,
+        gltf.animations.forEach((clip, index) => {
+          const action = this.mixer.clipAction(clip);
+          const animName = this.getAnimationName(clip.name, index, "theAllies");
+          this.actions[animName] = action;
+          this.animationNames.push(animName);
         });
-      } catch (error) {
-        console.error(`Failed to load ${config.name}:`, error);
       }
+    } catch (error) {
+      console.error("Failed to load models:", error);
     }
   }
 
@@ -470,130 +369,102 @@ export default class CharacterAnimationSketch extends Sketch {
    * Setup characters
    */
   setupCharacters() {
-    let focusCharacter = null;
+    if (!this.theAllies) return;
 
-    this.characters.forEach((charData) => {
-      const { model, position, scale, name, actions } = charData;
+    // Center the model
+    this.theAllies.position.set(0, 0, 0);
+    this.theAllies.scale.set(0.5, 0.5, 0.5);
 
-      // Set position and scale
-      model.position.copy(position);
-      model.scale.set(scale, scale, scale);
+    // Setup shadows and materials
+    this.theAllies.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        child.frustumCulled = false;
 
-      // Make characters face the center
-      model.lookAt(new THREE.Vector3(0, 0, 0));
-      model.rotateY(Math.PI); // Turn around since lookAt faces backwards
-
-      // Setup shadows and materials
-      model.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          child.frustumCulled = false;
-
-          if (child.material) {
-            // Fix for FBX models without textures
-            if (name === "piya" || name === "player") {
-              // Check if material has no map (texture)
-              if (!child.material.map) {
-                // Create a basic material with better appearance
-                const newMaterial = new THREE.MeshPhysicalMaterial({
-                  color: child.material.color || new THREE.Color(0x8b7355), // Tan/skin color
-                  roughness: 0.7,
-                  metalness: 0.0,
-                  clearcoat: 0.1,
-                  clearcoatRoughness: 0.8,
-                });
-                child.material = newMaterial;
-              }
-            }
-
-            child.material.shadowSide = THREE.DoubleSide;
-            child.material.needsUpdate = true;
-          }
+        if (child.material) {
+          child.material.shadowSide = THREE.DoubleSide;
+          child.material.needsUpdate = true;
         }
-      });
-
-      // Add to scene
-      this.scene.add(model);
-
-      // Play first available animation for each character
-      const actionKeys = Object.keys(actions);
-      if (actionKeys.length > 0) {
-        const firstAnimation = actionKeys[0];
-        this.playCharacterAnimation(name, firstAnimation);
-      }
-
-      // Set first character as focus for transform controls
-      if (!focusCharacter) {
-        focusCharacter = model;
       }
     });
 
-    // Attach transform controls to first character
-    if (this.transformControls && focusCharacter) {
-      this.transformControls.attach(focusCharacter);
+    // Add to scene
+    this.scene.add(this.theAllies);
+
+    // Start playing all animations in sequence
+    if (this.animationNames.length > 0) {
+      this.playNextAnimation();
+    }
+
+    // Attach transform controls
+    if (this.transformControls) {
+      this.transformControls.attach(this.theAllies);
     }
   }
 
   /**
-   * Play animation for a specific character
+   * Play the next animation in sequence
    */
-  playCharacterAnimation(characterName, animationName) {
-    const actions = this.actions.get(characterName);
-    if (!actions) {
-      console.warn(`No actions found for character: ${characterName}`);
-      return;
+  playNextAnimation() {
+    if (this.animationNames.length === 0) return;
+
+    const animName = this.animationNames[this.currentAnimationIndex];
+    const action = this.actions[animName];
+
+    if (action) {
+      // Stop all other actions
+      Object.values(this.actions).forEach((a) => a.stop());
+
+      // Play current action
+      action.reset();
+      action.setLoop(THREE.LoopOnce);
+      action.clampWhenFinished = true;
+      action.play();
+
+      // Set up for next animation
+      this.mixer.addEventListener("finished", () => {
+        this.currentAnimationIndex =
+          (this.currentAnimationIndex + 1) % this.animationNames.length;
+        this.playNextAnimation();
+      });
+
+      console.log(`Playing animation: ${animName}`);
     }
-
-    console.log(`Playing ${animationName} for ${characterName}`);
-    console.log("Available animations:", Object.keys(actions));
-
-    const newAction = actions[animationName];
-    if (!newAction) {
-      console.warn(
-        `Animation "${animationName}" not found for ${characterName}`,
-      );
-      return;
-    }
-
-    const oldAction = this.currentAnimations.get(characterName);
-
-    if (oldAction && oldAction !== newAction) {
-      newAction.reset();
-      newAction.crossFadeFrom(oldAction, 0.5);
-      oldAction.stop();
-    } else {
-      newAction.reset();
-      newAction.play();
-    }
-
-    this.currentAnimations.set(characterName, newAction);
-
-    newAction.setLoop(
-      this.animationState.loop ? THREE.LoopRepeat : THREE.LoopOnce,
-    );
-    newAction.timeScale = this.animationState.speed;
-    newAction.play();
   }
 
   /**
-   * Play animation (for backward compatibility)
+   * Play animation
    */
   playAnimation(name) {
-    // Play animation on the first character
-    if (this.characters.length > 0) {
-      this.playCharacterAnimation(this.characters[0].name, name);
+    const action = this.actions[name];
+    if (!action) {
+      console.warn(`Animation "${name}" not found`);
+      return;
     }
+
+    // Stop all other actions
+    Object.values(this.actions).forEach((a) => a.stop());
+
+    // Play the selected action
+    action.reset();
+    action.setLoop(
+      this.animationState.loop ? THREE.LoopRepeat : THREE.LoopOnce,
+    );
+    action.timeScale = this.animationState.speed;
+    action.play();
+
+    this.animationState.currentAction = name;
   }
 
   /**
    * Update method
    */
   update(deltaTime, elapsedTime) {
-    // Update all mixers
-    this.mixers.forEach((mixer) => {
-      mixer.update(deltaTime);
-    });
+    // Update mixer
+    if (this.mixer) {
+      this.mixer.update(deltaTime);
+    }
 
     // Update particle system
     if (this.particleSystem) {
@@ -605,20 +476,13 @@ export default class CharacterAnimationSketch extends Sketch {
       this.sceneManager.update(deltaTime, elapsedTime);
     }
 
-    // Camera animation - focus on center of characters
-    if (this.cameraAnimation.enabled && this.characters.length > 0) {
+    // Camera animation
+    if (this.cameraAnimation.enabled && this.theAllies) {
       const angle = elapsedTime * this.cameraAnimation.speed;
       this.camera.position.x = Math.cos(angle) * this.cameraAnimation.radius;
       this.camera.position.y = this.cameraAnimation.height;
       this.camera.position.z = Math.sin(angle) * this.cameraAnimation.radius;
-
-      // Look at center point of all characters
-      const center = new THREE.Vector3();
-      this.characters.forEach((char) => {
-        center.add(char.model.position);
-      });
-      center.divideScalar(this.characters.length);
-      this.camera.lookAt(center);
+      this.camera.lookAt(this.theAllies.position);
     }
   }
 
@@ -651,26 +515,26 @@ export default class CharacterAnimationSketch extends Sketch {
       expanded: true,
     });
 
-    // Create animation controls for each character
-    this.characters.forEach((charData) => {
-      const charFolder = animFolder.addFolder({
-        title: charData.name,
-        expanded: false,
-      });
-
-      const actions = this.actions.get(charData.name);
-      if (actions) {
-        Object.keys(actions).forEach((animName) => {
-          charFolder
-            .addButton({
-              title: animName,
-            })
-            .on("click", () => {
-              this.playCharacterAnimation(charData.name, animName);
-            });
+    // Create animation controls
+    Object.keys(this.actions).forEach((animName) => {
+      animFolder
+        .addButton({
+          title: animName,
+        })
+        .on("click", () => {
+          this.playAnimation(animName);
         });
-      }
     });
+
+    // Add button to play all animations
+    animFolder
+      .addButton({
+        title: "Play All (Sequence)",
+      })
+      .on("click", () => {
+        this.currentAnimationIndex = 0;
+        this.playNextAnimation();
+      });
 
     // Animation speed
     animFolder
@@ -1153,17 +1017,16 @@ export default class CharacterAnimationSketch extends Sketch {
       }
     });
 
-    // Dispose animation mixers
-    this.mixers.forEach((mixer) => {
-      mixer.stopAllAction();
-      mixer.uncacheRoot(mixer.getRoot());
-    });
+    // Dispose animation mixer
+    if (this.mixer) {
+      this.mixer.stopAllAction();
+      this.mixer.uncacheRoot(this.mixer.getRoot());
+    }
 
     // Clear references
     this.models = {};
-    this.characters = [];
-    this.mixers.clear();
-    this.actions.clear();
-    this.currentAnimations.clear();
+    this.actions = {};
+    this.mixer = null;
+    this.animationNames = [];
   }
 }
