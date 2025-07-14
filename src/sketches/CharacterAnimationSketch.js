@@ -216,7 +216,7 @@ export default class CharacterAnimationSketch extends Sketch {
    * Setup ground
    */
   setupGround() {
-    const gGeometry = new THREE.PlaneGeometry(3, 3, 20, 20);
+    const gGeometry = new THREE.PlaneGeometry(10, 10, 20, 20);
 
     const groundMaterial = this.materialManager.createFromPreset(
       "ground_material",
@@ -231,7 +231,7 @@ export default class CharacterAnimationSketch extends Sketch {
           envMapIntensity: 1.0,
           displacementScale: 0.0,
           _custom: {
-            textureRepeat: new THREE.Vector2(2, 2),
+            textureRepeat: new THREE.Vector2(6, 6),
             useDisplacementMap: false,
           },
         },
@@ -294,24 +294,40 @@ export default class CharacterAnimationSketch extends Sketch {
    * Load models
    */
   async loadModels() {
+    // Arrange characters in a circle
+    const radius = 2.5;
+    const characterCount = 3;
+
     const characterConfigs = [
       {
         path: "/gltf/theAllies/theAllies.glb",
         name: "theAllies",
-        position: new THREE.Vector3(-2, 0, 0),
+        position: new THREE.Vector3(
+          Math.cos(0 * ((2 * Math.PI) / characterCount)) * radius,
+          0,
+          Math.sin(0 * ((2 * Math.PI) / characterCount)) * radius,
+        ),
         scale: 0.5,
       },
       {
         path: "/gltf/piya/PIYA.fbx",
         name: "piya",
-        position: new THREE.Vector3(0, 0, 0),
-        scale: 0.01, // FBX files from Mixamo are often in cm
+        position: new THREE.Vector3(
+          Math.cos(1 * ((2 * Math.PI) / characterCount)) * radius,
+          0,
+          Math.sin(1 * ((2 * Math.PI) / characterCount)) * radius,
+        ),
+        scale: 0.003, // Much smaller scale for Piya
         animations: ["/gltf/piya/Walking.fbx", "/gltf/piya/Thankful.fbx"],
       },
       {
         path: "/gltf/player/innerKid.fbx",
         name: "player",
-        position: new THREE.Vector3(2, 0, 0),
+        position: new THREE.Vector3(
+          Math.cos(2 * ((2 * Math.PI) / characterCount)) * radius,
+          0,
+          Math.sin(2 * ((2 * Math.PI) / characterCount)) * radius,
+        ),
         scale: 0.01,
         animations: [
           "/gltf/player/player@happyIdle.fbx",
@@ -463,6 +479,10 @@ export default class CharacterAnimationSketch extends Sketch {
       model.position.copy(position);
       model.scale.set(scale, scale, scale);
 
+      // Make characters face the center
+      model.lookAt(new THREE.Vector3(0, 0, 0));
+      model.rotateY(Math.PI); // Turn around since lookAt faces backwards
+
       // Setup shadows and materials
       model.traverse((child) => {
         if (child.isMesh) {
@@ -471,6 +491,22 @@ export default class CharacterAnimationSketch extends Sketch {
           child.frustumCulled = false;
 
           if (child.material) {
+            // Fix for FBX models without textures
+            if (name === "piya" || name === "player") {
+              // Check if material has no map (texture)
+              if (!child.material.map) {
+                // Create a basic material with better appearance
+                const newMaterial = new THREE.MeshPhysicalMaterial({
+                  color: child.material.color || new THREE.Color(0x8b7355), // Tan/skin color
+                  roughness: 0.7,
+                  metalness: 0.0,
+                  clearcoat: 0.1,
+                  clearcoatRoughness: 0.8,
+                });
+                child.material = newMaterial;
+              }
+            }
+
             child.material.shadowSide = THREE.DoubleSide;
             child.material.needsUpdate = true;
           }
