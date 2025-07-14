@@ -42,7 +42,7 @@ export default class CharacterAnimationSketch extends Sketch {
 
     // Animation state
     this.animationState = {
-      currentAction: "Offended Idle",
+      currentAction: null, // Will be set from available animations
       speed: 1,
       loop: true,
     };
@@ -310,6 +310,10 @@ export default class CharacterAnimationSketch extends Sketch {
 
       // Store animations
       if (gltf.animations && gltf.animations.length > 0) {
+        console.log(
+          "Available animations:",
+          gltf.animations.map((clip) => clip.name),
+        );
         this.mixer = new THREE.AnimationMixer(this.theAllies);
         gltf.animations.forEach((clip) => {
           const action = this.mixer.clipAction(clip);
@@ -346,7 +350,9 @@ export default class CharacterAnimationSketch extends Sketch {
     this.scene.add(this.theAllies);
 
     if (Object.keys(this.actions).length > 0) {
-      this.playAnimation("Offended Idle");
+      // Play the first available animation
+      const firstAnimation = Object.keys(this.actions)[0];
+      this.playAnimation(firstAnimation);
     }
 
     // Attach transform controls
@@ -359,6 +365,8 @@ export default class CharacterAnimationSketch extends Sketch {
    * Play animation
    */
   playAnimation(name) {
+    console.log(`Attempting to play animation: "${name}"`);
+    console.log("Available animations:", Object.keys(this.actions));
     const newAction = this.actions[name];
     if (!newAction) {
       console.warn(`Animation "${name}" not found`);
@@ -867,11 +875,11 @@ export default class CharacterAnimationSketch extends Sketch {
         step: 0.5,
       });
 
-      // Note about runtime limitations
-      particleFolder.addBlade({
-        view: "text",
-        text: "Note: Some properties only affect new particles",
-        label: "",
+      // Note about runtime limitations - using a disabled binding instead of text blade
+      const noteObj = { note: "Some properties only affect new particles" };
+      particleFolder.addBinding(noteObj, "note", {
+        label: "Note",
+        disabled: true,
       });
     }
   }
