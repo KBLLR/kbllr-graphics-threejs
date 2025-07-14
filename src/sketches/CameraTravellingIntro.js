@@ -645,7 +645,7 @@ export default class CameraTravellingIntro extends Sketch {
 
     // Create animation controls
     Object.keys(this.actions).forEach((animName) => {
-      animFolder
+      animationFolder
         .addButton({
           title: animName,
         })
@@ -655,7 +655,7 @@ export default class CameraTravellingIntro extends Sketch {
     });
 
     // Add button to play all animations
-    animFolder
+    animationFolder
       .addButton({
         title: "Play All (Sequence)",
       })
@@ -666,7 +666,7 @@ export default class CameraTravellingIntro extends Sketch {
       });
 
     // Animation speed
-    animFolder
+    animationFolder
       .addBinding(this.animationState, "speed", {
         min: 0,
         max: 2,
@@ -679,37 +679,39 @@ export default class CameraTravellingIntro extends Sketch {
       });
 
     // Loop control
-    animFolder.addBinding(this.animationState, "loop").on("change", (ev) => {
-      if (this.currentAnimation) {
-        this.currentAnimation.setLoop(
-          ev.value ? THREE.LoopRepeat : THREE.LoopOnce,
-        );
-      }
-    });
+    animationFolder
+      .addBinding(this.animationState, "loop")
+      .on("change", (ev) => {
+        if (this.currentAnimation) {
+          this.currentAnimation.setLoop(
+            ev.value ? THREE.LoopRepeat : THREE.LoopOnce,
+          );
+        }
+      });
 
-    // Camera animation
-    const cameraFolder = animFolder.addFolder({
-      title: "Camera Animation",
+    // Character camera animation
+    const characterCameraFolder = animationFolder.addFolder({
+      title: "Character Camera",
       expanded: false,
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, "enabled", {
+    characterCameraFolder.addBinding(this.cameraAnimation, "enabled", {
       label: "Enable",
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, "radius", {
+    characterCameraFolder.addBinding(this.cameraAnimation, "radius", {
       min: 1,
       max: 10,
       step: 0.1,
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, "height", {
+    characterCameraFolder.addBinding(this.cameraAnimation, "height", {
       min: 0,
       max: 5,
       step: 0.1,
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, "speed", {
+    characterCameraFolder.addBinding(this.cameraAnimation, "speed", {
       min: 0,
       max: 2,
       step: 0.01,
