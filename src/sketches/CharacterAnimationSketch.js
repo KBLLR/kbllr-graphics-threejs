@@ -695,7 +695,15 @@ export default class CharacterAnimationSketch extends Sketch {
     });
 
     if (this.materialManager) {
-      this.materialManager.setupTweakpane(matFolder);
+      // The MaterialManager requires a material ID to create controls
+      // For now, we'll add controls for the ground material if it exists
+      const groundMaterial = this.materialManager.get("ground_material");
+      if (groundMaterial) {
+        this.materialManager.createTweakpaneControls(
+          "ground_material",
+          matFolder,
+        );
+      }
     }
   }
 
@@ -709,7 +717,70 @@ export default class CharacterAnimationSketch extends Sketch {
     });
 
     if (this.lightingSystem) {
-      this.lightingSystem.setupTweakpane(lightFolder);
+      // Add controls for all lights
+      const lights = this.lightingSystem.getAllLights();
+
+      lights.forEach((lightData) => {
+        const { id, type, light, config } = lightData;
+        const lightSubFolder = lightFolder.addFolder({
+          title: `${type} Light (${id})`,
+          expanded: false,
+        });
+
+        // Common controls
+        if (light.color) {
+          lightSubFolder.addBinding(light, "intensity", {
+            min: 0,
+            max: 5,
+            step: 0.01,
+          });
+
+          const colorObj = { color: `#${light.color.getHexString()}` };
+          lightSubFolder.addBinding(colorObj, "color").on("change", (ev) => {
+            light.color.set(ev.value);
+          });
+        }
+
+        // Position controls for non-ambient lights
+        if (type !== "ambient" && light.position) {
+          const posFolder = lightSubFolder.addFolder({
+            title: "Position",
+            expanded: false,
+          });
+
+          posFolder.addBinding(light.position, "x", {
+            min: -20,
+            max: 20,
+            step: 0.1,
+          });
+
+          posFolder.addBinding(light.position, "y", {
+            min: -20,
+            max: 20,
+            step: 0.1,
+          });
+
+          posFolder.addBinding(light.position, "z", {
+            min: -20,
+            max: 20,
+            step: 0.1,
+          });
+        }
+
+        // Shadow controls
+        if (light.castShadow !== undefined) {
+          lightSubFolder.addBinding(light, "castShadow");
+        }
+      });
+
+      // Add helper toggle
+      lightFolder
+        .addButton({
+          title: "Toggle Helpers",
+        })
+        .on("click", () => {
+          this.lightingSystem.toggleHelpers();
+        });
     }
   }
 
