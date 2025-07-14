@@ -1,4 +1,5 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from "./EventEmitter.js";
+import { sketchRegistry } from "../sketches/index.js";
 
 /**
  * SketchManager - Manages loading and switching between sketches
@@ -8,10 +9,10 @@ export class SketchManager extends EventEmitter {
     super();
 
     this.options = {
-      container: document.getElementById('sketch-container') || document.body,
+      container: document.getElementById("sketch-container") || document.body,
       transitionDuration: 300,
       showLoader: true,
-      ...options
+      ...options,
     };
 
     this.currentSketch = null;
@@ -36,13 +37,12 @@ export class SketchManager extends EventEmitter {
     this.sketches.set(id, {
       id,
       name: config.name || id,
-      description: config.description || '',
+      description: config.description || "",
       thumbnail: config.thumbnail || null,
-      module: config.module, // Dynamic import path
-      category: config.category || 'General',
+      category: config.category || "General",
       tags: config.tags || [],
       instance: null,
-      loaded: false
+      loaded: false,
     });
   }
 
@@ -50,7 +50,7 @@ export class SketchManager extends EventEmitter {
    * Register multiple sketches
    */
   registerAll(sketches) {
-    sketches.forEach(sketch => {
+    sketches.forEach((sketch) => {
       this.register(sketch.id, sketch);
     });
   }
@@ -66,14 +66,14 @@ export class SketchManager extends EventEmitter {
    * Get sketches by category
    */
   getByCategory(category) {
-    return this.getAll().filter(sketch => sketch.category === category);
+    return this.getAll().filter((sketch) => sketch.category === category);
   }
 
   /**
    * Get sketches by tag
    */
   getByTag(tag) {
-    return this.getAll().filter(sketch => sketch.tags.includes(tag));
+    return this.getAll().filter((sketch) => sketch.tags.includes(tag));
   }
 
   /**
@@ -93,7 +93,7 @@ export class SketchManager extends EventEmitter {
     // Set loading state
     this.isLoading = true;
     this.showLoader();
-    this.emit('loading', id);
+    this.emit("loading", id);
 
     try {
       // Get sketch config
@@ -104,14 +104,16 @@ export class SketchManager extends EventEmitter {
         await this.disposeCurrentSketch();
       }
 
-      // Dynamic import
-      const module = await import(sketchConfig.module);
-      const SketchClass = module.default || module[Object.keys(module)[0]];
+      // Get sketch class from registry
+      const SketchClass = sketchRegistry[id];
+      if (!SketchClass) {
+        throw new Error(`Sketch class for "${id}" not found in registry`);
+      }
 
       // Create sketch instance
       const sketch = new SketchClass({
         container: this.options.container,
-        ...options
+        ...options,
       });
 
       // Initialize sketch
@@ -128,15 +130,14 @@ export class SketchManager extends EventEmitter {
       this.isLoading = false;
 
       // Emit events
-      this.emit('loaded', id, sketch);
+      this.emit("loaded", id, sketch);
 
       return sketch;
-
     } catch (error) {
       console.error(`Failed to load sketch "${id}":`, error);
       this.hideLoader();
       this.isLoading = false;
-      this.emit('error', id, error);
+      this.emit("error", id, error);
       throw error;
     }
   }
@@ -147,7 +148,7 @@ export class SketchManager extends EventEmitter {
   async disposeCurrentSketch() {
     if (!this.currentSketch) return;
 
-    this.emit('disposing', this.currentSketchId);
+    this.emit("disposing", this.currentSketchId);
 
     try {
       // Add fade out effect
@@ -167,11 +168,10 @@ export class SketchManager extends EventEmitter {
       this.currentSketch = null;
       this.currentSketchId = null;
 
-      this.emit('disposed');
-
+      this.emit("disposed");
     } catch (error) {
-      console.error('Error disposing sketch:', error);
-      this.emit('error', this.currentSketchId, error);
+      console.error("Error disposing sketch:", error);
+      this.emit("error", this.currentSketchId, error);
     }
   }
 
@@ -190,15 +190,14 @@ export class SketchManager extends EventEmitter {
       return;
     }
 
-    try {
-      // Dynamic import only
-      const module = await import(sketchConfig.module);
-      sketchConfig.module = module;
-
-      this.emit('preloaded', id);
-    } catch (error) {
+    // Since we're using a registry, sketches are already loaded
+    // Just check if it exists
+    if (sketchRegistry[id]) {
+      this.emit("preloaded", id);
+    } else {
+      const error = new Error(`Sketch "${id}" not found in registry`);
       console.error(`Failed to preload sketch "${id}":`, error);
-      this.emit('error', id, error);
+      this.emit("error", id, error);
     }
   }
 
@@ -217,8 +216,8 @@ export class SketchManager extends EventEmitter {
    * Create loader element
    */
   createLoader() {
-    this.loader = document.createElement('div');
-    this.loader.className = 'sketch-loader';
+    this.loader = document.createElement("div");
+    this.loader.className = "sketch-loader";
     this.loader.innerHTML = `
       <div class="loader-spinner">
         <div class="spinner"></div>
@@ -239,7 +238,7 @@ export class SketchManager extends EventEmitter {
     `;
 
     // Add spinner styles
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .sketch-loader {
         transition: opacity 0.3s ease;
@@ -275,9 +274,9 @@ export class SketchManager extends EventEmitter {
    */
   showLoader() {
     if (this.loader) {
-      this.loader.style.display = 'flex';
+      this.loader.style.display = "flex";
       requestAnimationFrame(() => {
-        this.loader.style.opacity = '1';
+        this.loader.style.opacity = "1";
       });
     }
   }
@@ -287,9 +286,9 @@ export class SketchManager extends EventEmitter {
    */
   hideLoader() {
     if (this.loader) {
-      this.loader.style.opacity = '0';
+      this.loader.style.opacity = "0";
       setTimeout(() => {
-        this.loader.style.display = 'none';
+        this.loader.style.display = "none";
       }, 300);
     }
   }
@@ -298,11 +297,11 @@ export class SketchManager extends EventEmitter {
    * Fade out effect
    */
   fadeOut() {
-    return new Promise(resolve => {
-      const canvas = this.options.container.querySelector('canvas');
+    return new Promise((resolve) => {
+      const canvas = this.options.container.querySelector("canvas");
       if (canvas) {
         canvas.style.transition = `opacity ${this.options.transitionDuration}ms`;
-        canvas.style.opacity = '0';
+        canvas.style.opacity = "0";
         setTimeout(resolve, this.options.transitionDuration);
       } else {
         resolve();
@@ -317,7 +316,9 @@ export class SketchManager extends EventEmitter {
     return {
       id: this.currentSketchId,
       instance: this.currentSketch,
-      config: this.currentSketchId ? this.sketches.get(this.currentSketchId) : null
+      config: this.currentSketchId
+        ? this.sketches.get(this.currentSketchId)
+        : null,
     };
   }
 

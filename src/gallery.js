@@ -1,5 +1,6 @@
-import './style.css';
-import { SketchManager } from './core/SketchManager.js';
+import "./style.css";
+import { SketchManager } from "./core/SketchManager.js";
+import { sketchMetadata } from "./sketches/index.js";
 
 /**
  * Main Gallery Application
@@ -8,7 +9,7 @@ import { SketchManager } from './core/SketchManager.js';
 class SketchGallery {
   constructor() {
     this.sketchManager = null;
-    this.currentCategory = 'all';
+    this.currentCategory = "all";
     this.isMenuOpen = true;
 
     // UI Elements
@@ -49,10 +50,9 @@ class SketchGallery {
 
       // Load initial sketch from URL or default
       await this.loadInitialSketch();
-
     } catch (error) {
-      console.error('Failed to initialize gallery:', error);
-      this.showError('Failed to initialize gallery');
+      console.error("Failed to initialize gallery:", error);
+      this.showError("Failed to initialize gallery");
     }
   }
 
@@ -61,8 +61,8 @@ class SketchGallery {
    */
   createUI() {
     // Main container
-    const container = document.createElement('div');
-    container.className = 'gallery-container';
+    const container = document.createElement("div");
+    container.className = "gallery-container";
     container.innerHTML = `
       <div class="gallery-menu">
         <div class="menu-header">
@@ -110,13 +110,14 @@ class SketchGallery {
 
     // Store element references
     this.elements.container = container;
-    this.elements.sketchContainer = container.querySelector('.sketch-container');
-    this.elements.menu = container.querySelector('.gallery-menu');
-    this.elements.menuToggle = container.querySelector('.menu-toggle');
-    this.elements.sketchGrid = container.querySelector('.sketch-grid');
-    this.elements.categoryFilter = container.querySelector('.category-select');
-    this.elements.searchInput = container.querySelector('.search-input');
-    this.elements.currentSketchInfo = container.querySelector('.info-value');
+    this.elements.sketchContainer =
+      container.querySelector(".sketch-container");
+    this.elements.menu = container.querySelector(".gallery-menu");
+    this.elements.menuToggle = container.querySelector(".menu-toggle");
+    this.elements.sketchGrid = container.querySelector(".sketch-grid");
+    this.elements.categoryFilter = container.querySelector(".category-select");
+    this.elements.searchInput = container.querySelector(".search-input");
+    this.elements.currentSketchInfo = container.querySelector(".info-value");
 
     // Add styles
     this.addStyles();
@@ -126,65 +127,8 @@ class SketchGallery {
    * Register all available sketches
    */
   registerSketches() {
-    const sketches = [
-      {
-        id: 'character-animation',
-        name: 'Character Animation',
-        description: 'Interactive character animations with particle effects',
-        thumbnail: '/img/thumbnails/character-animation.jpg',
-        module: './sketches/CharacterAnimationSketch.js',
-        category: 'animation',
-        tags: ['character', 'animation', 'particles', 'interactive'],
-      },
-      {
-        id: 'eyeball-theater',
-        name: 'Eyeball Theater',
-        description: 'Animated SVG eye with Theatre.js integration',
-        thumbnail: '/img/thumbnails/eyeball.jpg',
-        module: './sketches/EyeballSketch.js',
-        category: 'animation',
-        tags: ['svg', 'theater', 'animation', '2d'],
-      },
-      {
-        id: 'shader-exploration',
-        name: 'Shader Exploration',
-        description: 'Custom GLSL shaders and material experiments',
-        thumbnail: '/img/thumbnails/shaders.jpg',
-        module: './sketches/ShaderSketch.js',
-        category: 'shaders',
-        tags: ['glsl', 'shaders', 'materials'],
-      },
-      {
-        id: 'particle-flow',
-        name: 'Particle Flow',
-        description: 'GPU-based particle system with flow fields',
-        thumbnail: '/img/thumbnails/particles.jpg',
-        module: './sketches/ParticleFlowSketch.js',
-        category: 'particles',
-        tags: ['particles', 'gpu', 'flow-field'],
-      },
-      {
-        id: 'generative-geometry',
-        name: 'Generative Geometry',
-        description: 'Procedural geometry generation and manipulation',
-        thumbnail: '/img/thumbnails/geometry.jpg',
-        module: './sketches/GenerativeGeometrySketch.js',
-        category: 'geometry',
-        tags: ['procedural', 'geometry', 'generative'],
-      },
-      {
-        id: 'lighting-moods',
-        name: 'Lighting Moods',
-        description: 'Dynamic lighting scenarios and atmosphere',
-        thumbnail: '/img/thumbnails/lighting.jpg',
-        module: './sketches/LightingMoodsSketch.js',
-        category: 'lighting',
-        tags: ['lighting', 'atmosphere', 'mood'],
-      },
-    ];
-
-    // Register with sketch manager
-    this.sketchManager.registerAll(sketches);
+    // Use imported sketch metadata from registry
+    this.sketchManager.registerAll(sketchMetadata);
   }
 
   /**
@@ -192,45 +136,45 @@ class SketchGallery {
    */
   setupEventListeners() {
     // Menu toggle
-    this.elements.menuToggle.addEventListener('click', () => {
+    this.elements.menuToggle.addEventListener("click", () => {
       this.toggleMenu();
     });
 
     // Category filter
-    this.elements.categoryFilter.addEventListener('change', (e) => {
+    this.elements.categoryFilter.addEventListener("change", (e) => {
       this.currentCategory = e.target.value;
       this.filterSketches();
     });
 
     // Search input
-    this.elements.searchInput.addEventListener('input', (e) => {
+    this.elements.searchInput.addEventListener("input", (e) => {
       this.filterSketches(e.target.value);
     });
 
     // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
         this.toggleMenu();
       }
-      if (e.key === '/' && e.ctrlKey) {
+      if (e.key === "/" && e.ctrlKey) {
         e.preventDefault();
         this.elements.searchInput.focus();
       }
     });
 
     // Handle browser back/forward
-    window.addEventListener('popstate', (e) => {
+    window.addEventListener("popstate", (e) => {
       if (e.state && e.state.sketchId) {
         this.loadSketch(e.state.sketchId, false);
       }
     });
 
     // Sketch manager events
-    this.sketchManager.on('loaded', (id, sketch) => {
+    this.sketchManager.on("loaded", (id, sketch) => {
       this.onSketchLoaded(id, sketch);
     });
 
-    this.sketchManager.on('error', (id, error) => {
+    this.sketchManager.on("error", (id, error) => {
       this.showError(`Failed to load sketch: ${id}`);
     });
   }
@@ -240,9 +184,9 @@ class SketchGallery {
    */
   populateGallery() {
     const sketches = this.sketchManager.getAll();
-    this.elements.sketchGrid.innerHTML = '';
+    this.elements.sketchGrid.innerHTML = "";
 
-    sketches.forEach(sketch => {
+    sketches.forEach((sketch) => {
       const card = this.createSketchCard(sketch);
       this.elements.sketchGrid.appendChild(card);
     });
@@ -252,17 +196,18 @@ class SketchGallery {
    * Create sketch card element
    */
   createSketchCard(sketch) {
-    const card = document.createElement('div');
-    card.className = 'sketch-card';
+    const card = document.createElement("div");
+    card.className = "sketch-card";
     card.dataset.id = sketch.id;
     card.dataset.category = sketch.category;
-    card.dataset.tags = sketch.tags.join(',');
+    card.dataset.tags = sketch.tags.join(",");
 
     card.innerHTML = `
       <div class="sketch-thumbnail">
-        ${sketch.thumbnail
-          ? `<img src="${sketch.thumbnail}" alt="${sketch.name}" loading="lazy">`
-          : `<div class="thumbnail-placeholder">${sketch.name.charAt(0)}</div>`
+        ${
+          sketch.thumbnail
+            ? `<img src="${sketch.thumbnail}" alt="${sketch.name}" loading="lazy">`
+            : `<div class="thumbnail-placeholder">${sketch.name.charAt(0)}</div>`
         }
       </div>
       <div class="sketch-info">
@@ -270,13 +215,13 @@ class SketchGallery {
         <p class="sketch-description">${sketch.description}</p>
         <div class="sketch-meta">
           <span class="sketch-category">${sketch.category}</span>
-          ${sketch.tags.map(tag => `<span class="sketch-tag">#${tag}</span>`).join('')}
+          ${sketch.tags.map((tag) => `<span class="sketch-tag">#${tag}</span>`).join("")}
         </div>
       </div>
     `;
 
     // Click handler
-    card.addEventListener('click', () => {
+    card.addEventListener("click", () => {
       this.loadSketch(sketch.id);
     });
 
@@ -286,27 +231,33 @@ class SketchGallery {
   /**
    * Filter sketches based on category and search
    */
-  filterSketches(searchTerm = '') {
-    const cards = this.elements.sketchGrid.querySelectorAll('.sketch-card');
+  filterSketches(searchTerm = "") {
+    const cards = this.elements.sketchGrid.querySelectorAll(".sketch-card");
     const search = searchTerm.toLowerCase();
 
-    cards.forEach(card => {
+    cards.forEach((card) => {
       const category = card.dataset.category;
-      const title = card.querySelector('.sketch-title').textContent.toLowerCase();
-      const description = card.querySelector('.sketch-description').textContent.toLowerCase();
+      const title = card
+        .querySelector(".sketch-title")
+        .textContent.toLowerCase();
+      const description = card
+        .querySelector(".sketch-description")
+        .textContent.toLowerCase();
       const tags = card.dataset.tags.toLowerCase();
 
       // Category filter
-      const matchesCategory = this.currentCategory === 'all' || category === this.currentCategory;
+      const matchesCategory =
+        this.currentCategory === "all" || category === this.currentCategory;
 
       // Search filter
-      const matchesSearch = !search ||
+      const matchesSearch =
+        !search ||
         title.includes(search) ||
         description.includes(search) ||
         tags.includes(search);
 
       // Show/hide card
-      card.style.display = matchesCategory && matchesSearch ? 'block' : 'none';
+      card.style.display = matchesCategory && matchesSearch ? "block" : "none";
     });
   }
 
@@ -316,7 +267,7 @@ class SketchGallery {
   async loadInitialSketch() {
     // Check URL for sketch ID
     const urlParams = new URLSearchParams(window.location.search);
-    const sketchId = urlParams.get('sketch');
+    const sketchId = urlParams.get("sketch");
 
     if (sketchId && this.sketchManager.sketches.has(sketchId)) {
       await this.loadSketch(sketchId, false);
@@ -348,12 +299,11 @@ class SketchGallery {
       // Update URL
       if (updateHistory) {
         const url = new URL(window.location);
-        url.searchParams.set('sketch', id);
-        window.history.pushState({ sketchId: id }, '', url);
+        url.searchParams.set("sketch", id);
+        window.history.pushState({ sketchId: id }, "", url);
       }
-
     } catch (error) {
-      console.error('Failed to load sketch:', error);
+      console.error("Failed to load sketch:", error);
       this.showError(`Failed to load sketch: ${id}`);
     }
   }
@@ -373,9 +323,9 @@ class SketchGallery {
    * Set active card
    */
   setActiveCard(id) {
-    const cards = this.elements.sketchGrid.querySelectorAll('.sketch-card');
-    cards.forEach(card => {
-      card.classList.toggle('active', card.dataset.id === id);
+    const cards = this.elements.sketchGrid.querySelectorAll(".sketch-card");
+    cards.forEach((card) => {
+      card.classList.toggle("active", card.dataset.id === id);
     });
   }
 
@@ -384,8 +334,8 @@ class SketchGallery {
    */
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
-    this.elements.container.classList.toggle('menu-open', this.isMenuOpen);
-    this.elements.menuToggle.classList.toggle('active', this.isMenuOpen);
+    this.elements.container.classList.toggle("menu-open", this.isMenuOpen);
+    this.elements.menuToggle.classList.toggle("active", this.isMenuOpen);
   }
 
   /**
@@ -393,16 +343,16 @@ class SketchGallery {
    */
   closeMenu() {
     this.isMenuOpen = false;
-    this.elements.container.classList.remove('menu-open');
-    this.elements.menuToggle.classList.remove('active');
+    this.elements.container.classList.remove("menu-open");
+    this.elements.menuToggle.classList.remove("active");
   }
 
   /**
    * Show error message
    */
   showError(message) {
-    const errorEl = document.createElement('div');
-    errorEl.className = 'error-message';
+    const errorEl = document.createElement("div");
+    errorEl.className = "error-message";
     errorEl.textContent = message;
     document.body.appendChild(errorEl);
 
@@ -415,7 +365,7 @@ class SketchGallery {
    * Add gallery styles
    */
   addStyles() {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .gallery-container {
         position: relative;
@@ -676,8 +626,8 @@ class SketchGallery {
 }
 
 // Initialize gallery when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
     const gallery = new SketchGallery();
     gallery.init();
   });
