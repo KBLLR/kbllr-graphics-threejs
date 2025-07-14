@@ -1,7 +1,7 @@
 {
   "name": "kbllr_interactive_portfolio",
   "version": "1.0.0",
-  "description": "",
+  "description": "🚧 Work in Progress: Curating and refining past builds and design artifacts for my final portfolio. Documenting 5 years of Creative Development, Technical Artistry and Human Computer Interaction Design (HCI).",
   "main": "index.html",
   "scripts": {
     "start": "node server.js",
@@ -18,12 +18,10 @@
   },
   "dependencies": {
     "@theatre/core": "^0.7.1",
-    "@tweakpane/plugin-essentials": "^0.2.1",
     "@vercel/postgres": "^0.8.0",
     "express": "^4.19.2",
     "gsap": "^3.12.5",
-    "tweakpane": "^4.0.3",
-    "v-tweakpane": "^0.3.2",
-    "tweakpane": "^2.0.3"
+    "tweakpane": "^2.0.3",
+    "v-tweakpane": "^0.3.2"
   }
 }
