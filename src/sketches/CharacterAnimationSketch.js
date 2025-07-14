@@ -1,14 +1,14 @@
-import { Sketch } from '../core/Sketch.js';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { SceneManager } from '../components/SceneManager.js';
-import { ParticleSystem } from '../systems/ParticleSystem.js';
-import { MaterialManager } from '../systems/MaterialManager.js';
-import { LightingSystem } from '../systems/LightingSystem.js';
-import { SimpleCubeMapLoader } from '../systems/SimpleCubeMapLoader.js';
-import * as helpers from '../utils/helpers.js';
+import { Sketch } from "../core/Sketch.js";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
+import { SceneManager } from "../components/SceneManager.js";
+import { ParticleSystem } from "../systems/ParticleSystem.js";
+import { MaterialManager } from "../systems/MaterialManager.js";
+import { LightingSystem } from "../systems/LightingSystem.js";
+import { SimpleCubeMapLoader } from "../systems/SimpleCubeMapLoader.js";
+import * as helpers from "../utils/helpers.js";
 
 /**
  * Character Animation Sketch
@@ -38,11 +38,11 @@ export default class CharacterAnimationSketch extends Sketch {
 
     // Controls
     this.transformControls = null;
-    this.transformMode = 'translate';
+    this.transformMode = "translate";
 
     // Animation state
     this.animationState = {
-      currentAction: 'Offended Idle',
+      currentAction: "Offended Idle",
       speed: 1,
       loop: true,
     };
@@ -150,8 +150,8 @@ export default class CharacterAnimationSketch extends Sketch {
     });
 
     // Setup default three-point lighting
-    this.lightingSystem.createLight('key', {
-      type: 'directional',
+    this.lightingSystem.createLight("key", {
+      type: "directional",
       color: 0xfff3e0,
       intensity: 2.4,
       position: { x: 1, y: 4, z: 2 },
@@ -170,24 +170,24 @@ export default class CharacterAnimationSketch extends Sketch {
       },
     });
 
-    this.lightingSystem.createLight('fill', {
-      type: 'directional',
+    this.lightingSystem.createLight("fill", {
+      type: "directional",
       color: 0xe3f2fd,
       intensity: 0.6,
       position: { x: -2, y: 2, z: -1 },
       castShadow: false,
     });
 
-    this.lightingSystem.createLight('rim', {
-      type: 'directional',
+    this.lightingSystem.createLight("rim", {
+      type: "directional",
       color: 0xffffff,
       intensity: 0.8,
       position: { x: -1, y: 3, z: -4 },
       castShadow: false,
     });
 
-    this.lightingSystem.createLight('ambient', {
-      type: 'ambient',
+    this.lightingSystem.createLight("ambient", {
+      type: "ambient",
       color: 0xffffff,
       intensity: 0.6,
     });
@@ -247,7 +247,9 @@ export default class CharacterAnimationSketch extends Sketch {
    */
   setupLoaders() {
     this.dracoLoader = new DRACOLoader();
-    this.dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    this.dracoLoader.setDecoderPath(
+      "https://www.gstatic.com/draco/versioned/decoders/1.5.6/",
+    );
 
     this.gltfLoader = new GLTFLoader();
     this.gltfLoader.setDRACOLoader(this.dracoLoader);
@@ -257,11 +259,14 @@ export default class CharacterAnimationSketch extends Sketch {
    * Setup transform controls
    */
   setupTransformControls() {
-    this.transformControls = new TransformControls(this.camera, this.renderer.domElement);
-    this.transformControls.addEventListener('dragging-changed', (event) => {
+    this.transformControls = new TransformControls(
+      this.camera,
+      this.renderer.domElement,
+    );
+    this.transformControls.addEventListener("dragging-changed", (event) => {
       this.controls.enabled = !event.value;
     });
-    this.transformControls.addEventListener('objectChange', () => {
+    this.transformControls.addEventListener("objectChange", () => {
       if (this.transformControls.object) {
         const target = this.transformControls.object;
         this.controls.target.copy(target.position);
@@ -274,7 +279,9 @@ export default class CharacterAnimationSketch extends Sketch {
    * Load environment
    */
   async loadEnvironment() {
-    await this.cubeMapLoader.loadCubeMap(this.cubeMapLoader.config.defaultCubeMap);
+    await this.cubeMapLoader.loadCubeMap(
+      this.cubeMapLoader.config.defaultCubeMap,
+    );
   }
 
   /**
@@ -284,12 +291,15 @@ export default class CharacterAnimationSketch extends Sketch {
     try {
       const gltf = await new Promise((resolve, reject) => {
         this.gltfLoader.load(
-          '/gltf/theAllies/theAllies.glb',
+          "/gltf/theAllies/theAllies.glb",
           resolve,
           (progress) => {
-            console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%');
+            console.log(
+              "Loading progress:",
+              (progress.loaded / progress.total) * 100 + "%",
+            );
           },
-          reject
+          reject,
         );
       });
 
@@ -304,9 +314,8 @@ export default class CharacterAnimationSketch extends Sketch {
           this.actions[clip.name] = action;
         });
       }
-
     } catch (error) {
-      console.error('Failed to load models:', error);
+      console.error("Failed to load models:", error);
     }
   }
 
@@ -335,7 +344,7 @@ export default class CharacterAnimationSketch extends Sketch {
     this.scene.add(this.theAllies);
 
     if (Object.keys(this.actions).length > 0) {
-      this.playAnimation('Offended Idle');
+      this.playAnimation("Offended Idle");
     }
 
     // Attach transform controls
@@ -367,7 +376,9 @@ export default class CharacterAnimationSketch extends Sketch {
     this.currentAnimation = newAction;
     this.animationState.currentAction = name;
 
-    newAction.setLoop(this.animationState.loop ? THREE.LoopRepeat : THREE.LoopOnce);
+    newAction.setLoop(
+      this.animationState.loop ? THREE.LoopRepeat : THREE.LoopOnce,
+    );
     newAction.timeScale = this.animationState.speed;
     newAction.play();
   }
@@ -426,61 +437,67 @@ export default class CharacterAnimationSketch extends Sketch {
    */
   setupAnimationControls(pane) {
     const animFolder = pane.addFolder({
-      title: 'Animations',
+      title: "Animations",
       expanded: true,
     });
 
     // Animation triggers
     const animNames = Object.keys(this.actions);
     animNames.forEach((animName) => {
-      animFolder.addButton({
-        title: animName,
-      }).on('click', () => {
-        this.playAnimation(animName);
-      });
+      animFolder
+        .addButton({
+          title: animName,
+        })
+        .on("click", () => {
+          this.playAnimation(animName);
+        });
     });
 
     // Animation speed
-    animFolder.addBinding(this.animationState, 'speed', {
-      min: 0,
-      max: 2,
-      step: 0.01,
-    }).on('change', (ev) => {
-      if (this.currentAnimation) {
-        this.currentAnimation.timeScale = ev.value;
-      }
-    });
+    animFolder
+      .addBinding(this.animationState, "speed", {
+        min: 0,
+        max: 2,
+        step: 0.01,
+      })
+      .on("change", (ev) => {
+        if (this.currentAnimation) {
+          this.currentAnimation.timeScale = ev.value;
+        }
+      });
 
     // Loop control
-    animFolder.addBinding(this.animationState, 'loop').on('change', (ev) => {
+    animFolder.addBinding(this.animationState, "loop").on("change", (ev) => {
       if (this.currentAnimation) {
-        this.currentAnimation.setLoop(ev.value ? THREE.LoopRepeat : THREE.LoopOnce);
+        this.currentAnimation.setLoop(
+          ev.value ? THREE.LoopRepeat : THREE.LoopOnce,
+        );
       }
     });
 
     // Camera animation
     const cameraFolder = animFolder.addFolder({
-      title: 'Camera Animation',
+      title: "Camera Animation",
       expanded: false,
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, 'enabled', {
-      label: 'Enable',
+    cameraFolder.addBinding(this.cameraAnimation, "enabled", {
+      label: "Enable",
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, 'radius', {
+    cameraFolder.addBinding(this.cameraAnimation, "radius", {
       min: 1,
       max: 10,
       step: 0.1,
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, 'height', {
+    cameraFolder.addBinding(this.cameraAnimation, "height", {
       min: 0,
       max: 5,
       step: 0.1,
     });
 
-    cameraFolder.addBinding(this.cameraAnimation, 'speed', {
+    cameraFolder.addBinding(this.cameraAnimation, "speed", {
       min: 0,
       max: 2,
       step: 0.01,
@@ -492,67 +509,90 @@ export default class CharacterAnimationSketch extends Sketch {
    */
   setupSceneControls(pane) {
     const sceneFolder = pane.addFolder({
-      title: 'Scene',
+      title: "Scene",
       expanded: false,
     });
 
     // Fog controls
     const fogFolder = sceneFolder.addFolder({
-      title: 'Fog',
+      title: "Fog",
       expanded: false,
     });
 
     const fogParams = {
       fogEnabled: this.sceneManager.config.fog.enabled,
-      fogColor: `#${this.sceneManager.config.fog.color.toString(16).padStart(6, '0')}`,
+      fogColor: `#${this.sceneManager.config.fog.color.toString(16).padStart(6, "0")}`,
       fogNear: this.sceneManager.config.fog.near,
       fogFar: this.sceneManager.config.fog.far,
     };
 
-    fogFolder.addBinding(fogParams, 'fogEnabled', {
-      label: 'Enable Fog',
-    }).on('change', (ev) => {
-      this.sceneManager.setFog(
-        ev.value,
-        fogParams.fogNear,
-        fogParams.fogFar,
-        fogParams.fogColor
-      );
-    });
+    fogFolder
+      .addBinding(fogParams, "fogEnabled", {
+        label: "Enable Fog",
+      })
+      .on("change", (ev) => {
+        this.sceneManager.setFog(
+          ev.value,
+          fogParams.fogNear,
+          fogParams.fogFar,
+          fogParams.fogColor,
+        );
+      });
 
-    fogFolder.addBinding(fogParams, 'fogNear', {
-      label: 'Fog Near',
-      min: 0.01,
-      max: 10,
-      step: 0.01,
-    }).on('change', (ev) => {
-      if (fogParams.fogEnabled) {
-        this.sceneManager.setFog(true, ev.value, fogParams.fogFar, fogParams.fogColor);
-      }
-    });
+    fogFolder
+      .addBinding(fogParams, "fogNear", {
+        label: "Fog Near",
+        min: 0.01,
+        max: 10,
+        step: 0.01,
+      })
+      .on("change", (ev) => {
+        if (fogParams.fogEnabled) {
+          this.sceneManager.setFog(
+            true,
+            ev.value,
+            fogParams.fogFar,
+            fogParams.fogColor,
+          );
+        }
+      });
 
-    fogFolder.addBinding(fogParams, 'fogFar', {
-      label: 'Fog Far',
-      min: 1,
-      max: 50,
-      step: 0.1,
-    }).on('change', (ev) => {
-      if (fogParams.fogEnabled) {
-        this.sceneManager.setFog(true, fogParams.fogNear, ev.value, fogParams.fogColor);
-      }
-    });
+    fogFolder
+      .addBinding(fogParams, "fogFar", {
+        label: "Fog Far",
+        min: 1,
+        max: 50,
+        step: 0.1,
+      })
+      .on("change", (ev) => {
+        if (fogParams.fogEnabled) {
+          this.sceneManager.setFog(
+            true,
+            fogParams.fogNear,
+            ev.value,
+            fogParams.fogColor,
+          );
+        }
+      });
 
-    fogFolder.addBinding(fogParams, 'fogColor', {
-      label: 'Fog Color',
-    }).on('change', (ev) => {
-      if (fogParams.fogEnabled) {
-        this.sceneManager.setFog(true, fogParams.fogNear, fogParams.fogFar, ev.value);
-      }
-    });
+    fogFolder
+      .addBinding(fogParams, "fogColor", {
+        label: "Fog Color",
+      })
+      .on("change", (ev) => {
+        if (fogParams.fogEnabled) {
+          this.sceneManager.setFog(
+            true,
+            fogParams.fogNear,
+            fogParams.fogFar,
+            ev.value,
+          );
+        }
+      });
 
     // Environment controls
     const envFolder = sceneFolder.addFolder({
-      title: 'Environment',
+      title: "Environment",
       expanded: false,
     });
 
@@ -561,66 +601,86 @@ export default class CharacterAnimationSketch extends Sketch {
       cubeMap: this.cubeMapLoader.getCurrentCubeMap(),
     };
 
-    envFolder.addBinding(sceneParams, 'cubeMap', {
-      label: 'Cube Map',
-      options: this.cubeMapLoader.getCubeMapOptions(),
-    }).on('change', (ev) => {
-      this.cubeMapLoader.handleUIChange(ev.value);
-    });
+    envFolder
+      .addBinding(sceneParams, "cubeMap", {
+        label: "Cube Map",
+        options: this.cubeMapLoader.getCubeMapOptions(),
+      })
+      .on("change", (ev) => {
+        this.cubeMapLoader.handleUIChange(ev.value);
+      });
 
     // Environment intensity
-    envFolder.addBinding(this.sceneManager.config.environment, 'environmentIntensity', {
-      label: 'Environment Intensity',
-      min: 0,
-      max: 3,
-      step: 0.01,
-    }).on('change', (ev) => {
-      this.sceneManager.updateEnvironmentIntensity(ev.value);
-    });
+    envFolder
+      .addBinding(
+        this.sceneManager.config.environment,
+        "environmentIntensity",
+        {
+          label: "Environment Intensity",
+          min: 0,
+          max: 3,
+          step: 0.01,
+        },
+      )
+      .on("change", (ev) => {
+        this.sceneManager.updateEnvironmentIntensity(ev.value);
+      });
 
     // Background settings
-    envFolder.addBinding(this.sceneManager.config.environment, 'background', {
-      label: 'Show Background',
-    }).on('change', (ev) => {
-      this.sceneManager.toggleBackground(ev.value);
-    });
+    envFolder
+      .addBinding(this.sceneManager.config.environment, "background", {
+        label: "Show Background",
+      })
+      .on("change", (ev) => {
+        this.sceneManager.toggleBackground(ev.value);
+      });
 
-    envFolder.addBinding(this.sceneManager.config.environment, 'backgroundIntensity', {
-      label: 'Background Intensity',
-      min: 0,
-      max: 3,
-      step: 0.01,
-    }).on('change', (ev) => {
-      this.sceneManager.updateBackgroundIntensity(ev.value);
-    });
+    envFolder
+      .addBinding(this.sceneManager.config.environment, "backgroundIntensity", {
+        label: "Background Intensity",
+        min: 0,
+        max: 3,
+        step: 0.01,
+      })
+      .on("change", (ev) => {
+        this.sceneManager.updateBackgroundIntensity(ev.value);
+      });
 
-    envFolder.addBinding(this.sceneManager.config.environment, 'backgroundBlurriness', {
-      label: 'Background Blur',
-      min: 0,
-      max: 1,
-      step: 0.01,
-    }).on('change', (ev) => {
-      this.sceneManager.updateBackgroundBlurriness(ev.value);
-    });
+    envFolder
+      .addBinding(
+        this.sceneManager.config.environment,
+        "backgroundBlurriness",
+        {
+          label: "Background Blur",
+          min: 0,
+          max: 1,
+          step: 0.01,
+        },
+      )
+      .on("change", (ev) => {
+        this.sceneManager.updateBackgroundBlurriness(ev.value);
+      });
 
     // Transform controls
     const transformFolder = sceneFolder.addFolder({
-      title: 'Transform Controls',
+      title: "Transform Controls",
       expanded: false,
     });
 
-    transformFolder.addBinding(this, 'transformMode', {
-      label: 'Mode',
-      options: {
-        'Translate': 'translate',
-        'Rotate': 'rotate',
-        'Scale': 'scale',
-      },
-    }).on('change', (ev) => {
-      if (this.transformControls) {
-        this.transformControls.setMode(ev.value);
-      }
-    });
+    transformFolder
+      .addBinding(this, "transformMode", {
+        label: "Mode",
+        options: {
+          Translate: "translate",
+          Rotate: "rotate",
+          Scale: "scale",
+        },
+      })
+      .on("change", (ev) => {
+        if (this.transformControls) {
+          this.transformControls.setMode(ev.value);
+        }
+      });
   }
 
   /**
@@ -628,7 +688,7 @@ export default class CharacterAnimationSketch extends Sketch {
    */
   setupMaterialControls(pane) {
     const matFolder = pane.addFolder({
-      title: 'Materials',
+      title: "Materials",
       expanded: false,
     });
 
@@ -642,7 +702,7 @@ export default class CharacterAnimationSketch extends Sketch {
    */
   setupLightingControls(pane) {
     const lightFolder = pane.addFolder({
-      title: 'Lighting',
+      title: "Lighting",
       expanded: false,
     });
 
@@ -656,71 +716,93 @@ export default class CharacterAnimationSketch extends Sketch {
    */
   setupParticleControls(pane) {
     const particleFolder = pane.addFolder({
-      title: 'Particles',
+      title: "Particles",
       expanded: false,
     });
 
     if (this.particleSystem) {
-      particleFolder.addBinding(this.particleSystem.params, 'count', {
-        min: 0,
-        max: 10000,
-        step: 100,
-      }).on('change', (ev) => {
-        this.particleSystem.updateCount(ev.value);
-      });
+      particleFolder
+        .addBinding(this.particleSystem.params, "count", {
+          min: 0,
+          max: 10000,
+          step: 100,
+        })
+        .on("change", (ev) => {
+          this.particleSystem.updateCount(ev.value);
+        });
 
-      particleFolder.addBinding(this.particleSystem.params, 'size', {
-        min: 0.001,
-        max: 0.5,
-        step: 0.001,
-      }).on('change', (ev) => {
-        this.particleSystem.updateSize(ev.value);
-      });
+      particleFolder
+        .addBinding(this.particleSystem.params, "size", {
+          min: 0.001,
+          max: 0.5,
+          step: 0.001,
+        })
+        .on("change", (ev) => {
+          this.particleSystem.updateSize(ev.value);
+        });
 
-      particleFolder.addBinding(this.particleSystem.params, 'color', {
-        color: { type: 'float' },
-      }).on('change', (ev) => {
-        this.particleSystem.updateColor(ev.value);
-      });
+      particleFolder
+        .addBinding(this.particleSystem.params, "color", {
+          color: { type: "float" },
+        })
+        .on("change", (ev) => {
+          this.particleSystem.updateColor(ev.value);
+        });
 
-      particleFolder.addBinding(this.particleSystem.params, 'verticalSpeed', {
-        min: -2,
-        max: 2,
-        step: 0.01,
-      }).on('change', (ev) => {
-        this.particleSystem.updateSpeed(ev.value, this.particleSystem.params.horizontalSpeed);
-      });
+      particleFolder
+        .addBinding(this.particleSystem.params, "verticalSpeed", {
+          min: -2,
+          max: 2,
+          step: 0.01,
+        })
+        .on("change", (ev) => {
+          this.particleSystem.updateSpeed(
+            ev.value,
+            this.particleSystem.params.horizontalSpeed,
+          );
+        });
 
-      particleFolder.addBinding(this.particleSystem.params, 'horizontalSpeed', {
-        min: 0,
-        max: 2,
-        step: 0.01,
-      }).on('change', (ev) => {
-        this.particleSystem.updateSpeed(this.particleSystem.params.verticalSpeed, ev.value);
-      });
+      particleFolder
+        .addBinding(this.particleSystem.params, "horizontalSpeed", {
+          min: 0,
+          max: 2,
+          step: 0.01,
+        })
+        .on("change", (ev) => {
+          this.particleSystem.updateSpeed(
+            this.particleSystem.params.verticalSpeed,
+            ev.value,
+          );
+        });
 
-      particleFolder.addBinding(this.particleSystem.params, 'spread', {
-        min: 0,
-        max: 20,
-        step: 0.1,
-      }).on('change', (ev) => {
-        this.particleSystem.updateSpread(ev.value);
-      });
+      particleFolder
+        .addBinding(this.particleSystem.params, "spread", {
+          min: 0,
+          max: 20,
+          step: 0.1,
+        })
+        .on("change", (ev) => {
+          this.particleSystem.updateSpread(ev.value);
+        });
 
-      particleFolder.addBinding(this.particleSystem.params, 'opacity', {
-        min: 0,
-        max: 1,
-        step: 0.01,
-      }).on('change', (ev) => {
-        this.particleSystem.updateOpacity(ev.value);
-      });
+      particleFolder
+        .addBinding(this.particleSystem.params, "opacity", {
+          min: 0,
+          max: 1,
+          step: 0.01,
+        })
+        .on("change", (ev) => {
+          this.particleSystem.updateOpacity(ev.value);
+        });
 
       // Add reset button
-      particleFolder.addButton({
-        title: 'Reset Particles',
-      }).on('click', () => {
-        this.particleSystem.reset();
-      });
+      particleFolder
+        .addButton({
+          title: "Reset Particles",
+        })
+        .on("click", () => {
+          this.particleSystem.reset();
+        });
     }
   }
 
@@ -731,17 +813,17 @@ export default class CharacterAnimationSketch extends Sketch {
     if (!this.transformControls) return;
 
     switch (event.key.toLowerCase()) {
-      case 'g':
-        this.transformControls.setMode('translate');
-        this.transformMode = 'translate';
+      case "g":
+        this.transformControls.setMode("translate");
+        this.transformMode = "translate";
         break;
-      case 'r':
-        this.transformControls.setMode('rotate');
-        this.transformMode = 'rotate';
+      case "r":
+        this.transformControls.setMode("rotate");
+        this.transformMode = "rotate";
         break;
-      case 't':
-        this.transformControls.setMode('scale');
-        this.transformMode = 'scale';
+      case "t":
+        this.transformControls.setMode("scale");
+        this.transformMode = "scale";
         break;
     }
   }
@@ -777,7 +859,7 @@ export default class CharacterAnimationSketch extends Sketch {
     }
 
     // Dispose models
-    Object.values(this.models).forEach(model => {
+    Object.values(this.models).forEach((model) => {
       if (model) {
         this.scene.remove(model);
         this.disposeObject(model);
