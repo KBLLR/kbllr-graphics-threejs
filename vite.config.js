@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
             if (id.includes("node_modules/gsap")) {
               return "gsap";
             }
+            if (id.includes("node_modules/@theatre")) {
+              return "theatre";
+            }
             if (id.includes("node_modules/")) {
               return "vendor";
             }
@@ -37,7 +40,13 @@ export default defineConfig(({ mode }) => {
       host: true,
     },
     optimizeDeps: {
-      include: ["three", "gsap", "tweakpane"],
+      include: [
+        "three",
+        "gsap",
+        "tweakpane",
+        "@theatre/core",
+        "@theatre/studio",
+      ],
     },
     resolve: {
       alias: {
@@ -49,6 +58,7 @@ export default defineConfig(({ mode }) => {
         "@sketches": path.resolve(__dirname, "./src/sketches"),
         "@systems": path.resolve(__dirname, "./src/systems"),
         "@utils": path.resolve(__dirname, "./src/utils"),
+        "@theatre": path.resolve(__dirname, "./node_modules/@theatre"),
       },
     },
   };
