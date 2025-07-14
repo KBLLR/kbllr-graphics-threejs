@@ -14,7 +14,7 @@ export default class TheatreEyeballSketch extends Sketch {
     super({
       ...options,
       showControls: false, // Disable orbit controls for this 2D sketch
-      enableTweakpane: true,
+      enableTweakpane: false, // Disable Tweakpane as we're using Theatre.js
     });
 
     // Eye state
@@ -23,7 +23,7 @@ export default class TheatreEyeballSketch extends Sketch {
       scale: { x: 1, y: 1 },
       blinkSpeed: 1,
       lookAtMouse: true,
-      autoAnimate: false,
+      autoAnimate: true, // Enable auto-animation by default since we're using Theatre.js
       lightColor: "green",
     };
 
@@ -72,13 +72,11 @@ export default class TheatreEyeballSketch extends Sketch {
    * Setup Theatre.js
    */
   setupTheatre() {
-    // Only initialize Studio in development mode
-    if (import.meta.env?.MODE === "development") {
-      studio.initialize();
-    }
+    // Initialize Theatre Studio
+    studio.initialize();
 
-    // Hide Theatre.js UI by default (can be toggled with Alt+\)
-    studio.ui.hide();
+    // Show Theatre.js UI by default (can be toggled with Alt+\)
+    studio.ui.restore();
 
     // Create the project and sheet
     this.theatre.project = core.getProject("Eyeball Animation");
@@ -464,18 +462,15 @@ export default class TheatreEyeballSketch extends Sketch {
       this.particles.rotation.x += deltaTime * 0.05;
     }
 
-    // Auto-animate
-    if (this.eyeState.autoAnimate && this.theatre.eyeball) {
+    // Auto-animate - enabled by default since we don't have Tweakpane controls
+    if (this.theatre.eyeball && this.theatre.eyeball.value) {
       const time = elapsedTime * 0.5;
       const x = Math.sin(time) * 5;
       const y = Math.cos(time * 0.7) * 3;
 
-      this.theatre.eyeball.set({
-        pupil: {
-          x: x,
-          y: y,
-        },
-      });
+      // Update pupil position directly
+      this.theatre.eyeball.value.pupil.x = x;
+      this.theatre.eyeball.value.pupil.y = y;
 
       // Occasional blink
       if (Math.random() < 0.005) {
@@ -486,98 +481,35 @@ export default class TheatreEyeballSketch extends Sketch {
 
   /**
    * Setup GUI
+   *
+   * Note: We're using Theatre.js for UI controls instead of Tweakpane.
+   * The UI can be toggled with Alt+\ keyboard shortcut.
    */
   setupGUI(pane) {
-    // Eye Controls
-    const eyeFolder = pane.addFolder({
-      title: "Eye Controls",
-      expanded: true,
-    });
+    // No Tweakpane implementation - using Theatre.js Studio instead
 
-    // Toggle Theatre.js Studio
-    eyeFolder
-      .addButton({
-        title: "Toggle Theatre.js Studio",
-      })
-      .on("click", () => {
-        if (studio.ui.isHidden) {
-          studio.ui.restore();
-        } else {
-          studio.ui.hide();
-        }
-      });
+    // Set up keyboard shortcut hint
+    const hintElement = document.createElement("div");
+    hintElement.style.cssText = `
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 1000;
+    `;
+    hintElement.textContent = "Press Alt+\\ to toggle Theatre.js Studio";
+    document.body.appendChild(hintElement);
 
-    // Auto animate toggle
-    eyeFolder.addBinding(this.eyeState, "autoAnimate", {
-      label: "Auto Animate",
-    });
-
-    eyeFolder.addBinding(this.eyeState, "lookAtMouse", {
-      label: "Follow Mouse",
-    });
-
-    // Blink button
-    eyeFolder
-      .addButton({
-        title: "Blink",
-      })
-      .on("click", () => {
-        this.blink();
-      });
-
-    // Color selector
-    const colorOptions = {
-      Green: "green",
-      Red: "red",
-      Yellow: "yellow",
-    };
-
-    eyeFolder
-      .addBlade({
-        view: "list",
-        label: "Light Color",
-        options: Object.entries(colorOptions).map(([text, value]) => ({
-          text,
-          value,
-        })),
-        value: this.eyeState.lightColor,
-      })
-      .on("change", (ev) => {
-        this.eyeState.lightColor = ev.value;
-        if (this.theatre.eyeball && this.theatre.eyeball.value) {
-          this.theatre.eyeball.value.light = ev.value;
-        }
-      });
-
-    // Animation sequences
-    const animFolder = pane.addFolder({
-      title: "Animations",
-      expanded: false,
-    });
-
-    animFolder
-      .addButton({
-        title: "Suspicious Look",
-      })
-      .on("click", () => {
-        this.playSequence("suspicious");
-      });
-
-    animFolder
-      .addButton({
-        title: "Surprised",
-      })
-      .on("click", () => {
-        this.playSequence("surprised");
-      });
-
-    animFolder
-      .addButton({
-        title: "Sleepy",
-      })
-      .on("click", () => {
-        this.playSequence("sleepy");
-      });
+    // Auto-remove hint after 5 seconds
+    setTimeout(() => {
+      hintElement.style.opacity = 0;
+      setTimeout(() => hintElement.remove(), 1000);
+    }, 5000);
   }
 
   /**
