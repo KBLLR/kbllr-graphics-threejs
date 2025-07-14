@@ -193,16 +193,22 @@ export default class CharacterAnimationSketch extends Sketch {
    * Setup particle system
    */
   setupParticleSystem() {
-    this.particleSystem = new ParticleSystem(this.scene, {
-      count: 3000,
-      size: 0.05,
-      color: 0x64a5ff,
-      verticalSpeed: 0.3,
-      horizontalSpeed: 0.1,
-      spread: 5,
-      opacity: 0.8,
+    this.particleSystem = new ParticleSystem({
+      particleCount: 3000,
+      particleSize: 0.05,
+      colors: [new THREE.Color(0x64a5ff)],
+      velocityRange: {
+        min: new THREE.Vector3(-0.1, 0.1, -0.1),
+        max: new THREE.Vector3(0.1, 0.3, 0.1),
+      },
+      boundingBox: new THREE.Box3(
+        new THREE.Vector3(-5, -2, -5),
+        new THREE.Vector3(5, 8, 5),
+      ),
     });
-    this.particleSystem.init();
+
+    // Add particle system mesh to scene
+    this.scene.add(this.particleSystem.getMesh());
   }
 
   /**
@@ -717,88 +723,85 @@ export default class CharacterAnimationSketch extends Sketch {
     });
 
     if (this.particleSystem) {
-      particleFolder
-        .addBinding(this.particleSystem.params, "count", {
-          min: 0,
-          max: 10000,
-          step: 100,
-        })
-        .on("change", (ev) => {
-          this.particleSystem.updateCount(ev.value);
-        });
+      // Particle count (display only - can't be changed at runtime)
+      particleFolder.addBinding(this.particleSystem.config, "particleCount", {
+        label: "Count",
+        disabled: true,
+      });
 
-      particleFolder
-        .addBinding(this.particleSystem.params, "size", {
-          min: 0.001,
-          max: 0.5,
-          step: 0.001,
-        })
-        .on("change", (ev) => {
-          this.particleSystem.updateSize(ev.value);
-        });
+      // Particle size
+      particleFolder.addBinding(this.particleSystem.config, "particleSize", {
+        label: "Size",
+        min: 0.01,
+        max: 0.5,
+        step: 0.01,
+      });
 
-      particleFolder
-        .addBinding(this.particleSystem.params, "color", {
-          color: { type: "float" },
-        })
-        .on("change", (ev) => {
-          this.particleSystem.updateColor(ev.value);
-        });
+      // Emission rate
+      particleFolder.addBinding(this.particleSystem.config, "emissionRate", {
+        label: "Emission Rate",
+        min: 0,
+        max: 5,
+        step: 0.1,
+      });
 
-      particleFolder
-        .addBinding(this.particleSystem.params, "verticalSpeed", {
-          min: -2,
-          max: 2,
-          step: 0.01,
-        })
-        .on("change", (ev) => {
-          this.particleSystem.updateSpeed(
-            ev.value,
-            this.particleSystem.params.horizontalSpeed,
-          );
-        });
+      // Gravity
+      particleFolder.addBinding(this.particleSystem.config, "gravity", {
+        label: "Gravity",
+        min: -0.5,
+        max: 0.5,
+        step: 0.01,
+      });
 
-      particleFolder
-        .addBinding(this.particleSystem.params, "horizontalSpeed", {
-          min: 0,
-          max: 2,
-          step: 0.01,
-        })
-        .on("change", (ev) => {
-          this.particleSystem.updateSpeed(
-            this.particleSystem.params.verticalSpeed,
-            ev.value,
-          );
-        });
+      // Wind
+      const windFolder = particleFolder.addFolder({
+        title: "Wind",
+        expanded: false,
+      });
 
-      particleFolder
-        .addBinding(this.particleSystem.params, "spread", {
-          min: 0,
-          max: 20,
-          step: 0.1,
-        })
-        .on("change", (ev) => {
-          this.particleSystem.updateSpread(ev.value);
-        });
+      windFolder.addBinding(this.particleSystem.config.wind, "x", {
+        label: "X",
+        min: -1,
+        max: 1,
+        step: 0.01,
+      });
 
-      particleFolder
-        .addBinding(this.particleSystem.params, "opacity", {
-          min: 0,
-          max: 1,
-          step: 0.01,
-        })
-        .on("change", (ev) => {
-          this.particleSystem.updateOpacity(ev.value);
-        });
+      windFolder.addBinding(this.particleSystem.config.wind, "y", {
+        label: "Y",
+        min: -1,
+        max: 1,
+        step: 0.01,
+      });
 
-      // Add reset button
-      particleFolder
-        .addButton({
-          title: "Reset Particles",
-        })
-        .on("click", () => {
-          this.particleSystem.reset();
-        });
+      windFolder.addBinding(this.particleSystem.config.wind, "z", {
+        label: "Z",
+        min: -1,
+        max: 1,
+        step: 0.01,
+      });
+
+      // Turbulence
+      particleFolder.addBinding(this.particleSystem.config, "turbulence", {
+        label: "Turbulence",
+        min: 0,
+        max: 1,
+        step: 0.01,
+      });
+
+      // Lifespan
+      particleFolder.addBinding(this.particleSystem.config, "lifespan", {
+        label: "Lifespan",
+        min: 1,
+        max: 20,
+        step: 0.5,
+      });
+
+      // Note about runtime limitations
+      particleFolder.addBlade({
+        view: "text",
+        text: "Note: Some properties only affect new particles",
+        label: "",
+      });
     }
   }
 
