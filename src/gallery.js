@@ -1,6 +1,7 @@
 import "./style.css";
 import { SketchManager } from "@core/SketchManager.js";
 import { sketchMetadata } from "@sketches/index.js";
+import { getPlaceholderUrl } from "@utils/placeholders.js";
 
 /**
  * Main Gallery Application
@@ -32,9 +33,6 @@ class SketchGallery {
     try {
       // Create UI structure
       this.createUI();
-
-      // Create placeholder directories if needed
-      this.ensurePlaceholders();
 
       // Initialize sketch manager
       this.sketchManager = new SketchManager({
@@ -217,13 +215,13 @@ class SketchGallery {
     card.dataset.category = sketch.category;
     card.dataset.tags = sketch.tags.join(",");
 
-    // Create a placeholder thumbnail if no image exists
+    // Use the placeholder utility for missing thumbnails
     const thumbnailUrl =
-      sketch.thumbnail || `/img/placeholders/${sketch.category}.jpg`;
+      sketch.thumbnail || getPlaceholderUrl(sketch.category);
 
     card.innerHTML = `
       <div class="sketch-thumbnail">
-        ${`<img src="${thumbnailUrl}" alt="${sketch.name}" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholders/default.jpg';">`}
+        <img src="${thumbnailUrl}" alt="${sketch.name}" loading="lazy">
       </div>
       <div class="sketch-info">
         <h3 class="sketch-title">${sketch.name}</h3>
@@ -380,52 +378,6 @@ class SketchGallery {
     }, 5000);
   }
 
-  /**
-   * Ensure placeholder thumbnails exist
-   */
-  ensurePlaceholders() {
-    // Create placeholder images in memory for categories
-    const categories = [
-      { id: "animation", color: "#4a9eff" },
-      { id: "shaders", color: "#ff4a4a" },
-      { id: "particles", color: "#4aff4a" },
-      { id: "geometry", color: "#ff4aff" },
-      { id: "lighting", color: "#ffff4a" },
-      { id: "interaction", color: "#4affff" },
-      { id: "default", color: "#aaaaaa" },
-    ];
-
-    // Add placeholders to DOM temporarily to handle fallbacks
-    // They will be loaded from URLs, but this provides a backup
-    const placeHolderContainer = document.createElement("div");
-    placeHolderContainer.style.display = "none";
-    document.body.appendChild(placeHolderContainer);
-
-    categories.forEach((cat) => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 300;
-      canvas.height = 200;
-      const ctx = canvas.getContext("2d");
-
-      // Draw background
-      ctx.fillStyle = cat.color;
-      ctx.fillRect(0, 0, 300, 200);
-
-      // Draw text
-      ctx.fillStyle = "white";
-      ctx.font = "bold 24px Inter, sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(cat.id.toUpperCase(), 150, 100);
-
-      // Convert to data URL
-      const img = document.createElement("img");
-      img.src = canvas.toDataURL("image/jpeg");
-      img.className = "placeholder-img";
-      img.dataset.category = cat.id;
-      placeHolderContainer.appendChild(img);
-    });
-  }
 
   /**
    * Add gallery styles

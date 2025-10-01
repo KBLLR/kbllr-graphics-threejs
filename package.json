@@ -11,6 +11,7 @@
   "author": "KBΓΓR",
   "license": "ISC",
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
     "vite": "^5.0.0"
   },
   "dependencies": {
