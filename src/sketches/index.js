@@ -8,6 +8,7 @@ import CharacterSketch from "./CharacterSketch.js";
 import EyeballSketch from "./EyeballSketch.js";
 import TheatreEyeballSketch from "./TheatreEyeballSketch.js";
 import CameraTravellingIntro from "./CameraTravellingIntro.js";
+import AnjaProjectSketch from "./AnjaProjectSketch.js";
 
 // Export sketch registry
 export const sketchRegistry = {
@@ -15,6 +16,7 @@ export const sketchRegistry = {
   "eyeball-theater": EyeballSketch,
   "theatre-eyeball": TheatreEyeballSketch,
   "camera-travelling": CameraTravellingIntro,
+  "anja-project": AnjaProjectSketch,
   // Add new sketches here as you create them
   // 'shader-exploration': ShaderSketch,
   // 'particle-flow': ParticleFlowSketch,
@@ -56,6 +58,14 @@ export const sketchMetadata = [
     thumbnail: "/img/thumbnails/theatre-eyeball.jpg",
     category: "animation",
     tags: ["svg", "theatre", "animation", "interactive"],
+  },
+  {
+    id: "anja-project",
+    name: "Anja Project",
+    description: "An interactive SVG animation of an eye, created with SVGator.",
+    thumbnail: "/img/thumbnails/eyeball.jpg",
+    category: "animation",
+    tags: ["svg", "animation", "2d", "interactive"],
   },
   // Future sketches (commented out until implemented)
   /*
