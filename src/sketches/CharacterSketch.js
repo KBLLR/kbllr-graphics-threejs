@@ -88,7 +88,7 @@ export default class CharacterSketch extends Sketch {
 
       // Apply current settings
       // Use scale 1 directly
-      model.scale.set(1, 1, 1);
+      model.scale.set(0.1, 0.1, 0.1);
 
       // Position based on settings
       model.position.set(
