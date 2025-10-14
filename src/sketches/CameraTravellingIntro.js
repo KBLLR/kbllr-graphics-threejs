@@ -13,11 +13,15 @@ import { SimpleCubeMapLoader } from "@systems/SimpleCubeMapLoader.js";
 import * as helpers from "@utils/helpers.js";
 
 /**
- * Camera Travelling Intro Sketch
- * Cinematic camera movements along CatmullRom spline curves with dynamic scene transitions
- * Features customizable path visualization and look-ahead targeting
+ * @class CameraTravellingIntro
+ * @classdesc A cinematic sketch featuring a camera traveling along a spline path through a dynamic scene.
+ * It integrates multiple systems like SceneManager, ParticleSystem, and LightingSystem to create a rich environment.
+ * @extends Sketch
  */
 export default class CameraTravellingIntro extends Sketch {
+  /**
+   * @param {object} [options={}] - Configuration options for the sketch.
+   */
   constructor(options = {}) {
     super({
       ...options,
@@ -72,7 +76,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup the sketch
+   * Asynchronously sets up the entire scene, including managers, systems, models, and controls.
+   * @override
    */
   async setup() {
     // Initialize scene manager
@@ -134,14 +139,16 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup material manager
+   * Initializes the MaterialManager.
+   * @private
    */
   setupMaterialManager() {
     this.materialManager = new MaterialManager();
   }
 
   /**
-   * Setup cube map loader
+   * Initializes the SimpleCubeMapLoader for environment maps.
+   * @private
    */
   setupCubeMapLoader() {
     this.cubeMapLoader = new SimpleCubeMapLoader(this.sceneManager, {
@@ -157,7 +164,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup lighting system
+   * Initializes the LightingSystem and sets up a default three-point lighting rig.
+   * @private
    */
   setupLightingSystem() {
     this.lightingSystem = new LightingSystem(this.scene, {
@@ -206,7 +214,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup particle system
+   * Initializes the ParticleSystem for background effects.
+   * @private
    */
   setupParticleSystem() {
     this.particleSystem = new ParticleSystem({
@@ -228,7 +237,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup ground
+   * Creates and configures the ground plane with a reflective material.
+   * @private
    */
   setupGround() {
     const gGeometry = new THREE.PlaneGeometry(10, 10, 20, 20);
@@ -261,7 +271,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup loaders
+   * Initializes the GLTF, DRACO, and FBX loaders.
+   * @private
    */
   setupLoaders() {
     this.dracoLoader = new DRACOLoader();
@@ -277,7 +288,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup transform controls
+   * Initializes the TransformControls for manipulating objects in the scene.
+   * @private
    */
   setupTransformControls() {
     this.transformControls = new TransformControls(
@@ -297,7 +309,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Load environment
+   * Loads the default environment cube map.
+   * @private
    */
   async loadEnvironment() {
     await this.cubeMapLoader.loadCubeMap(
@@ -306,7 +319,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Load models
+   * Loads the main character model and its animations.
+   * @private
    */
   async loadModels() {
     try {
@@ -358,7 +372,12 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Get a better animation name
+   * Generates a more readable animation name from the original, often cryptic, name.
+   * @param {string} originalName - The original name of the animation clip.
+   * @param {number} index - The index of the animation clip.
+   * @param {string} characterName - The name of the character model.
+   * @returns {string} A cleaned-up, more descriptive animation name.
+   * @private
    */
   getAnimationName(originalName, index, characterName) {
     // Map common Mixamo animation names
@@ -390,7 +409,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup characters
+   * Configures the loaded character model, setting its position, scale, materials, and shadows.
+   * @private
    */
   setupCharacters() {
     if (!this.theAllies) return;
@@ -429,7 +449,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Play the next animation in sequence
+   * Plays the next animation in the predefined sequence.
+   * @private
    */
   playNextAnimation() {
     if (this.animationNames.length === 0) return;
@@ -452,7 +473,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Play animation
+   * Plays a specific animation by name.
+   * @param {string} name - The name of the animation to play.
    */
   playAnimation(name) {
     const action = this.actions[name];
@@ -477,7 +499,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Create camera path with spline curve
+   * Defines and creates the Catmull-Rom spline curve for the camera's path.
+   * Also visualizes the path if enabled.
+   * @private
    */
   createCameraPath() {
     // Define control points for the camera path
@@ -515,6 +539,12 @@ export default class CameraTravellingIntro extends Sketch {
     }
   }
 
+  /**
+   * The main update loop, called every frame.
+   * @param {number} deltaTime - The time elapsed since the last frame.
+   * @param {number} elapsedTime - The total elapsed time.
+   * @override
+   */
   update(deltaTime, elapsedTime) {
     // Update mixer
     if (this.mixer) {
@@ -568,7 +598,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup GUI
+   * Sets up the Tweakpane GUI controls for various aspects of the sketch.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @override
    */
   setupGUI(pane) {
     // Animation controls
@@ -588,7 +620,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup animation controls
+   * Sets up Tweakpane controls related to camera and character animations.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @private
    */
   setupAnimationControls(pane) {
     // Camera movement controls
@@ -717,7 +751,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup scene controls
+   * Sets up Tweakpane controls for scene-wide properties like fog and environment.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @private
    */
   setupSceneControls(pane) {
     const sceneFolder = pane.addFolder({
@@ -896,7 +932,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup material controls
+   * Sets up Tweakpane controls for the ground material.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @private
    */
   setupMaterialControls(pane) {
     const matFolder = pane.addFolder({
@@ -918,7 +956,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup lighting controls
+   * Sets up Tweakpane controls for the lighting system.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @private
    */
   setupLightingControls(pane) {
     const lightFolder = pane.addFolder({
@@ -995,7 +1035,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Setup particle controls
+   * Sets up Tweakpane controls for the particle system.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @private
    */
   setupParticleControls(pane) {
     const particleFolder = pane.addFolder({
@@ -1087,7 +1129,9 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Handle keyboard input
+   * Handles keyboard input for switching TransformControls modes.
+   * @param {KeyboardEvent} event - The keyboard event.
+   * @override
    */
   onKeyDown(event) {
     if (!this.transformControls) return;
@@ -1109,7 +1153,8 @@ export default class CameraTravellingIntro extends Sketch {
   }
 
   /**
-   * Cleanup
+   * Cleans up all resources, systems, and objects created by the sketch.
+   * @override
    */
   cleanup() {
     // Dispose systems

@@ -14,10 +14,14 @@ import { SimpleCubeMapLoader } from "./systems/SimpleCubeMapLoader.js";
 import * as helpers from "./utils/helpers.js";
 
 /**
- * Main Application Class
- * Handles initialization, rendering, and lifecycle management
+ * @class App
+ * @classdesc The main application class that orchestrates the entire Three.js experience.
+ * It initializes all necessary components, manages the render loop, and handles user interactions.
  */
 export class App {
+  /**
+   * @param {HTMLCanvasElement} canvas - The canvas element to render the scene on.
+   */
   constructor(canvas) {
     this.canvas = canvas;
     this.sizes = {
@@ -61,6 +65,10 @@ export class App {
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
   }
 
+  /**
+   * Asynchronously initializes the application by setting up all components and loading assets.
+   * @returns {Promise<App>} A promise that resolves with the initialized App instance.
+   */
   async init() {
     try {
       this.setupScene();
@@ -93,6 +101,10 @@ export class App {
     }
   }
 
+  /**
+   * Initializes the SceneManager and the main Three.js scene.
+   * @private
+   */
   setupScene() {
     this.sceneManager = new SceneManager({
       fog: {
@@ -120,6 +132,10 @@ export class App {
     this.scene = this.sceneManager.getScene();
   }
 
+  /**
+   * Sets up the main perspective camera.
+   * @private
+   */
   setupCamera() {
     const aspect = this.sizes.width / this.sizes.height;
     this.camera = new THREE.PerspectiveCamera(45, aspect, 0.001, 20000);
@@ -128,6 +144,10 @@ export class App {
     this.scene.add(this.camera);
   }
 
+  /**
+   * Sets up the WebGL renderer with appropriate settings.
+   * @private
+   */
   setupRenderer() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -150,6 +170,10 @@ export class App {
     this.sceneManager.renderer = this.renderer;
   }
 
+  /**
+   * Sets up the OrbitControls for camera interaction.
+   * @private
+   */
   setupControls() {
     this.controls = new OrbitControls(this.camera, this.canvas);
     this.controls.enabled = true;
@@ -166,10 +190,18 @@ export class App {
     this.controls.maxPolarAngle = Math.PI / 2.1;
   }
 
+  /**
+   * Initializes the MaterialManager.
+   * @private
+   */
   setupMaterialManager() {
     this.materialManager = new MaterialManager();
   }
 
+  /**
+   * Initializes the SimpleCubeMapLoader for environment maps.
+   * @private
+   */
   setupCubeMapLoader() {
     this.cubeMapLoader = new SimpleCubeMapLoader(this.sceneManager, {
       defaultCubeMap: "level-1", // Start with lighter map for faster initial load
@@ -182,6 +214,10 @@ export class App {
     });
   }
 
+  /**
+   * Initializes the LightingSystem and sets a default lighting preset.
+   * @private
+   */
   setupLightingSystem() {
     this.lightingSystem = new LightingSystem(this.scene, {
       showHelpers: false,
@@ -200,6 +236,10 @@ export class App {
     this.lightingSystem.createPreset("studio");
   }
 
+  /**
+   * Initializes the ParticleSystem.
+   * @private
+   */
   setupParticleSystem() {
     this.particleSystem = new ParticleSystem({
       particleCount: 150,
@@ -231,6 +271,10 @@ export class App {
     this.scene.add(this.particleSystem.getMesh());
   }
 
+  /**
+   * Creates the ground plane and applies a PBR material to it.
+   * @private
+   */
   setupGround() {
     const gGeometry = new THREE.PlaneGeometry(3, 3, 20, 20);
 
@@ -264,11 +308,19 @@ export class App {
     // Texture repeat is already set in the config above
   }
 
+  /**
+   * Initializes the Stats.js performance monitor.
+   * @private
+   */
   setupStats() {
     this.stats = new Stats();
     document.body.appendChild(this.stats.dom);
   }
 
+  /**
+   * Initializes the Tweakpane GUI.
+   * @private
+   */
   setupUI() {
     this.pane = new Pane({
       title: "Controls",
@@ -285,6 +337,10 @@ export class App {
     this.setupLightingControls();
   }
 
+  /**
+   * Sets up Tweakpane controls for character animations.
+   * @private
+   */
   setupAnimationControls() {
     const animFolder = this.pane.addFolder({
       title: "Character Animations",
@@ -309,6 +365,10 @@ export class App {
     });
   }
 
+  /**
+   * Sets up Tweakpane controls for the particle system.
+   * @private
+   */
   setupParticleControls() {
     const particleFolder = this.pane.addFolder({
       title: "Particle System",
@@ -380,6 +440,10 @@ export class App {
       });
   }
 
+  /**
+   * Sets up Tweakpane controls for scene properties like fog, grid, and environment.
+   * @private
+   */
   setupSceneControls() {
     const sceneFolder = this.pane.addFolder({
       title: "Scene",
@@ -601,6 +665,10 @@ export class App {
       });
   }
 
+  /**
+   * Sets up Tweakpane controls for the ground material.
+   * @private
+   */
   setupMaterialControls() {
     // Create material controls for the ground
     if (this.materialManager) {
@@ -612,6 +680,10 @@ export class App {
     }
   }
 
+  /**
+   * Initializes the LightingUI component for Tweakpane.
+   * @private
+   */
   setupLightingControls() {
     // Create lighting UI controls
     if (this.lightingSystem) {
@@ -619,6 +691,10 @@ export class App {
     }
   }
 
+  /**
+   * Sets up global event listeners for resize and visibility changes.
+   * @private
+   */
   setupEventListeners() {
     window.addEventListener("resize", this.handleResize);
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
@@ -645,11 +721,20 @@ export class App {
     }
   }
 
+  /**
+   * Loads the environment map. (Currently handled by CubeMapLoader's default).
+   * @private
+   */
   async loadEnvironment() {
     // Environment is now loaded through CubeMapLoader
     // which was initialized with defaultCubeMap: "level-4"
   }
 
+  /**
+   * Loads the main character GLB model.
+   * @private
+   * @returns {Promise<void>} A promise that resolves when the model is loaded.
+   */
   async loadModels() {
     this.gltfLoader = new GLTFLoader();
 
@@ -671,6 +756,11 @@ export class App {
     });
   }
 
+  /**
+   * Configures the loaded characters, setting their scale, position, and animations.
+   * @param {object} gltf - The loaded GLTF object from GLTFLoader.
+   * @private
+   */
   setupCharacters(gltf) {
     const allies = gltf.scene;
     allies.scale.set(0.25, 0.25, 0.25);
@@ -719,6 +809,10 @@ export class App {
     });
   }
 
+  /**
+   * Plays a specific animation by its index.
+   * @param {number} index - The index of the animation to play.
+   */
   playAnimation(index) {
     if (!this.animations.actions || !this.animations.actions[index]) return;
 
@@ -729,6 +823,10 @@ export class App {
     this.animations.actions[index].play();
   }
 
+  /**
+   * Starts a GSAP-based camera animation timeline.
+   * @private
+   */
   startCameraAnimation() {
     const tl = gsap.timeline();
     const duration = 4;
@@ -770,6 +868,10 @@ export class App {
       });
   }
 
+  /**
+   * Handles the window resize event by updating camera and renderer sizes.
+   * @private
+   */
   handleResize() {
     this.sizes.width = window.innerWidth;
     this.sizes.height = window.innerHeight;
@@ -781,6 +883,10 @@ export class App {
     this.renderer.setPixelRatio(helpers.getPixelRatio());
   }
 
+  /**
+   * Handles the page visibility change event to pause or resume the animation.
+   * @private
+   */
   handleVisibilityChange() {
     if (document.hidden) {
       this.pause();
@@ -789,14 +895,28 @@ export class App {
     }
   }
 
+  /**
+   * Placeholder for handling the start of a user interaction (e.g., mouse down).
+   * @param {MouseEvent|TouchEvent} event - The interaction event.
+   * @private
+   */
   handleInteractionStart(event) {
     // Future: Handle user interactions
   }
 
+  /**
+   * Placeholder for handling the end of a user interaction (e.g., mouse up).
+   * @param {MouseEvent|TouchEvent} event - The interaction event.
+   * @private
+   */
   handleInteractionEnd(event) {
     // Future: Handle user interactions
   }
 
+  /**
+   * The main render loop, called on every frame by `requestAnimationFrame`.
+   * @private
+   */
   animate() {
     this.animationId = requestAnimationFrame(this.animate);
 
@@ -825,6 +945,9 @@ export class App {
     this.stats.update();
   }
 
+  /**
+   * Starts the render loop.
+   */
   start() {
     if (!this.isInitialized) {
       console.warn("App not initialized. Call init() first.");
@@ -834,6 +957,9 @@ export class App {
     this.animate();
   }
 
+  /**
+   * Pauses the render loop.
+   */
   pause() {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
@@ -841,6 +967,9 @@ export class App {
     }
   }
 
+  /**
+   * Resumes the render loop if it was paused.
+   */
   resume() {
     if (!this.animationId) {
       this.animate();
@@ -848,7 +977,8 @@ export class App {
   }
 
   /**
-   * Setup draggable functionality for Tweakpane
+   * Sets up draggable functionality for the Tweakpane panel.
+   * @private
    */
   _setupDraggablePane() {
     const paneElement = this.pane.element;
@@ -909,6 +1039,9 @@ export class App {
     };
   }
 
+  /**
+   * Cleans up all resources, event listeners, and objects created by the App.
+   */
   dispose() {
     this.pause();
 

@@ -1,8 +1,17 @@
 import * as THREE from "three";
 
 /**
- * Performance Monitor for texture and resource loading
- * Tracks FPS, memory usage, and loading performance
+ * @class PerformanceMonitor
+ * @classdesc A tool for monitoring and displaying real-time performance metrics
+ * such as FPS, memory usage, and texture loading statistics.
+ *
+ * @param {object} [options={}] - Configuration options for the monitor.
+ * @param {boolean} [options.enabled=true] - Whether the monitor is enabled by default.
+ * @param {boolean} [options.showFPS=true] - Whether to display FPS metrics.
+ * @param {boolean} [options.showMemory=true] - Whether to display memory usage (Chrome only).
+ * @param {boolean} [options.showTextures=true] - Whether to display texture loading stats.
+ * @param {number} [options.updateInterval=1000] - The interval in ms to update the display.
+ * @param {number} [options.historySize=60] - The number of historical data points to keep.
  */
 export class PerformanceMonitor {
   constructor(options = {}) {
@@ -63,7 +72,8 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Set up performance monitoring
+   * Sets up the necessary components for monitoring.
+   * @private
    */
   _setupMonitoring() {
     // Check for performance.memory support (Chrome only)
@@ -74,7 +84,9 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Create display element for stats
+   * Creates the DOM element used to display the performance stats.
+   * @returns {HTMLElement} The container element for the display.
+   * @private
    */
   _createDisplayElement() {
     const container = document.createElement("div");
@@ -99,7 +111,8 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Update performance metrics
+   * Updates the performance monitor. This should be called every frame.
+   * @param {THREE.WebGLRenderer} renderer - The Three.js renderer instance to get info from.
    */
   update(renderer) {
     if (!this.config.enabled) return;
@@ -120,7 +133,9 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Update internal metrics
+   * Updates the internal metrics based on the collected data.
+   * @param {THREE.WebGLRenderer} renderer - The Three.js renderer.
+   * @private
    */
   _updateMetrics(renderer) {
     // FPS calculation
@@ -170,7 +185,8 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Update display
+   * Updates the HTML display with the latest performance data.
+   * @private
    */
   _updateDisplay() {
     if (!this.displayElement) return;
@@ -231,7 +247,10 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Get color based on FPS
+   * Determines the display color for the FPS counter based on its value.
+   * @param {number} fps - The current frames per second.
+   * @returns {string} A CSS color string.
+   * @private
    */
   _getFPSColor(fps) {
     if (fps >= 55) return "#00ff00"; // Green
@@ -240,7 +259,10 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Get color based on memory usage
+   * Determines the display color for memory usage based on the percentage.
+   * @param {number} percentage - The memory usage percentage.
+   * @returns {string} A CSS color string.
+   * @private
    */
   _getMemoryColor(percentage) {
     if (percentage < 50) return "#00ff00"; // Green
@@ -249,7 +271,10 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Format large numbers
+   * Formats a large number into a more readable string (e.g., 1.2M).
+   * @param {number} num - The number to format.
+   * @returns {string} The formatted number string.
+   * @private
    */
   _formatNumber(num) {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
@@ -258,7 +283,8 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Track texture load start
+   * Records the start of a texture loading process.
+   * @param {string} id - A unique identifier for the texture being loaded.
    */
   startTextureLoad(id) {
     if (!this.config.enabled) return;
@@ -268,7 +294,9 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Track texture load complete
+   * Records the end of a texture loading process.
+   * @param {string} id - The unique identifier for the texture.
+   * @param {boolean} [success=true] - Whether the texture loaded successfully.
    */
   endTextureLoad(id, success = true) {
     if (!this.config.enabled) return;
@@ -291,7 +319,7 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Track cache hit
+   * Increments the texture cache hit counter.
    */
   recordCacheHit() {
     if (!this.config.enabled) return;
@@ -299,7 +327,7 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Track cache miss
+   * Increments the texture cache miss counter.
    */
   recordCacheMiss() {
     if (!this.config.enabled) return;
@@ -307,14 +335,15 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Get current metrics
+   * Retrieves the current performance metrics.
+   * @returns {object} A copy of the current metrics object.
    */
   getMetrics() {
     return { ...this.metrics };
   }
 
   /**
-   * Reset metrics
+   * Resets the performance metrics history and counters.
    */
   reset() {
     this.metrics.fps.history = [];
@@ -329,7 +358,7 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Toggle display visibility
+   * Toggles the visibility of the performance monitor display.
    */
   toggle() {
     this.config.enabled = !this.config.enabled;
@@ -339,7 +368,8 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Set position of display
+   * Sets the position of the display on the screen.
+   * @param {('top-left'|'top-right'|'bottom-left'|'bottom-right')} [position='top-right'] - The desired position.
    */
   setPosition(position = "top-right") {
     if (!this.displayElement) return;
@@ -371,7 +401,7 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Export metrics to CSV
+   * Exports the collected performance metrics to a CSV file and triggers a download.
    */
   exportMetrics() {
     const data = {
@@ -385,7 +415,10 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Convert data to CSV
+   * Converts performance data into a CSV formatted string.
+   * @param {object} data - The performance data to convert.
+   * @returns {string} A CSV string.
+   * @private
    */
   _convertToCSV(data) {
     let csv = "Index,FPS,Memory(MB)\n";
@@ -399,7 +432,10 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Download CSV file
+   * Triggers a browser download for the given CSV content.
+   * @param {string} csv - The CSV content to download.
+   * @param {string} filename - The name of the file to be downloaded.
+   * @private
    */
   _downloadCSV(csv, filename) {
     const blob = new Blob([csv], { type: "text/csv" });
@@ -412,7 +448,7 @@ export class PerformanceMonitor {
   }
 
   /**
-   * Dispose
+   * Cleans up resources used by the monitor, such as the display element.
    */
   dispose() {
     if (this.displayElement && this.displayElement.parentNode) {

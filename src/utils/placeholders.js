@@ -10,6 +10,12 @@ const categoryColors = {
   default: "#aaaaaa",
 };
 
+/**
+ * Generates a data URL for a placeholder image with a specific category's color and text.
+ * Caches the generated URL to avoid recreating the canvas for the same category.
+ * @param {string} [category="default"] - The category to generate a placeholder for.
+ * @returns {string} The data URL of the placeholder image.
+ */
 export function getPlaceholderUrl(category = "default") {
   if (placeholderCache.has(category)) {
     return placeholderCache.get(category);

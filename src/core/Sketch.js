@@ -4,8 +4,19 @@ import { Pane } from "tweakpane";
 import { PerformanceMonitor } from "@debug/PerformanceMonitor.js";
 
 /**
- * Base Sketch Class
- * Foundation for all Three.js sketches in the project
+ * @class Sketch
+ * @classdesc A foundational class for creating and managing a Three.js scene.
+ * This class handles the boilerplate setup for a 3D environment, including the renderer,
+ * scene, camera, controls, and a basic animation loop. It is designed to be extended
+ * by specific sketch implementations that can override its methods to create unique 3D experiences.
+ *
+ * @param {object} options - Configuration options for the sketch.
+ * @param {HTMLElement} [options.container=document.body] - The DOM element to append the canvas to.
+ * @param {boolean} [options.showStats=true] - Whether to show performance statistics.
+ * @param {boolean} [options.showControls=true] - Whether to enable OrbitControls.
+ * @param {boolean} [options.enableTweakpane=true] - Whether to enable Tweakpane for GUI controls.
+ * @param {boolean} [options.antialias=true] - Whether to use antialiasing.
+ * @param {number} [options.pixelRatio=window.devicePixelRatio] - The pixel ratio for the renderer.
  */
 export class Sketch {
   constructor(options = {}) {
@@ -51,7 +62,11 @@ export class Sketch {
   }
 
   /**
-   * Initialize the sketch
+   * Initializes the sketch.
+   * This method sets up the renderer, scene, camera, and other core components.
+   * It also calls the `setup` method for custom initialization in child classes.
+   * @async
+   * @returns {Promise<void>} A promise that resolves when the sketch is fully initialized.
    */
   async init() {
     if (this.isInitialized) return;
@@ -95,7 +110,8 @@ export class Sketch {
   }
 
   /**
-   * Setup renderer
+   * Sets up the WebGL renderer.
+   * @protected
    */
   setupRenderer() {
     this.renderer = new THREE.WebGLRenderer({
@@ -114,14 +130,16 @@ export class Sketch {
   }
 
   /**
-   * Setup scene
+   * Sets up the Three.js scene.
+   * @protected
    */
   setupScene() {
     this.scene = new THREE.Scene();
   }
 
   /**
-   * Setup camera
+   * Sets up the perspective camera.
+   * @protected
    */
   setupCamera() {
     const aspect = this.width / this.height;
@@ -130,7 +148,8 @@ export class Sketch {
   }
 
   /**
-   * Setup controls
+   * Sets up the OrbitControls for camera manipulation.
+   * @protected
    */
   setupControls() {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -142,7 +161,8 @@ export class Sketch {
   }
 
   /**
-   * Setup Tweakpane
+   * Sets up the Tweakpane GUI for real-time parameter tweaking.
+   * @protected
    */
   setupTweakpane() {
     this.pane = new Pane({
@@ -185,7 +205,8 @@ export class Sketch {
   }
 
   /**
-   * Setup stats
+   * Sets up performance statistics. (Currently a placeholder)
+   * @protected
    */
   setupStats() {
     // Implement stats if needed
@@ -193,7 +214,8 @@ export class Sketch {
   }
 
   /**
-   * Setup performance monitor
+   * Sets up the performance monitor for detailed statistics.
+   * @protected
    */
   setupPerformanceMonitor() {
     this.performanceMonitor = new PerformanceMonitor({
@@ -208,7 +230,8 @@ export class Sketch {
   }
 
   /**
-   * Add event listeners
+   * Adds necessary event listeners, such as window resize and visibility change.
+   * @protected
    */
   addEventListeners() {
     window.addEventListener("resize", this.handleResize);
@@ -224,14 +247,17 @@ export class Sketch {
   }
 
   /**
-   * Remove event listeners
+   * Removes event listeners to prevent memory leaks.
+   * @protected
    */
   removeEventListeners() {
     window.removeEventListener("resize", this.handleResize);
   }
 
   /**
-   * Handle resize
+   * Handles the window resize event.
+   * Updates camera aspect ratio and renderer size.
+   * @protected
    */
   _handleResize() {
     this.width = this.container.clientWidth || window.innerWidth;
@@ -253,7 +279,8 @@ export class Sketch {
   }
 
   /**
-   * Animation loop
+   * The main animation loop, called on every frame.
+   * @protected
    */
   _animate() {
     if (!this.isRunning) return;
@@ -291,7 +318,7 @@ export class Sketch {
   }
 
   /**
-   * Render the scene
+   * Renders the scene through the camera.
    */
   render() {
     if (this.renderer && this.scene && this.camera) {
@@ -300,7 +327,7 @@ export class Sketch {
   }
 
   /**
-   * Start animation
+   * Starts the animation loop.
    */
   start() {
     if (this.isRunning) return;
@@ -311,7 +338,7 @@ export class Sketch {
   }
 
   /**
-   * Pause animation
+   * Pauses the animation loop.
    */
   pause() {
     this.isRunning = false;
@@ -324,7 +351,8 @@ export class Sketch {
   }
 
   /**
-   * Dispose of all resources
+   * Cleans up all resources used by the sketch.
+   * This includes disposing of Three.js objects, removing event listeners, and cleaning up UI elements.
    */
   dispose() {
     // Stop animation
@@ -371,7 +399,9 @@ export class Sketch {
   }
 
   /**
-   * Recursively dispose of Three.js objects
+   * Recursively traverses and disposes of a Three.js object and its children.
+   * @param {THREE.Object3D} obj - The object to dispose of.
+   * @protected
    */
   disposeObject(obj) {
     if (!obj) return;
@@ -405,7 +435,9 @@ export class Sketch {
   }
 
   /**
-   * Dispose material and its textures
+   * Disposes of a material and its associated textures.
+   * @param {THREE.Material} material - The material to dispose of.
+   * @protected
    */
   disposeMaterial(material) {
     if (!material) return;
@@ -427,39 +459,47 @@ export class Sketch {
   // ===== Methods to be implemented by child classes =====
 
   /**
-   * Setup method - Override in child class
-   * Called once during initialization
+   * Abstract method for setting up the sketch's specific objects and logic.
+   * This method should be overridden by child classes.
+   * @abstract
+   * @async
    */
   async setup() {
     // Override in child class
   }
 
   /**
-   * Update method - Override in child class
-   * Called every frame
+   * Abstract method for updating the sketch on each frame.
+   * @abstract
+   * @param {number} deltaTime - The time elapsed since the last frame.
+   * @param {number} elapsedTime - The total time elapsed since the sketch started.
    */
   update(deltaTime, elapsedTime) {
     // Override in child class
   }
 
   /**
-   * GUI setup - Override in child class
-   * @param {Pane} pane - Tweakpane instance
+   * Abstract method for setting up the Tweakpane GUI.
+   * @abstract
+   * @param {Pane} pane - The Tweakpane instance.
    */
   setupGUI(pane) {
     // Override in child class
   }
 
   /**
-   * Resize handler - Override in child class
+   * Abstract method for handling window resize events.
+   * @abstract
+   * @param {number} width - The new width of the container.
+   * @param {number} height - The new height of the container.
    */
   onResize(width, height) {
     // Override in child class
   }
 
   /**
-   * Cleanup method - Override in child class
-   * Called during disposal
+   * Abstract method for cleaning up custom resources before disposal.
+   * @abstract
    */
   cleanup() {
     // Override in child class
@@ -468,7 +508,9 @@ export class Sketch {
   // ===== Utility methods =====
 
   /**
-   * Load texture utility
+   * Utility method to load a texture.
+   * @param {string} url - The URL of the texture image.
+   * @returns {Promise<THREE.Texture>} A promise that resolves with the loaded texture.
    */
   loadTexture(url) {
     return new Promise((resolve, reject) => {
@@ -477,7 +519,9 @@ export class Sketch {
   }
 
   /**
-   * Load cube texture utility
+   * Utility method to load a cube texture.
+   * @param {string[]} urls - An array of 6 image URLs for the faces of the cube texture.
+   * @returns {Promise<THREE.CubeTexture>} A promise that resolves with the loaded cube texture.
    */
   loadCubeTexture(urls) {
     return new Promise((resolve, reject) => {
