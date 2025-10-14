@@ -1,9 +1,21 @@
+/**
+ * @class AnjaProjectSketch
+ * @classdesc A sketch that displays a complex SVG animation of an eye.
+ * This class is responsible for injecting and managing the SVG markup within a given container.
+ */
 export default class AnjaProjectSketch {
+  /**
+   * @param {object} [options={}] - Configuration options for the sketch.
+   * @param {HTMLElement} options.container - The container element to render the sketch into.
+   */
   constructor(options = {}) {
     this.container = options.container;
     this.container.style.backgroundColor = "#1a1a1a";
   }
 
+  /**
+   * Initializes the sketch by injecting the SVG markup into the container.
+   */
   init() {
     const markup = `
       <div class="god__container">
@@ -78,6 +90,9 @@ export default class AnjaProjectSketch {
     this.container.innerHTML = markup;
   }
 
+  /**
+   * Cleans up the sketch by removing the SVG markup and resetting the container's background color.
+   */
   dispose() {
     this.container.innerHTML = "";
     this.container.style.backgroundColor = "";

@@ -1,8 +1,12 @@
 import * as THREE from "three";
 
 /**
- * Lighting UI Component
- * Manages Tweakpane interface for the lighting system
+ * @class LightingUI
+ * @classdesc Manages the Tweakpane interface for controlling a lighting system in a Three.js scene.
+ * It allows for dynamic adding, removing, and adjusting of various light types and presets.
+ *
+ * @param {LightingSystem} lightingSystem - The lighting system instance to control.
+ * @param {Pane} pane - The Tweakpane instance to add the UI controls to.
  */
 export class LightingUI {
   constructor(lightingSystem, pane) {
@@ -19,7 +23,8 @@ export class LightingUI {
   }
 
   /**
-   * Setup main UI structure
+   * Sets up the main UI structure in Tweakpane.
+   * @private
    */
   _setupUI() {
     // Global controls
@@ -39,7 +44,8 @@ export class LightingUI {
   }
 
   /**
-   * Setup global lighting controls
+   * Sets up controls for global lighting settings like helpers and shadows.
+   * @private
    */
   _setupGlobalControls() {
     const globalFolder = this.mainFolder.addFolder({
@@ -88,7 +94,8 @@ export class LightingUI {
   }
 
   /**
-   * Setup add light controls
+   * Sets up UI controls for adding different types of lights to the scene.
+   * @private
    */
   _setupAddLightControls() {
     const addFolder = this.mainFolder.addFolder({
@@ -145,7 +152,8 @@ export class LightingUI {
   }
 
   /**
-   * Setup preset controls
+   * Sets up UI controls for applying and clearing lighting presets.
+   * @private
    */
   _setupPresetControls() {
     const presetFolder = this.mainFolder.addFolder({
@@ -192,7 +200,10 @@ export class LightingUI {
   }
 
   /**
-   * Create light based on type
+   * Creates a light of a specific type using the lighting system.
+   * @param {string} type - The type of light to create (e.g., 'ambient', 'directional').
+   * @returns {string|null} The ID of the created light, or null if the type is invalid.
+   * @private
    */
   _createLight(type) {
     const methods = {
@@ -208,7 +219,9 @@ export class LightingUI {
   }
 
   /**
-   * Create controls for a specific light
+   * Creates a set of Tweakpane controls for a specific light.
+   * @param {string} lightId - The ID of the light to create controls for.
+   * @private
    */
   _createLightControls(lightId) {
     const lightData = this.lightingSystem.lights.get(lightId);
@@ -254,7 +267,11 @@ export class LightingUI {
   }
 
   /**
-   * Create ambient light controls
+   * Creates controls for an ambient light.
+   * @param {Pane} folder - The Tweakpane folder to add controls to.
+   * @param {string} lightId - The ID of the light.
+   * @param {object} config - The configuration object for the light.
+   * @private
    */
   _createAmbientControls(folder, lightId, config) {
     const params = {
@@ -280,7 +297,11 @@ export class LightingUI {
   }
 
   /**
-   * Create directional light controls
+   * Creates controls for a directional light.
+   * @param {Pane} folder - The Tweakpane folder to add controls to.
+   * @param {string} lightId - The ID of the light.
+   * @param {object} config - The configuration object for the light.
+   * @private
    */
   _createDirectionalControls(folder, lightId, config) {
     const params = {
@@ -337,7 +358,11 @@ export class LightingUI {
   }
 
   /**
-   * Create hemisphere light controls
+   * Creates controls for a hemisphere light.
+   * @param {Pane} folder - The Tweakpane folder to add controls to.
+   * @param {string} lightId - The ID of the light.
+   * @param {object} config - The configuration object for the light.
+   * @private
    */
   _createHemisphereControls(folder, lightId, config) {
     const params = {
@@ -370,7 +395,11 @@ export class LightingUI {
   }
 
   /**
-   * Create point light controls
+   * Creates controls for a point light.
+   * @param {Pane} folder - The Tweakpane folder to add controls to.
+   * @param {string} lightId - The ID of the light.
+   * @param {object} config - The configuration object for the light.
+   * @private
    */
   _createPointControls(folder, lightId, config) {
     const params = {
@@ -449,7 +478,11 @@ export class LightingUI {
   }
 
   /**
-   * Create spot light controls
+   * Creates controls for a spot light.
+   * @param {Pane} folder - The Tweakpane folder to add controls to.
+   * @param {string} lightId - The ID of the light.
+   * @param {object} config - The configuration object for the light.
+   * @private
    */
   _createSpotControls(folder, lightId, config) {
     const params = {
@@ -574,7 +607,11 @@ export class LightingUI {
   }
 
   /**
-   * Create rect area light controls
+   * Creates controls for a rectangular area light.
+   * @param {Pane} folder - The Tweakpane folder to add controls to.
+   * @param {string} lightId - The ID of the light.
+   * @param {object} config - The configuration object for the light.
+   * @private
    */
   _createRectAreaControls(folder, lightId, config) {
     const params = {
@@ -646,7 +683,9 @@ export class LightingUI {
   }
 
   /**
-   * Get gobo options
+   * Retrieves a list of available gobo patterns for the UI.
+   * @returns {object} An object mapping gobo names to their identifiers.
+   * @private
    */
   _getGoboOptions() {
     const options = { None: "none" };
@@ -676,7 +715,9 @@ export class LightingUI {
   }
 
   /**
-   * Remove light controls
+   * Removes the Tweakpane controls for a specific light.
+   * @param {string} lightId - The ID of the light whose controls should be removed.
+   * @private
    */
   _removeLightControls(lightId) {
     const folder = this.lightFolders.get(lightId);
@@ -687,7 +728,8 @@ export class LightingUI {
   }
 
   /**
-   * Clear all light controls
+   * Clears all dynamically created light controls from the UI.
+   * @private
    */
   _clearAllLightControls() {
     this.lightFolders.forEach((folder, lightId) => {
@@ -697,7 +739,7 @@ export class LightingUI {
   }
 
   /**
-   * Dispose
+   * Disposes of the LightingUI, removing all its controls from the main pane.
    */
   dispose() {
     this._clearAllLightControls();

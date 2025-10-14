@@ -4,8 +4,9 @@ import { sketchMetadata } from "@sketches/index.js";
 import { getPlaceholderUrl } from "@utils/placeholders.js";
 
 /**
- * Main Gallery Application
- * Manages and displays a collection of Three.js sketches
+ * @class SketchGallery
+ * @classdesc Manages the user interface and logic for a gallery of Three.js sketches.
+ * It handles sketch loading, UI creation, filtering, and navigation.
  */
 class SketchGallery {
   constructor() {
@@ -27,7 +28,9 @@ class SketchGallery {
   }
 
   /**
-   * Initialize the gallery
+   * Initializes the gallery, creating the UI, setting up the SketchManager,
+   * and loading the initial sketch.
+   * @async
    */
   async init() {
     try {
@@ -58,7 +61,8 @@ class SketchGallery {
   }
 
   /**
-   * Create UI structure
+   * Creates the main DOM structure for the gallery, including the menu and sketch container.
+   * @private
    */
   createUI() {
     // Main container
@@ -137,7 +141,8 @@ class SketchGallery {
   }
 
   /**
-   * Register all available sketches
+   * Registers all sketches from the central `sketchMetadata` registry.
+   * @private
    */
   registerSketches() {
     // Use imported sketch metadata from registry
@@ -145,7 +150,8 @@ class SketchGallery {
   }
 
   /**
-   * Setup event listeners
+   * Sets up all necessary event listeners for the UI and window events.
+   * @private
    */
   setupEventListeners() {
     // Menu toggle
@@ -193,7 +199,8 @@ class SketchGallery {
   }
 
   /**
-   * Populate gallery with sketch cards
+   * Populates the sketch grid with cards for each registered sketch.
+   * @private
    */
   populateGallery() {
     const sketches = this.sketchManager.getAll();
@@ -206,7 +213,10 @@ class SketchGallery {
   }
 
   /**
-   * Create sketch card element
+   * Creates a DOM element for a single sketch card.
+   * @param {object} sketch - The sketch configuration object.
+   * @returns {HTMLElement} The created card element.
+   * @private
    */
   createSketchCard(sketch) {
     const card = document.createElement("div");
@@ -242,7 +252,9 @@ class SketchGallery {
   }
 
   /**
-   * Filter sketches based on category and search
+   * Filters the visible sketch cards based on the current category and a search term.
+   * @param {string} [searchTerm=""] - The term to search for in sketch titles, descriptions, and tags.
+   * @private
    */
   filterSketches(searchTerm = "") {
     const cards = this.elements.sketchGrid.querySelectorAll(".sketch-card");
@@ -275,7 +287,8 @@ class SketchGallery {
   }
 
   /**
-   * Load initial sketch
+   * Loads the initial sketch, either from a URL parameter or the first one in the list.
+   * @private
    */
   async loadInitialSketch() {
     // Check URL for sketch ID
@@ -294,7 +307,9 @@ class SketchGallery {
   }
 
   /**
-   * Load a sketch
+   * Loads a specific sketch by its ID, updating the UI and browser history.
+   * @param {string} id - The ID of the sketch to load.
+   * @param {boolean} [updateHistory=true] - Whether to push a new state to the browser's history.
    */
   async loadSketch(id, updateHistory = true) {
     try {
@@ -322,7 +337,10 @@ class SketchGallery {
   }
 
   /**
-   * Handle sketch loaded
+   * Callback function for when a sketch has finished loading. Updates the UI with the new sketch's info.
+   * @param {string} id - The ID of the loaded sketch.
+   * @param {Sketch} sketch - The instance of the loaded sketch.
+   * @private
    */
   onSketchLoaded(id, sketch) {
     const sketchConfig = this.sketchManager.sketches.get(id);
@@ -337,7 +355,9 @@ class SketchGallery {
   }
 
   /**
-   * Set active card
+   * Highlights the active sketch card in the menu.
+   * @param {string} id - The ID of the sketch to mark as active.
+   * @private
    */
   setActiveCard(id) {
     const cards = this.elements.sketchGrid.querySelectorAll(".sketch-card");
@@ -347,7 +367,7 @@ class SketchGallery {
   }
 
   /**
-   * Toggle menu
+   * Toggles the visibility of the side menu.
    */
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
@@ -356,7 +376,7 @@ class SketchGallery {
   }
 
   /**
-   * Close menu
+   * Closes the side menu.
    */
   closeMenu() {
     this.isMenuOpen = false;
@@ -365,7 +385,8 @@ class SketchGallery {
   }
 
   /**
-   * Show error message
+   * Displays a temporary error message on the screen.
+   * @param {string} message - The error message to display.
    */
   showError(message) {
     const errorEl = document.createElement("div");
@@ -380,7 +401,8 @@ class SketchGallery {
 
 
   /**
-   * Add gallery styles
+   * Injects the necessary CSS for the gallery UI into the document's head.
+   * @private
    */
   addStyles() {
     const style = document.createElement("style");

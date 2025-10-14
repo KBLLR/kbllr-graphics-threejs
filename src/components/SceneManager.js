@@ -2,8 +2,21 @@ import * as THREE from "three";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 /**
- * Modern scene management system
- * Handles scene setup, lighting, environment, and effects
+ * @class SceneManager
+ * @classdesc Manages the core components of a Three.js scene, including lighting, fog,
+ * environment maps, and helpers. It provides a structured way to configure and
+ * control the overall scene environment.
+ *
+ * @param {object} [options={}] - Configuration options for the scene.
+ * @param {object} [options.fog] - Fog configuration.
+ * @param {boolean} [options.fog.enabled=false] - Whether fog is enabled.
+ * @param {number} [options.fog.color=0xffffff] - The color of the fog.
+ * @param {number} [options.fog.near=0.1] - The near distance for the fog.
+ * @param {number} [options.fog.far=6] - The far distance for the fog.
+ * @param {object} [options.grid] - Grid helper configuration.
+ * @param {boolean} [options.grid.enabled=false] - Whether the grid helper is visible.
+ * @param {object} [options.environment] - Environment and background settings.
+ * @param {object} [options.lights] - Lighting configuration.
  */
 export class SceneManager {
   constructor(options = {}) {
@@ -60,12 +73,20 @@ export class SceneManager {
     this._init();
   }
 
+  /**
+   * Initializes the scene components like fog, lights, and helpers.
+   * @private
+   */
   _init() {
     this._setupFog();
     this._setupLights();
     this._setupHelpers();
   }
 
+  /**
+   * Sets up the scene's fog based on the configuration.
+   * @private
+   */
   _setupFog() {
     if (this.config.fog.enabled) {
       this.scene.fog = new THREE.Fog(
@@ -76,6 +97,10 @@ export class SceneManager {
     }
   }
 
+  /**
+   * Sets up the default lighting for the scene.
+   * @private
+   */
   _setupLights() {
     const { lights } = this.config;
 
@@ -119,6 +144,10 @@ export class SceneManager {
     }
   }
 
+  /**
+   * Sets up helper objects like the grid.
+   * @private
+   */
   _setupHelpers() {
     if (this.config.grid.enabled) {
       this.helpers.grid = new THREE.GridHelper(
@@ -133,8 +162,9 @@ export class SceneManager {
   }
 
   /**
-   * Load environment map (cubemap)
-   * @param {Array<string>} urls - Array of 6 texture URLs [px, nx, py, ny, pz, nz]
+   * Loads a cube map and applies it as the scene's environment and/or background.
+   * @param {string[]} urls - An array of 6 URLs for the cube map faces (px, nx, py, ny, pz, nz).
+   * @returns {Promise<THREE.CubeTexture>} A promise that resolves with the loaded cube texture.
    */
   async loadCubeMap(urls) {
     return new Promise((resolve, reject) => {
@@ -160,8 +190,9 @@ export class SceneManager {
   }
 
   /**
-   * Load HDR environment
-   * @param {string} url - HDR file URL
+   * Loads an HDR (RGBE) environment map.
+   * @param {string} url - The URL of the .hdr file.
+   * @returns {Promise<THREE.DataTexture>} A promise that resolves with the loaded HDR texture.
    */
   async loadHDRI(url) {
     return new Promise((resolve, reject) => {
@@ -190,15 +221,19 @@ export class SceneManager {
   }
 
   /**
-   * Set solid color background
-   * @param {number|string} color - Color value
+   * Sets the scene's background to a solid color.
+   * @param {THREE.Color|string|number} color - The color to set as the background.
    */
   setBackgroundColor(color) {
     this.scene.background = new THREE.Color(color);
   }
 
   /**
-   * Update fog parameters
+   * Updates the scene's fog properties.
+   * @param {boolean} enabled - Whether to enable or disable fog.
+   * @param {number} [near] - The near plane for the fog.
+   * @param {number} [far] - The far plane for the fog.
+   * @param {THREE.Color|string|number} [color] - The color of the fog.
    */
   setFog(enabled, near, far, color) {
     this.config.fog.enabled = enabled;
@@ -214,7 +249,8 @@ export class SceneManager {
   }
 
   /**
-   * Toggle grid helper
+   * Toggles the visibility of the grid helper.
+   * @param {boolean} enabled - Whether the grid should be visible.
    */
   toggleGrid(enabled) {
     this.config.grid.enabled = enabled;
@@ -224,7 +260,12 @@ export class SceneManager {
   }
 
   /**
-   * Update directional light
+   * Updates the properties of the directional light.
+   * @param {object} properties - The properties to update.
+   * @param {THREE.Color|string|number} [properties.color] - The new color of the light.
+   * @param {number} [properties.intensity] - The new intensity of the light.
+   * @param {THREE.Vector3} [properties.position] - The new position of the light.
+   * @param {boolean} [properties.castShadow] - Whether the light should cast shadows.
    */
   updateDirectionalLight(properties) {
     if (!this.lights.directional) return;
@@ -246,7 +287,8 @@ export class SceneManager {
   }
 
   /**
-   * Update environment intensity
+   * Updates the intensity of the environment map.
+   * @param {number} intensity - The new environment intensity.
    */
   updateEnvironmentIntensity(intensity) {
     this.config.environment.environmentIntensity = intensity;
@@ -254,7 +296,8 @@ export class SceneManager {
   }
 
   /**
-   * Update background intensity
+   * Updates the intensity of the background.
+   * @param {number} intensity - The new background intensity.
    */
   updateBackgroundIntensity(intensity) {
     this.config.environment.backgroundIntensity = intensity;
@@ -262,7 +305,8 @@ export class SceneManager {
   }
 
   /**
-   * Update background blur
+   * Updates the blurriness of the background.
+   * @param {number} blurriness - The new blurriness value (0 to 1).
    */
   updateBackgroundBlurriness(blurriness) {
     this.config.environment.backgroundBlurriness = blurriness;
@@ -270,7 +314,8 @@ export class SceneManager {
   }
 
   /**
-   * Toggle environment/background
+   * Toggles the environment map on or off.
+   * @param {boolean} enabled - Whether to enable the environment map.
    */
   toggleEnvironment(enabled) {
     if (enabled) {
@@ -282,7 +327,8 @@ export class SceneManager {
   }
 
   /**
-   * Toggle background
+   * Toggles the scene background on or off.
+   * @param {boolean} enabled - Whether to show the background.
    */
   toggleBackground(enabled) {
     this.config.environment.background = enabled;
@@ -295,7 +341,9 @@ export class SceneManager {
   }
 
   /**
-   * Update tone mapping exposure
+   * Updates the tone mapping exposure of the renderer.
+   * @param {number} exposure - The new tone mapping exposure value.
+   * @param {THREE.WebGLRenderer} renderer - The renderer to update.
    */
   updateToneMappingExposure(exposure, renderer) {
     this.config.environment.toneMappingExposure = exposure;
@@ -305,7 +353,8 @@ export class SceneManager {
   }
 
   /**
-   * Add post-processing effects (placeholder for future expansion)
+   * Placeholder for adding post-processing effects.
+   * @param {EffectComposer} composer - The post-processing composer.
    */
   addPostProcessing(composer) {
     // Future: Add bloom, DOF, color correction, etc.
@@ -313,14 +362,17 @@ export class SceneManager {
   }
 
   /**
-   * Get the Three.js scene
+   * Returns the underlying Three.js scene object.
+   * @returns {THREE.Scene} The scene object.
    */
   getScene() {
     return this.scene;
   }
 
   /**
-   * Update method for animations
+   * Update method, intended to be called in the main animation loop.
+   * @param {number} deltaTime - The time since the last frame.
+   * @param {number} elapsedTime - The total elapsed time.
    */
   update(deltaTime, elapsedTime) {
     // Future: Add animated environment effects
@@ -328,7 +380,7 @@ export class SceneManager {
   }
 
   /**
-   * Clean up resources
+   * Disposes of all resources managed by the SceneManager.
    */
   dispose() {
     // Dispose of textures

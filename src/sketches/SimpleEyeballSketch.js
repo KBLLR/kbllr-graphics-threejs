@@ -2,10 +2,15 @@ import { Sketch } from "@core/Sketch.js";
 import * as THREE from "three";
 
 /**
- * Simple Eyeball Sketch
- * Interactive SVG eye animation with particle background
+ * @class SimpleEyeballSketch
+ * @classdesc A simplified version of the Eyeball sketch, focusing on DOM manipulation for the eye animation,
+ * combined with a Three.js particle background. It features a glowing, color-shifting eye effect.
+ * @extends Sketch
  */
 export default class SimpleEyeballSketch extends Sketch {
+  /**
+   * @param {object} [options={}] - Configuration options for the sketch.
+   */
   constructor(options = {}) {
     super({
       ...options,
@@ -35,7 +40,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup the sketch
+   * Sets up the sketch's components, including the camera, background, and eye element.
+   * @override
    */
   async setup() {
     // Set orthographic camera for 2D view
@@ -55,7 +61,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup orthographic camera
+   * Configures an orthographic camera for a 2D-like view.
+   * @private
    */
   setupOrthographicCamera() {
     const aspect = this.width / this.height;
@@ -75,7 +82,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Create the eye SVG element
+   * Creates the DOM structure for the eye, including the glowing body and the SVG eye itself.
+   * @private
    */
   createEyeElement() {
     // Create container div
@@ -187,7 +195,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Create 3D background elements
+   * Creates the 3D particle background and ambient lighting.
+   * @private
    */
   create3DBackground() {
     // Add floating particles
@@ -223,7 +232,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup mouse tracking
+   * Sets up mouse event listeners to track cursor position.
+   * @private
    */
   setupMouseTracking() {
     this.container.addEventListener("mousemove", (event) => {
@@ -240,7 +250,9 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Update eye to look at position
+   * Updates the position of the SVG pupil to follow the given coordinates.
+   * @param {number} x - Normalized x-coordinate.
+   * @param {number} y - Normalized y-coordinate.
    */
   updateEyeLookAt(x, y) {
     const pupil = this.eyeSvg.querySelector('#eye-long-center');
@@ -264,7 +276,7 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Blink animation
+   * Triggers a blink animation by transforming the SVG eyelid path.
    */
   blink() {
     if (this.isBlinking) return;
@@ -294,7 +306,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Update the light color
+   * Updates the CSS box-shadow of the eye body to simulate a change in light color.
+   * @param {('green'|'red'|'yellow')} color - The desired color theme.
    */
   updateLightColor(color) {
     if (!this.eyeBody) return;
@@ -331,7 +344,10 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Update method
+   * The main update loop. Animates particles and the eye based on current state.
+   * @param {number} deltaTime - The time since the last frame.
+   * @param {number} elapsedTime - The total elapsed time.
+   * @override
    */
   update(deltaTime, elapsedTime) {
     // Update particles
@@ -364,7 +380,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Play animation sequence
+   * Plays a predefined animation sequence by manipulating the eye's scale and blink state.
+   * @param {('suspicious'|'surprised'|'sleepy')} name - The name of the animation to play.
    */
   playSequence(name) {
     switch (name) {
@@ -426,7 +443,9 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup GUI
+   * Sets up the Tweakpane GUI for controlling the eye's properties and actions.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @override
    */
   setupGUI(pane) {
     // Eye Controls
@@ -559,7 +578,10 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Handle resize
+   * Handles window resizing by updating the orthographic camera's properties.
+   * @param {number} width - The new width.
+   * @param {number} height - The new height.
+   * @override
    */
   onResize(width, height) {
     // Update orthographic camera
@@ -575,7 +597,8 @@ export default class SimpleEyeballSketch extends Sketch {
   }
 
   /**
-   * Cleanup
+   * Cleans up DOM elements and other resources created by the sketch.
+   * @override
    */
   cleanup() {
     // Remove DOM elements

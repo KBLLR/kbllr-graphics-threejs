@@ -3,10 +3,15 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 /**
- * Simple Character Animation Sketch
- * Just loads a model and plays all animations simultaneously
+ * @class CharacterSketch
+ * @classdesc A simple sketch to load a 3D character model and play its animations.
+ * It demonstrates basic model loading, animation mixing, and provides Tweakpane controls for transformations.
+ * @extends Sketch
  */
 export default class CharacterSketch extends Sketch {
+  /**
+   * @param {object} [options={}] - Configuration options for the sketch.
+   */
   constructor(options = {}) {
     super({
       ...options,
@@ -27,7 +32,8 @@ export default class CharacterSketch extends Sketch {
   }
 
   /**
-   * Setup the sketch
+   * Sets up the scene, lighting, ground, and loads the character model.
+   * @override
    */
   async setup() {
     // Basic scene setup
@@ -74,7 +80,8 @@ export default class CharacterSketch extends Sketch {
   }
 
   /**
-   * Load and setup the model
+   * Loads the GLB model, sets up its materials and shadows, and initializes its animations.
+   * @private
    */
   async loadModel() {
     try {
@@ -148,7 +155,9 @@ export default class CharacterSketch extends Sketch {
   }
 
   /**
-   * Update loop
+   * The main update loop, called every frame. Updates the animation mixer and controls.
+   * @param {number} deltaTime - The time elapsed since the last frame.
+   * @override
    */
   update(deltaTime) {
     // Update animation mixer
@@ -165,7 +174,7 @@ export default class CharacterSketch extends Sketch {
   }
 
   /**
-   * Reset model to default position
+   * Resets the model's position and scale to their default values.
    */
   resetModelPosition() {
     // Default values
@@ -194,7 +203,9 @@ export default class CharacterSketch extends Sketch {
   }
 
   /**
-   * Setup GUI
+   * Sets up the Tweakpane GUI controls for model transformation and animation.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @override
    */
   setupGUI(pane) {
     // Store reference to pane
@@ -317,7 +328,8 @@ export default class CharacterSketch extends Sketch {
   }
 
   /**
-   * Cleanup
+   * Cleans up resources used by the sketch, particularly the animation mixer.
+   * @override
    */
   cleanup() {
     if (this.mixer) {

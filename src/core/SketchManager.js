@@ -2,7 +2,16 @@ import { EventEmitter } from "@core/EventEmitter.js";
 import { sketchRegistry } from "@sketches/index.js";
 
 /**
- * SketchManager - Manages loading and switching between sketches
+ * @class SketchManager
+ * @classdesc Manages the lifecycle of sketches, including loading, unloading, and transitioning between them.
+ * It extends EventEmitter to broadcast events related to sketch state changes.
+ *
+ * @extends EventEmitter
+ *
+ * @param {object} options - Configuration options for the SketchManager.
+ * @param {HTMLElement} [options.container=document.getElementById('sketch-container')] - The container element for sketches.
+ * @param {number} [options.transitionDuration=300] - Duration of the transition effect in milliseconds.
+ * @param {boolean} [options.showLoader=true] - Whether to display a loader during sketch transitions.
  */
 export class SketchManager extends EventEmitter {
   constructor(options = {}) {
@@ -31,7 +40,14 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Register a sketch for future loading
+   * Registers a sketch configuration, making it available to be loaded.
+   * @param {string} id - A unique identifier for the sketch.
+   * @param {object} config - Configuration object for the sketch.
+   * @param {string} config.name - The display name of the sketch.
+   * @param {string} [config.description=""] - A short description of the sketch.
+   * @param {string|null} [config.thumbnail=null] - URL to a thumbnail image.
+   * @param {string} [config.category="General"] - The category of the sketch.
+   * @param {string[]} [config.tags=[]] - Tags for filtering the sketch.
    */
   register(id, config) {
     this.sketches.set(id, {
@@ -47,7 +63,8 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Register multiple sketches
+   * Registers multiple sketches at once.
+   * @param {Array<object>} sketches - An array of sketch configuration objects.
    */
   registerAll(sketches) {
     sketches.forEach((sketch) => {
@@ -56,28 +73,38 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Get all registered sketches
+   * Retrieves all registered sketch configurations.
+   * @returns {Array<object>} An array of all sketch configurations.
    */
   getAll() {
     return Array.from(this.sketches.values());
   }
 
   /**
-   * Get sketches by category
+   * Retrieves sketches filtered by a specific category.
+   * @param {string} category - The category to filter by.
+   * @returns {Array<object>} An array of sketch configurations matching the category.
    */
   getByCategory(category) {
     return this.getAll().filter((sketch) => sketch.category === category);
   }
 
   /**
-   * Get sketches by tag
+   * Retrieves sketches filtered by a specific tag.
+   * @param {string} tag - The tag to filter by.
+   * @returns {Array<object>} An array of sketch configurations containing the tag.
    */
   getByTag(tag) {
     return this.getAll().filter((sketch) => sketch.tags.includes(tag));
   }
 
   /**
-   * Load a sketch by ID
+   * Loads and initializes a sketch by its ID.
+   * This method handles disposing of the current sketch, creating an instance of the new one,
+   * and managing loading states.
+   * @param {string} id - The ID of the sketch to load.
+   * @param {object} [options={}] - Additional options to pass to the sketch's constructor.
+   * @returns {Promise<Sketch|null>} A promise that resolves with the loaded sketch instance, or null if loading fails.
    */
   async loadSketch(id, options = {}) {
     // Check if sketch exists
@@ -143,7 +170,10 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Dispose current sketch
+   * Disposes of the currently active sketch.
+   * Manages transition effects before cleaning up resources.
+   * @async
+   * @returns {Promise<void>}
    */
   async disposeCurrentSketch() {
     if (!this.currentSketch) return;
@@ -176,7 +206,11 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Preload a sketch without displaying it
+   * Preloads a sketch's assets without creating an instance.
+   * (Currently, this method confirms the sketch's existence in the registry).
+   * @param {string} id - The ID of the sketch to preload.
+   * @async
+   * @returns {Promise<void>}
    */
   async preloadSketch(id) {
     if (!this.sketches.has(id)) {
@@ -202,7 +236,9 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Reload current sketch
+   * Reloads the currently active sketch.
+   * @async
+   * @returns {Promise<void>}
    */
   async reloadCurrentSketch() {
     if (!this.currentSketchId) return;
@@ -213,7 +249,8 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Create loader element
+   * Creates the HTML and CSS for the loading indicator.
+   * @protected
    */
   createLoader() {
     this.loader = document.createElement("div");
@@ -270,7 +307,8 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Show loader
+   * Displays the loading indicator with a fade-in effect.
+   * @protected
    */
   showLoader() {
     if (this.loader) {
@@ -282,7 +320,8 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Hide loader
+   * Hides the loading indicator with a fade-out effect.
+   * @protected
    */
   hideLoader() {
     if (this.loader) {
@@ -294,7 +333,9 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Fade out effect
+   * Applies a fade-out transition to the sketch's canvas.
+   * @protected
+   * @returns {Promise<void>} A promise that resolves when the transition is complete.
    */
   fadeOut() {
     return new Promise((resolve) => {
@@ -310,7 +351,8 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Get current sketch info
+   * Retrieves information about the currently active sketch.
+   * @returns {{id: string|null, instance: Sketch|null, config: object|null}} An object containing the current sketch's ID, instance, and configuration.
    */
   getCurrentSketch() {
     return {
@@ -323,7 +365,8 @@ export class SketchManager extends EventEmitter {
   }
 
   /**
-   * Dispose manager
+   * Disposes of the SketchManager and all its resources.
+   * This includes the current sketch, loader element, and event listeners.
    */
   dispose() {
     // Dispose current sketch
