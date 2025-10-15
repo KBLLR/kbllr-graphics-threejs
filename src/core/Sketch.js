@@ -352,7 +352,7 @@ export class Sketch {
     this.cleanup();
 
     // Dispose Three.js objects
-    this.disposeObject(this.scene);
+    this.disposeSceneObject(this.scene);
 
     // Dispose renderer
     if (this.renderer) {
@@ -371,10 +371,18 @@ export class Sketch {
   }
 
   /**
-   * Recursively dispose of Three.js objects
+   * Recursively dispose of Three.js scene objects
    */
-  disposeObject(obj) {
+  disposeSceneObject(obj) {
     if (!obj) return;
+
+    // Dispose children first
+    if (obj.children && obj.children.length > 0) {
+      obj.children.slice().forEach(child => {
+        this.disposeSceneObject(child);
+        obj.remove(child);
+      });
+    }
 
     // Dispose geometry
     if (obj.geometry) {
@@ -390,17 +398,9 @@ export class Sketch {
       }
     }
 
-    // Dispose textures
-    if (obj.dispose && typeof obj.dispose === "function") {
+    // Dispose object itself (e.g., textures)
+    if (typeof obj.dispose === "function") {
       obj.dispose();
-    }
-
-    // Recursively dispose children
-    if (obj.children) {
-      while (obj.children.length > 0) {
-        this.disposeObject(obj.children[0]);
-        obj.remove(obj.children[0]);
-      }
     }
   }
 
@@ -411,12 +411,13 @@ export class Sketch {
     if (!material) return;
 
     // Dispose textures
-    Object.keys(material).forEach((key) => {
+    for (const key in material) {
       const value = material[key];
-      if (value && value.isTexture) {
+      // Check if the property is a texture and dispose of it
+      if (value && typeof value.dispose === 'function' && value.isTexture) {
         value.dispose();
       }
-    });
+    }
 
     // Dispose material
     if (material.dispose) {
