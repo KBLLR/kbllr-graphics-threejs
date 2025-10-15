@@ -2,11 +2,15 @@ import { Sketch } from "@core/Sketch.js";
 import * as THREE from "three";
 
 /**
- * Eyeball Sketch
- * Interactive SVG eye animation with Three.js integration
- * Based on the original Theatre.js animated eye
+ * @class EyeballSketch
+ * @classdesc An interactive sketch that combines a DOM-based SVG eye animation with a 3D particle background.
+ * The eye can follow the mouse, perform animations, and be controlled via Tweakpane.
+ * @extends Sketch
  */
 export default class EyeballSketch extends Sketch {
+  /**
+   * @param {object} [options={}] - Configuration options for the sketch.
+   */
   constructor(options = {}) {
     super({
       ...options,
@@ -35,7 +39,9 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Setup the sketch
+   * Sets up the 2D/3D hybrid scene, including the orthographic camera,
+   * the SVG eye element, and the 3D particle background.
+   * @override
    */
   async setup() {
     // Set orthographic camera for 2D view
@@ -55,7 +61,8 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Setup orthographic camera
+   * Configures and sets up an orthographic camera suitable for a 2D overlay.
+   * @private
    */
   setupOrthographicCamera() {
     const aspect = this.width / this.height;
@@ -75,7 +82,8 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Create the eye SVG element
+   * Creates the SVG eye element and appends it to the container.
+   * @private
    */
   createEyeElement() {
     // Create container div
@@ -138,7 +146,8 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Create 3D background elements
+   * Creates the 3D background elements, including particles and lighting.
+   * @private
    */
   create3DBackground() {
     // Add floating particles
@@ -174,7 +183,8 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Setup mouse tracking
+   * Adds a mouse move event listener to track the cursor's position.
+   * @private
    */
   setupMouseTracking() {
     this.container.addEventListener("mousemove", (event) => {
@@ -186,7 +196,7 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Blink animation
+   * Triggers a blink animation by manipulating the opacity of the eyelid SVG paths.
    */
   blink() {
     if (this.isBlinking) return;
@@ -215,7 +225,9 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Update eye to look at position
+   * Moves the SVG eye components to look at a specific normalized coordinate.
+   * @param {number} x - The normalized x-coordinate (-1 to 1).
+   * @param {number} y - The normalized y-coordinate (-1 to 1).
    */
   updateEyeLookAt(x, y) {
     const iris = this.eyeElement.querySelector('circle[r="20"]');
@@ -237,7 +249,11 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Update method
+   * The main update loop, called every frame.
+   * Animates the particles and updates the eye's behavior based on the current state.
+   * @param {number} deltaTime - The time elapsed since the last frame.
+   * @param {number} elapsedTime - The total elapsed time.
+   * @override
    */
   update(deltaTime, elapsedTime) {
     // Update particles
@@ -271,7 +287,9 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Setup GUI
+   * Sets up the Tweakpane GUI controls for the eye's properties and actions.
+   * @param {Pane} pane - The Tweakpane instance.
+   * @override
    */
   setupGUI(pane) {
     // Eye Controls
@@ -382,7 +400,8 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Play animation sequence
+   * Plays a predefined animation sequence by name.
+   * @param {('suspicious'|'surprised'|'sleepy')} name - The name of the sequence to play.
    */
   playSequence(name) {
     switch (name) {
@@ -420,7 +439,10 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Handle resize
+   * Handles window resize events, updating the orthographic camera to maintain aspect ratio.
+   * @param {number} width - The new width.
+   * @param {number} height - The new height.
+   * @override
    */
   onResize(width, height) {
     // Update orthographic camera
@@ -436,7 +458,8 @@ export default class EyeballSketch extends Sketch {
   }
 
   /**
-   * Cleanup
+   * Cleans up resources, specifically the DOM elements created for the eye.
+   * @override
    */
   cleanup() {
     // Remove DOM elements

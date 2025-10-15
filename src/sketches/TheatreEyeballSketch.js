@@ -5,11 +5,16 @@ import { types as t } from "@theatre/core";
 import studio from '@theatre/studio';
 
 /**
- * Theatre.js Eyeball Sketch
- * Interactive SVG eye animation with Theatre.js integration
- * Based on the original eyeball.js approach
+ * @class TheatreEyeballSketch
+ * @classdesc An interactive sketch that uses Theatre.js to animate an SVG eye.
+ * This version integrates a professional animation tool for creating complex, keyframed sequences,
+ * separating the animation logic from the component code.
+ * @extends Sketch
  */
 export default class TheatreEyeballSketch extends Sketch {
+  /**
+   * @param {object} [options={}] - Configuration options for the sketch.
+   */
   constructor(options = {}) {
     super({
       ...options,
@@ -31,7 +36,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup the sketch
+   * Initializes the sketch, setting up the camera, DOM elements, Theatre.js project, and background effects.
+   * @override
    */
   async setup() {
     // Set orthographic camera for 2D view
@@ -57,7 +63,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup orthographic camera
+   * Configures an orthographic camera for a 2D-like view.
+   * @private
    */
   setupOrthographicCamera() {
     const aspect = this.width / this.height;
@@ -77,7 +84,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Create the eye SVG element
+   * Creates and injects the DOM elements for the eye, including the SVG and its container.
+   * @private
    */
   createEyeElement() {
     // Create container div
@@ -181,7 +189,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup Theatre.js
+   * Initializes the Theatre.js project, sheet, and object, connecting them to the eye's DOM element.
+   * @private
    */
   setupTheatre() {
     try {
@@ -300,7 +309,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Create 3D background elements
+   * Creates the 3D particle background and ambient lighting.
+   * @private
    */
   create3DBackground() {
     // Add floating particles
@@ -336,7 +346,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Setup mouse tracking
+   * Sets up mouse tracking to update a vector with the cursor's position.
+   * @private
    */
   setupMouseTracking() {
     this.container.addEventListener("mousemove", (event) => {
@@ -350,7 +361,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Show a hint for Theatre.js Studio shortcut
+   * Displays a temporary on-screen hint about how to toggle the Theatre.js Studio UI.
+   * @private
    */
   showStudioHint() {
     const hintElement = document.createElement("div");
@@ -377,7 +389,9 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Update method
+   * The main update loop. Animates the background particles.
+   * @param {number} deltaTime - The time since the last frame.
+   * @override
    */
   update(deltaTime) {
     // Update particles
@@ -390,7 +404,10 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Handle resize
+   * Handles window resize events by updating the orthographic camera.
+   * @param {number} width - The new width.
+   * @param {number} height - The new height.
+   * @override
    */
   onResize(width, height) {
     // Update orthographic camera
@@ -406,7 +423,8 @@ export default class TheatreEyeballSketch extends Sketch {
   }
 
   /**
-   * Cleanup
+   * Cleans up DOM elements and other resources created by the sketch.
+   * @override
    */
   cleanup() {
     // Remove DOM elements
