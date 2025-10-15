@@ -6,13 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "author": "KBΓΓR",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.55.1",
-    "vite": "^5.0.0"
+    "canvas": "^3.2.0",
+    "jsdom": "^27.0.0",
+    "vite": "^5.0.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@theatre/core": "^0.7.2",
